@@ -13,10 +13,13 @@ export class GetUsuariosUseCase {
   async execute(): Promise<GetUsuariosResponseDto[]> {
     // 1. Obtener datos con JOINs desde el Repository
     const usuarios = await this.usuarioRepo.findAll();
+
+    
+    
     
     // 2. Usar el Mapper para convertir Entity → DTO Response
     return usuarios.map(usuario => 
-      UsuarioMapper.toUsuariosResponse(usuario)
+      UsuarioMapper.mapUsuariosResponse(usuario)
     );
     
   }

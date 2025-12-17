@@ -1,6 +1,7 @@
 // usuario.entity.ts
 export class UsuarioEntity {
   id?: string;
+  id_empleado?: string;
   nombre: string;
   nombresCompletos?: string;  // De terceros.nombres
   nit?: string;               // NIT del usuario
@@ -31,4 +32,55 @@ export class UsuarioEntity {
   }
 }
 
+export class JefesEntity {
+  id: string;
+  nombre: string;
+  nit: string;
+  email: string;
 
+  constructor(props: Partial<JefesEntity>) {
+    Object.assign(this, props);
+  }
+}
+
+export class SedesEntity {
+  id: string;
+  nombre: string;
+
+  constructor(props: Partial<SedesEntity>) {
+    Object.assign(this, props);
+  }
+}
+
+
+export class PerfilesEntity {
+  id: string;
+  nombre: string;
+
+  constructor(props: Partial<PerfilesEntity>) {
+    Object.assign(this, props);
+  }
+}
+
+export class HorarioEntity {
+  id: string;
+  sede: string;
+  hora_ent_sem_am: string;
+  hora_sal_sem_am: string;
+
+  hora_ent_sem_pm: string;
+  hora_sal_sem_pm: string;
+
+  hora_ent_am_viernes: string;
+  hora_sal_am_viernes: string;
+
+  hora_ent_pm_viernes: string;
+  hora_sal_pm_viernes: string;
+
+  hora_ent_fds: string;
+  hora_sal_fds: string;
+
+  constructor(props: Partial<HorarioEntity>) {
+    Object.assign(this, props);
+  }
+}

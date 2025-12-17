@@ -1,14 +1,52 @@
 import { Injectable } from "@nestjs/common";
 import { IUsuarioRepository } from "../../domain/usuario.repository";
 import { NotFoundException } from "@nestjs/common";
+import { AssignJefeDto } from "../../application/dto/assign-jefe.dto";
+import { UsuarioMapper } from "../../presentation/mappers/usuario.mapper";
+import { CreateJefeDto } from "../../application/dto/assign-jefe.dto";
 
 @Injectable()
 export class AssignJefeUseCase {
-  constructor(private repo: IUsuarioRepository) {}
+  constructor(private repo: IUsuarioRepository) { }
 
-  async execute(id: number, jefe: number) {
-    const user = await this.repo.findById(id);
-    if (!user) throw new NotFoundException('Usuario no encontrado');
-    return this.repo.assignJefe(id, jefe);
+  async asignarJefe(id: number, dto: AssignJefeDto) {
+
+    const jefeAsignado = await this.repo.assignJefe(id, dto.jefeId);
+    return UsuarioMapper.jefeResponse(jefeAsignado);
   }
+
+  async eliminarJefe(id: number, dto: AssignJefeDto) {
+
+    const jefe = await this.repo.eliminarJefe(id, dto.jefeId);
+    return UsuarioMapper.jefeResponse(jefe);
+  }
+
+  async verJefes(id: number) {
+
+    const jefes = await this.repo.verJefes(id);
+
+    return jefes.map((jefe) => UsuarioMapper.jefeResponse(jefe));
+  }
+
+  async verJefesAll() {
+    const jefes = await this.repo.verJefesAll();
+    return jefes.map((jefe) => UsuarioMapper.jefeResponse(jefe));
+  }
+
+  async verJefesAllGeneral() {
+    const jefes = await this.repo.verJefesAllGeneral();
+    return jefes
+  }
+
+  async verUsuariosJefes() {
+    const jefes = await this.repo.verUsuariosJefes();
+    return jefes.map((jefe) => UsuarioMapper.jefeResponseUsuario(jefe));
+  }
+
+  async crearJefe(dto: CreateJefeDto) {
+    const jefe = await this.repo.crearJefe(dto);
+    return jefe;
+  }
+
+
 }

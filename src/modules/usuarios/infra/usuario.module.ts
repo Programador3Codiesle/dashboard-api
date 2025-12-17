@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 
-import { UsuarioService } from './usuario.service';
+import { UsuarioService } from './services/usuario.service';
 import { UsuarioController } from './usuario.controller';
 import { UsuarioMapper } from '../presentation/mappers/usuario.mapper';
 import { UsuarioRepository } from './repositories/usuario.prisma.repository';
@@ -9,6 +9,7 @@ import { PrismaService } from '../../../core/infra/prisma/prisma.service';
 
 
 // Use Cases
+import { UsuarioFacade } from '../application/usuario.facade';
 import { CreateUsuarioUseCase } from '../application/use-cases/create-usuario.usecase';
 import { UpdateUsuarioUseCase } from '../application/use-cases/update-usuario.usecase';
 import { AssignSedeUseCase } from '../application/use-cases/assign-sede.usecase';
@@ -36,6 +37,7 @@ import { GetUsuariosUseCase } from '../application/use-cases/get-usuarios.usecas
         UsuarioMapper,
 
         //Use Cases
+        UsuarioFacade,
         CreateUsuarioUseCase,
         UpdateUsuarioUseCase,
         AssignSedeUseCase,
@@ -44,6 +46,6 @@ import { GetUsuariosUseCase } from '../application/use-cases/get-usuarios.usecas
         AssignEmpresaUseCase,
         GetUsuariosUseCase,
     ],
-    exports: [UsuarioService],
+    exports: [UsuarioService, UsuarioFacade],
 })
 export class UsuarioModule { }

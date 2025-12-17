@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { IUsuarioRepository } from "../../domain/usuario.repository";
 import { NotFoundException, BadRequestException } from "@nestjs/common";
 import { AgregarEmpresasResponseDto } from "../../application/dto/assign-empresa.dto";
+import { AssignEmpresaDto } from "../../application/dto/assign-empresa.dto";
 
 @Injectable()
 export class AssignEmpresaUseCase {
@@ -9,14 +10,11 @@ export class AssignEmpresaUseCase {
 
   async execute(cedulaUsuario: string, nuevasEmpresasIds: string[]): Promise<AgregarEmpresasResponseDto> {
     
-  
-
     // 2. Validar que las empresas existen
     await this.validarEmpresasExisten(nuevasEmpresasIds);
 
     // 3. Obtener empresas ACTUALES del usuario
     const empresasActuales = await this.usuarioRepo.findEmpresasByUsuario(cedulaUsuario);
-
 
    // Filtra cualquier objeto donde la propiedad sea null o undefined
   const idsActuales = empresasActuales
@@ -70,4 +68,11 @@ export class AssignEmpresaUseCase {
       }
     }
   }
+
+  async eliminarEmpresa(idUsuario: number, dto: AssignEmpresaDto) {
+    return this.usuarioRepo.eliminarEmpresa(idUsuario, dto);
+  }
+
+
+
 }

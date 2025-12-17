@@ -1,3 +1,10 @@
 export class AssignSedeDto {
-  sede: string;
+  idSede: number;
+
 }
+
+export class responseSedeDto {
+  id: number;
+  nombre: string;
+}
+
