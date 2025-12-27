@@ -125,8 +125,8 @@ export class UsuarioController {
 
   //** Reset contraseña */
   @Patch(':id/reset-password')
-  resetPassword(@Param('id') id: string , @Body() dto: UpdateUsuarioDto) {
-    return this.usuarioFacade.resetPassword(id,dto);
+  resetPassword(@Param('id') id: string, @Body() dto: UpdateUsuarioDto) {
+    return this.usuarioFacade.resetPassword(id, dto);
   }
 
   //** Deshabilitar usuario */

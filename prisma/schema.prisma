@@ -6764,3 +6764,29 @@ model Tokens {
 
   usuario w_sist_usuarios? @relation(fields: [id_usuario], references: [id_usuario], onDelete: NoAction, onUpdate: NoAction)
 }
+
+model Ticket {
+  id              Int               @id @default(autoincrement())
+  tipo_soporte    String            @db.VarChar(100)
+  anydesk         String?           @db.VarChar(50)
+  descripcion     String            @db.VarChar(Max)
+  archivo_url     String?           @db.VarChar(255)
+  empresa         String            @db.VarChar(100)
+  prioridad       String            @db.VarChar(20)
+  estado          String            @db.VarChar(20)
+  fecha_creacion  DateTime          @default(now())
+  usuario_id      Int
+  encargado_id    Int?
+  respuestas      RespuestaTicket[]
+}
+
+model RespuestaTicket {
+  id          Int      @id @default(autoincrement())
+  ticket_id   Int
+  usuario_id  Int
+  mensaje     String   @db.VarChar(Max)
+  archivo_url String?  @db.VarChar(255)
+  fecha       DateTime @default(now())
+  ticket      Ticket   @relation(fields: [ticket_id], references: [id])
+}
+

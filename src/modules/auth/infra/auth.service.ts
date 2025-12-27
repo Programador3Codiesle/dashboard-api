@@ -104,8 +104,9 @@ export class AuthService {
         // Hashear el refresh token y guardarlo
         const refreshHash = await bcrypt.hash(refreshToken, 10);
         await this.userRepo.updateRefreshToken(user.id, refreshHash);
+        console.log('USER:', user);
 
-        return { user : { id: user.id, nit_usuario: user.nit_usuario, perfil_postventa: user.perfil_postventa }, accessToken, refreshToken };
+        return { user: { id: user.id, nit_usuario: user.nit_usuario, perfil_postventa: user.perfil_postventa, nombre_usuario: user.nombre_usuario }, accessToken, refreshToken };
     }
 
 
