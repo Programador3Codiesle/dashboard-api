@@ -4,7 +4,7 @@ export class TicketsMapper {
 
 
     static mapToEntity(r: any): TicketEntity {
-        console.log(r);
+       
         
         return new TicketEntity({
             id: Number(r.id),

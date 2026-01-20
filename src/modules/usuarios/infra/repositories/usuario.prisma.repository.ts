@@ -163,8 +163,7 @@ export class UsuarioRepository {
   }
 
   async eliminarEmpresa(idUsuario: number, dto: AssignEmpresaDto): Promise<{ success: boolean; message: string }> {
-    console.log('empresas dto->', dto);
-
+ 
     try {
       if (!dto.empresas || dto.empresas.length === 0) {
         return {
@@ -391,8 +390,7 @@ export class UsuarioRepository {
 
 
   async assignHorario(idUsuario: number, dto: AssignHorarioDto): Promise<HorarioEntity> {
-    console.log("USUARIO->", idUsuario);
-    console.log("DTO->", dto);
+
     // Insertar la relación usuario-horario
     await this.prisma.$executeRaw`
       INSERT INTO postv_horarios_empleados (nit_empleado, sede, hora_ent_sem_am, hora_sal_sem_am, hora_ent_sem_pm, hora_sal_sem_pm, hora_ent_am_viernes, hora_sal_am_viernes, hora_ent_pm_viernes, hora_sal_pm_viernes, hora_ent_fds, hora_sal_fds)
@@ -630,7 +628,7 @@ export class UsuarioRepository {
 
 
   async crearUsuario(data: any): Promise<{ success: boolean; message: string }> {
-    console.log(data);
+  
     
     try {
       await this.prisma.$executeRaw`

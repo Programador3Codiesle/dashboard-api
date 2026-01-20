@@ -80,7 +80,7 @@ export class TicketPrismaRepository implements ITicketRepository {
     }
 
     async findById(id: number): Promise<TicketEntity | null> {
-        console.log(id);
+    
         const result = await this.prisma.tickets.findUnique({
             where: { id_ticket: id }
         });
@@ -175,7 +175,7 @@ export class TicketPrismaRepository implements ITicketRepository {
         `;
 
         const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
-        console.log(results);
+     
 
 
         return results.map(r => TicketsMapper.mapToEntity(r));
@@ -191,14 +191,14 @@ export class TicketPrismaRepository implements ITicketRepository {
 
     async addRespuesta(ticket: number, data: Partial<RespuestaTicketEntity>): Promise<{status: boolean, message: string}> {
         try {
-            console.log(data);
+         
             const updateData: any = {};
 
             if (data.respuesta !== undefined) updateData.respuesta = data.respuesta;
             if (data.fecha_respuesta !== undefined) updateData.fecha_respuesta = data.fecha_respuesta;
             if (data.estado !== undefined) updateData.estado = data.estado;
 
-            console.log(updateData);
+           
 
             await this.prisma.tickets.update({
                 where: { id_ticket: ticket },

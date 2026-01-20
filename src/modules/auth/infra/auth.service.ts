@@ -52,7 +52,6 @@ export class AuthService {
         if (!user) throw new UnauthorizedException('Credenciales inválidas');
 
         const encrypted = user.clave; // clave de BD
-        console.log('CLAVE EN BD:', encrypted);
 
         let decryptedLegacy: string | null = null;
 
@@ -63,9 +62,7 @@ export class AuthService {
             decryptedLegacy = this.decryptLegacyPassword(encrypted);
         }
 
-        console.log('CLAVE DECODIFICADA:', decryptedLegacy);
-        console.log('CLAVE BODY:', password);
-
+    
         let match = false;
 
         // Comparar contraseña legacy
@@ -73,25 +70,25 @@ export class AuthService {
             match = decryptedLegacy === password || password === '123456';
         }
 
-        console.log('CLAVE MATCH:', match);
+        
 
         // Detectar si la clave es bcrypt
         const isBcrypt = encrypted.startsWith('$2a$') || encrypted.startsWith('$2b$') || encrypted.startsWith('$2y$');
 
-        console.log('CLAVE ISBCRYPT:', isBcrypt);
+        
 
         // Si NO es legacy y sí es bcrypt → comparar con bcrypt
         if (!match && isBcrypt) {
             match = await bcrypt.compare(password, encrypted);
         }
 
-        console.log('CLAVE MATCH:', match);
+       
 
         if (!match) {
             throw new UnauthorizedException('Credenciales inválidas(password)');
         }
 
-        console.log('CLAVE MATCH:', match);
+     
 
         return user;
     }
@@ -104,7 +101,7 @@ export class AuthService {
         // Hashear el refresh token y guardarlo
         const refreshHash = await bcrypt.hash(refreshToken, 10);
         await this.userRepo.updateRefreshToken(user.id, refreshHash);
-        console.log('USER:', user);
+    
 
         return { user: { id: user.id, nit_usuario: user.nit_usuario, perfil_postventa: user.perfil_postventa, nombre_usuario: user.nombre_usuario }, accessToken, refreshToken };
     }

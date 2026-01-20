@@ -7,9 +7,10 @@ import { PrismaModule } from './core/infra/prisma/prisma.module';
 import { AuthModule } from './modules/auth/infra/auth.module';
 import { UsuarioModule } from './modules/usuarios/infra/usuario.module';
 import { TicketsModule } from './modules/tickets/infra/tickets.module';
+import { AdministracionModule } from './modules/administracion/administracion.module';
 
 @Module({
-  imports: [
+  imports: [  
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -17,6 +18,7 @@ import { TicketsModule } from './modules/tickets/infra/tickets.module';
     AuthModule,
     UsuarioModule,
     TicketsModule,
+    AdministracionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

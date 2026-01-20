@@ -9,8 +9,6 @@ export class LoginUseCase {
 
 
     async execute(dto: LoginDto) {
-        console.log('NIT USUARIO:', dto.nit_usuario);
-        console.log('PASSWORD:', dto.password);
         const user = await this.authService.validateUser(dto.nit_usuario, dto.password);
         return this.authService.login(user);
     }
