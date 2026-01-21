@@ -1,12 +1,14 @@
 
-import { Controller, Get, Post, Put, Body, Param, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, UseInterceptors, UploadedFile, BadRequestException, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { TicketFacade } from '../application/ticket.facade';
+import { JwtAuthGuard } from '../../auth/infra/jwt-auth.guard';
 import { CreateTicketDto, CreateRespuestaDto, ReasignarTicketDto } from '../application/dto/create-ticket.dto';
 import { UpdateTicketDto , reponderTicketDto} from '../application/dto/update-ticket.dto';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 
+@UseGuards(JwtAuthGuard)
 @Controller('tickets')
 export class TicketController {
     constructor(private readonly facade: TicketFacade) { }

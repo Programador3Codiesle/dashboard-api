@@ -1,7 +1,9 @@
-import { Controller, Get, Put, Body, Param, Query } from '@nestjs/common';
+import { Controller, Get, Put, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { AjusteValoresFacade } from '../application/ajuste-valores.facade';
 import { UpdateAjusteValoresDto } from '../application/dto/update-ajuste-valores.dto';
+import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('administracion/ajuste-valores')
 export class AjusteValoresController {
     constructor(private readonly ajusteValoresFacade: AjusteValoresFacade) { }

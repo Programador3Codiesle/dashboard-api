@@ -1,7 +1,9 @@
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards } from '@nestjs/common';
 import { FormatoDesempenoFacade } from '../application/formato-desempeno.facade';
 import { CreateFormatoDesempenoDto } from '../application/dto/create-formato-desempeno.dto';
+import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('administracion/formato-desempeno')
 export class FormatoDesempenoController {
     constructor(private readonly facade: FormatoDesempenoFacade) {}

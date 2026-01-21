@@ -114,6 +114,7 @@ export class AuthService {
 
     async refreshToken(userId: string, presentedRefreshToken: string) {
         const user = await this.userRepo.findById(userId);
+        console.log('user--->', user);
         if (!user || !user.refreshTokenHash) throw new UnauthorizedException('Refresh token inválido');
 
 

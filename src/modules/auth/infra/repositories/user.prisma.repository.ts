@@ -31,24 +31,29 @@ export class UserPrismaRepository implements IUserRepository {
 
 
     async findById(id: string): Promise<User | null> {
-        try {
-            const u = await this.prisma.w_sist_usuarios.findUnique({
-                where: { id_usuario: Number(id) },
-                include: { refreshTokens: true },
-            });
-            if (!u) return null;
-            return new User(u.id_usuario?.toString() ?? String(u.id_usuario), Number(u.nit_usuario), u.pass ?? u.clave ?? '', u.perfil_postventa?.toString() ?? 'USER', u.refreshTokens?.[0]?.refresh_token_hash);
-        } catch (error: any) {
-            // Si la tabla Tokens no existe, intentamos obtener el usuario sin la relación
-            if (error?.code === 'P2021' || error?.meta?.driverAdapterError?.kind === 'TableDoesNotExist') {
-                const u = await this.prisma.w_sist_usuarios.findUnique({
-                    where: { id_usuario: Number(id) },
-                });
-                if (!u) return null;
-                return new User(u.id_usuario?.toString() ?? String(u.id_usuario), Number(u.nit_usuario), u.pass ?? u.clave ?? '', u.perfil_postventa?.toString() ?? 'USER', undefined);
-            }
-            throw error;
-        }
+        const results: any[] = await this.prisma.$queryRaw<any[]>`
+            SELECT TOP 1
+                u.id_usuario, 
+                u.nit_usuario, 
+                u.pass, 
+                u.clave, 
+                u.perfil_postventa, 
+                t.refresh_token_hash
+            FROM w_sist_usuarios u
+            LEFT JOIN Tokens t ON t.id_usuario = u.id_usuario
+            WHERE u.id_usuario = ${Number(id)}
+            ORDER BY t.id DESC
+        `;
+        
+        const u = results[0];
+        if (!u) return null;
+        return new User(
+            u.id_usuario?.toString() ?? String(u.id_usuario),
+            Number(u.nit_usuario),
+            u.pass ?? u.clave ?? '',
+            u.perfil_postventa?.toString() ?? 'USER',
+            u.refresh_token_hash || undefined
+        );
     }
 
 
@@ -76,27 +81,24 @@ export class UserPrismaRepository implements IUserRepository {
 
     async updateRefreshToken(id: string, refreshTokenHash: string | null): Promise<void> {
         try {
-            await this.prisma.tokens.deleteMany({ where: { id_usuario: Number(id) } });
+            // Eliminar tokens anteriores del usuario
+            await this.prisma.$executeRaw`
+                DELETE FROM Tokens WHERE id_usuario = ${Number(id)}
+            `;
 
             if (refreshTokenHash) {
-                await this.prisma.tokens.create({
-                    data: {
-                        id_usuario: Number(id),
-                        refresh_token_hash: refreshTokenHash,
-                        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-                    },
-                });
+                const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+                await this.prisma.$executeRaw`
+                    INSERT INTO Tokens (id_usuario, refresh_token_hash, expires_at) 
+                    VALUES (${Number(id)}, ${refreshTokenHash}, ${expiresAt})
+                `;
             }
         } catch (error: any) {
             // Si la tabla no existe, solo registramos el error pero no fallamos
-            // Esto permite que la aplicación funcione mientras se crea la tabla
             if (error?.code === 'P2021' || error?.meta?.driverAdapterError?.kind === 'TableDoesNotExist') {
                 console.warn('La tabla Tokens no existe en la base de datos. Por favor, ejecuta la migración de Prisma para crearla.');
-                // No lanzamos el error para que la aplicación pueda continuar funcionando
-                // pero los refresh tokens no se guardarán hasta que se cree la tabla
                 return;
             }
-            // Si es otro tipo de error, lo lanzamos normalmente
             throw error;
         }
     }

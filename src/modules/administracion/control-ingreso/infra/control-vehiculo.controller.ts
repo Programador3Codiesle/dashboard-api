@@ -1,8 +1,10 @@
-import { Controller, Get, Post, Put, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, UseGuards } from '@nestjs/common';
 import { ControlVehiculoFacade } from '../application/control-vehiculo.facade';
 import { RegistrarSalidaDto } from '../application/dto/registrar-salida.dto';
 import { RegistrarLlegadaDto } from '../application/dto/registrar-llegada.dto';
+import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('administracion/control-vehiculos')
 export class ControlVehiculoController {
     constructor(private readonly facade: ControlVehiculoFacade) {}

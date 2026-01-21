@@ -6,15 +6,18 @@ import {
   Patch,
   Delete,
   Param,
-  Body
+  Body,
+  UseGuards,
 } from '@nestjs/common';
 
 import { UsuarioFacade } from '../application/usuario.facade';
+import { JwtAuthGuard } from '../../auth/infra/jwt-auth.guard';
 
 // DTOs
 import { CreateUsuarioDto, UpdateUsuarioDto, AssignSedeDto, AssignJefeDto, AssignEmpresaDto, AssignHorarioDto, CreateJefeDto } from '../application/dto';
 
 
+@UseGuards(JwtAuthGuard)
 @Controller('usuarios')
 export class UsuarioController {
   constructor(private readonly usuarioFacade: UsuarioFacade) { }

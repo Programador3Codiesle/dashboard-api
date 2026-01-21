@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Put, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, UseGuards } from '@nestjs/common';
 import { EvaluacionDesempenoFacade } from '../application/evaluacion-desempeno.facade';
 import { CreateEvaluacionDesempenoDto } from '../application/dto/create-evaluacion-desempeno.dto';
 import { CalificarEmpleadoDto } from '../application/dto/calificar-empleado.dto';
 import { RelacionarEvaluacionDto } from '../application/dto/relacionar-evaluacion.dto';
+import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('administracion/evaluacion-desempeno')
 export class EvaluacionDesempenoController {
     constructor(private readonly facade: EvaluacionDesempenoFacade) {}
