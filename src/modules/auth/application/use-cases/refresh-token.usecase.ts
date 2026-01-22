@@ -8,7 +8,7 @@ export class RefreshTokenUseCase {
     constructor(private readonly authService: AuthService) { }
 
 
-    async execute(userId: string, refreshToken: string) {
+    async execute(userId: string | null | undefined, refreshToken: string) {
         return this.authService.refreshToken(userId, refreshToken);
     }
 }

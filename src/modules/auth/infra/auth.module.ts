@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerAuthGuard } from './throttler-auth.guard';
 
 // Use Cases
 import { LoginUseCase } from '../application/use-cases/login.usecase';
@@ -23,6 +25,10 @@ import { IUserRepository } from '../domain/user.repository';
 @Module({
   imports: [
     ConfigModule,
+    ThrottlerModule.forRoot([{
+      ttl: 60000, // 1 minuto
+      limit: 5, // 5 solicitudes por minuto por IP
+    }]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (config: ConfigService) => ({
@@ -37,6 +43,9 @@ import { IUserRepository } from '../domain/user.repository';
 
   providers: [
     PrismaService,
+
+    // Rate limiting guard personalizado
+    ThrottlerAuthGuard,
 
     // repos
     {

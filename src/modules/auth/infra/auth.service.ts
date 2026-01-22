@@ -112,9 +112,22 @@ export class AuthService {
     }
 
 
-    async refreshToken(userId: string, presentedRefreshToken: string) {
+    async refreshToken(userId: string | null | undefined, presentedRefreshToken: string) {
+        // Si no se proporciona userId, extraerlo del refresh token
+        if (!userId) {
+            try {
+                const decoded = this.jwtService.decode(presentedRefreshToken) as any;
+                userId = decoded?.sub;
+                if (!userId) {
+                    throw new UnauthorizedException('Refresh token inválido: no se pudo extraer userId');
+                }
+            } catch (error) {
+                throw new UnauthorizedException('Refresh token inválido: no se pudo decodificar');
+            }
+        }
+
         const user = await this.userRepo.findById(userId);
-        console.log('user--->', user);
+        console.log('user----->', user);
         if (!user || !user.refreshTokenHash) throw new UnauthorizedException('Refresh token inválido');
 
 

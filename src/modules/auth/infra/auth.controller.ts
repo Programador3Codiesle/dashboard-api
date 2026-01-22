@@ -6,7 +6,10 @@ import {
   Get,
   Req,
   Res,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
+import { ThrottlerAuthGuard } from './throttler-auth.guard';
 import { LoginDto } from '../application/dto/login.dto';
 import { RegisterDto } from '../application/dto/register.dto';
 import { RefreshTokenDto } from '../application/dto/refresh-token.dto';
@@ -64,10 +67,19 @@ export class AuthController {
     });
   }
 
+  @UseGuards(ThrottlerAuthGuard)
+  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 refreshes por minuto por IP
   @Post('refresh')
   async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const userId = (req as any).user?.sub || req.body?.userId;
     const refreshToken = req.cookies?.['refresh_token'];
+    
+    if (!refreshToken) {
+      throw new UnauthorizedException('Refresh token no encontrado');
+    }
+
+    // Intentar obtener userId del token JWT si está disponible (opcional)
+    // Si no está disponible, el servicio lo extraerá del refresh token
+    const userId = (req as any).user?.sub || req.body?.userId || null;
 
     const { accessToken, refreshToken: newRefreshToken } =
       await this.refreshUseCase.execute(userId, refreshToken);

@@ -95,8 +95,17 @@ export class UserPrismaRepository implements IUserRepository {
             }
         } catch (error: any) {
             // Si la tabla no existe, solo registramos el error pero no fallamos
-            if (error?.code === 'P2021' || error?.meta?.driverAdapterError?.kind === 'TableDoesNotExist') {
+            // Verificar diferentes códigos de error de Prisma y diferentes formas de detectar tabla inexistente
+            const isTableDoesNotExist = 
+                error?.code === 'P2021' || 
+                error?.code === 'P2010' ||
+                error?.meta?.driverAdapterError?.kind === 'TableDoesNotExist' ||
+                error?.meta?.driverAdapterError?.cause?.kind === 'TableDoesNotExist' ||
+                (error?.message && error.message.includes("Invalid object name 'Tokens'"));
+            
+            if (isTableDoesNotExist) {
                 console.warn('La tabla Tokens no existe en la base de datos. Por favor, ejecuta la migración de Prisma para crearla.');
+                console.warn('El sistema continuará funcionando, pero los refresh tokens no se guardarán hasta que se cree la tabla.');
                 return;
             }
             throw error;
