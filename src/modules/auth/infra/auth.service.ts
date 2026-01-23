@@ -127,7 +127,6 @@ export class AuthService {
         }
 
         const user = await this.userRepo.findById(userId);
-        console.log('user----->', user);
         if (!user || !user.refreshTokenHash) throw new UnauthorizedException('Refresh token inválido');
 
 

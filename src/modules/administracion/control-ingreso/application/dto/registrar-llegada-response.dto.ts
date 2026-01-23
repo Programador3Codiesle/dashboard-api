@@ -7,7 +7,7 @@ export class RegistrarLlegadaResponseDto {
     @ApiProperty({ example: 'Llegada registrada correctamente', description: 'Mensaje de respuesta' })
     message: string;
 
-    @ApiProperty({ 
+    @ApiProperty({
         description: 'Datos del vehículo actualizado',
         required: false,
         example: {
@@ -52,6 +52,7 @@ export class RegistrarLlegadaResponseDto {
         otra_marca?: string | null;
         placa_vh_remolcado?: string | null;
         id_empresa?: number | null;
+        empresa_nombre?: string | null;
     };
 }
 

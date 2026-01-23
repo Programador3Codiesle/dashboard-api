@@ -1,21 +1,32 @@
 import { NestFactory } from '@nestjs/core';
+import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // --- 🔑 CLAVE: Configuración de CORS ---
+  const corsOrigin = process.env.CORS_ORIGIN ?? 'http://localhost:3001';
   app.enableCors({
-    origin: 'http://localhost:3001', // Reemplaza 3000 con el puerto de tu Next.js
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true, // Importante si usas cookies o sesiones
+    origin: corsOrigin,
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    credentials: true,
+    allowedHeaders: 'Content-Type,Authorization',
   });
-  // ----------------------------------------
 
-  // --- Cookies HttpOnly ---
   app.use(cookieParser());
 
-  await app.listen(process.env.PORT ?? 3000);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: false,
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+    }),
+  );
+
+  const port = process.env.PORT ?? 3000;
+  await app.listen(port);
+  console.log(`Application is running on: http://localhost:${port}`);
 }
 bootstrap();

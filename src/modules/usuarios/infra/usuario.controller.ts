@@ -158,7 +158,9 @@ export class UsuarioController {
 
   //** Crear jefe */
   @Post('crear-jefe')
-  crearJefe(@Body() dto: CreateJefeDto) {
+  crearJefe(@Body() dto: CreateJefeDto) { 
+    console.log('crear jefe controller', dto);
+    
     return this.usuarioFacade.crearJefe(dto);
   }
 

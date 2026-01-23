@@ -6,9 +6,9 @@ import { ControlVehiculoEntity } from '../../domain/control-vehiculo.entity';
 
 @Injectable()
 export class ControlVehiculoPrismaRepository implements IControlVehiculoRepository {
-    constructor(private readonly prisma: PrismaService) {}
+    constructor(private readonly prisma: PrismaService) { }
 
-    async registrarSalida(data: Partial<ControlVehiculoEntity>): Promise<{status: boolean, message: string, data?: ControlVehiculoEntity}> {
+    async registrarSalida(data: Partial<ControlVehiculoEntity>): Promise<{ status: boolean, message: string, data?: ControlVehiculoEntity }> {
         try {
             const result = await this.prisma.$queryRaw<any[]>(
                 Prisma.sql`
@@ -28,25 +28,39 @@ export class ControlVehiculoPrismaRepository implements IControlVehiculoReposito
 
             const inserted = result[0];
 
+            // Buscar el nombre de la empresa para devolverlo al front y que se vea de inmediato
+            let empresaNombre = null;
+            if (inserted.id_empresa) {
+                const empresas = await this.prisma.$queryRaw<any[]>(
+                    Prisma.sql`SELECT nombre FROM sw_empresa WHERE id = ${Number(inserted.id_empresa)}`
+                );
+                empresaNombre = empresas[0]?.nombre;
+            }
+
+            const entity = new ControlVehiculoEntity({
+                id: inserted.id ? BigInt(inserted.id) : undefined,
+                fecha_salida: new Date(inserted.fecha_salida),
+                km_salida: inserted.km_salida ? BigInt(inserted.km_salida) : BigInt(0),
+                placa: inserted.placa,
+                tipo_vehiculo: inserted.tipo_vehiculo,
+                conductor: inserted.conductor,
+                pasajeros: inserted.pasajeros,
+                persona_autorizo: inserted.persona_autorizo,
+                porteria: inserted.porteria,
+                modelo: inserted.modelo ? Number(inserted.modelo) : null,
+                taller: inserted.taller,
+                otra_marca: inserted.otra_marca,
+                placa_vh_remolcado: inserted.placa_vh_remolcado,
+                id_empresa: inserted.id_empresa ? Number(inserted.id_empresa) : null
+            });
+
+            // Adjuntar el nombre de la empresa de forma dinámica para el mapper
+            (entity as any).empresa_nombre = empresaNombre;
+
             return {
                 status: true,
                 message: 'Salida registrada correctamente',
-                data: new ControlVehiculoEntity({
-                    id: inserted.id ? BigInt(inserted.id) : undefined,
-                    fecha_salida: new Date(inserted.fecha_salida),
-                    km_salida: inserted.km_salida ? BigInt(inserted.km_salida) : BigInt(0),
-                    placa: inserted.placa,
-                    tipo_vehiculo: inserted.tipo_vehiculo,
-                    conductor: inserted.conductor,
-                    pasajeros: inserted.pasajeros,
-                    persona_autorizo: inserted.persona_autorizo,
-                    porteria: inserted.porteria,
-                    modelo: inserted.modelo ? Number(inserted.modelo) : null,
-                    taller: inserted.taller,
-                    otra_marca: inserted.otra_marca,
-                    placa_vh_remolcado: inserted.placa_vh_remolcado,
-                    id_empresa: inserted.id_empresa ? Number(inserted.id_empresa) : null
-                })
+                data: entity
             };
         } catch (error: any) {
             return {
@@ -56,7 +70,7 @@ export class ControlVehiculoPrismaRepository implements IControlVehiculoReposito
         }
     }
 
-    async registrarLlegada(id: number, fecha_llegada: Date, km_llegada: bigint, observacion?: string): Promise<{status: boolean, message: string, data?: ControlVehiculoEntity}> {
+    async registrarLlegada(id: number, fecha_llegada: Date, km_llegada: bigint, observacion?: string): Promise<{ status: boolean, message: string, data?: ControlVehiculoEntity }> {
         try {
             const result = await this.prisma.$queryRaw<any[]>(
                 Prisma.sql`
@@ -145,7 +159,7 @@ export class ControlVehiculoPrismaRepository implements IControlVehiculoReposito
 
             const result = await this.prisma.$queryRawUnsafe<any[]>(sql);
             if (!result || result.length === 0) return null;
-            
+
             return this.mapToEntity(result[0]);
         } catch (error) {
             console.error('Error buscando vehículo:', error);

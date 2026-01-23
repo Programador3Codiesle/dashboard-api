@@ -1,23 +1,28 @@
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsOptional, IsString, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class UpdateUsuarioDto {
-  @ApiProperty({ example: '1', description: 'ID del usuario' })
-  id: number;
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @ApiProperty({ example: 1, description: 'ID del usuario', required: false })
+  id?: number;
 
   @IsOptional()
   @IsString()
-  @ApiProperty({ example: '12345678', description: 'NIT del usuario' })
+  @ApiProperty({ example: '12345678', description: 'NIT del usuario', required: false })
   nit?: string;
 
   @IsOptional()
   @IsString()
-  @ApiProperty({ example: 'Nombre del usuario', description: 'Nombre del usuario' })
+  @ApiProperty({ example: 'Nombre del usuario', description: 'Nombre del usuario', required: false })
   nombre?: string;
 
   @IsOptional()
-  @ApiProperty({ example: 21, description: 'ID del perfil del usuario' })
-  perfil?: number | string; // Puede venir como número o string
-
+  @IsNumber()
+  @Type(() => Number)
+  @ApiProperty({ example: 21, description: 'ID del perfil del usuario', required: false })
+  perfil?: number;
 }
 

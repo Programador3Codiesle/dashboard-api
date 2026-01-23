@@ -139,8 +139,6 @@ export class EvaluacionDesempenoPrismaRepository implements IEvaluacionDesempeno
 
 
     async obtenerIdJefe(nit_usuario: number): Promise<number> {
-        console.log('nit_usuario', nit_usuario);
-        
         const jefe = await this.prisma.postv_jefes.findFirst({
             where: {
                 nit_jefe: nit_usuario

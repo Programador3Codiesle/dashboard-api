@@ -15,23 +15,23 @@ export class ControlVehiculoMapper {
      */
     static toListResponseDto(entity: ControlVehiculoEntity, modeloDescripcion?: string, empresaNombre?: string): ListarVehiculosResponseDto {
         // Formatear fecha de salida (YYYY-MM-DD)
-        const fechaSalidaStr = entity.fecha_salida 
-            ? entity.fecha_salida.toISOString().split('T')[0] 
+        const fechaSalidaStr = entity.fecha_salida
+            ? entity.fecha_salida.toISOString().split('T')[0]
             : null;
-        
+
         // Formatear hora de salida (12 horas con AM/PM)
-        const horaSalidaStr = entity.fecha_salida 
-            ? this.formatTime12Hours(entity.fecha_salida) 
+        const horaSalidaStr = entity.fecha_salida
+            ? this.formatTime12Hours(entity.fecha_salida)
             : null;
 
         // Formatear fecha de llegada (YYYY-MM-DD)
-        const fechaLlegadaStr = entity.fecha_llegada 
-            ? entity.fecha_llegada.toISOString().split('T')[0] 
+        const fechaLlegadaStr = entity.fecha_llegada
+            ? entity.fecha_llegada.toISOString().split('T')[0]
             : null;
-        
+
         // Formatear hora de llegada (12 horas con AM/PM)
-        const horaLlegadaStr = entity.fecha_llegada 
-            ? this.formatTime12Hours(entity.fecha_llegada) 
+        const horaLlegadaStr = entity.fecha_llegada
+            ? this.formatTime12Hours(entity.fecha_llegada)
             : null;
 
         // Determinar el modelo
@@ -73,13 +73,13 @@ export class ControlVehiculoMapper {
      */
     static toRegistrarSalidaResponseDto(entity: ControlVehiculoEntity): RegistrarSalidaResponseDto['data'] {
         // Formatear fecha de salida (YYYY-MM-DD)
-        const fechaSalidaStr = entity.fecha_salida 
-            ? entity.fecha_salida.toISOString().split('T')[0] 
+        const fechaSalidaStr = entity.fecha_salida
+            ? entity.fecha_salida.toISOString().split('T')[0]
             : '';
 
         // Formatear hora de salida (12 horas con AM/PM)
-        const horaSalidaStr = entity.fecha_salida 
-            ? this.formatTime12Hours(entity.fecha_salida) 
+        const horaSalidaStr = entity.fecha_salida
+            ? this.formatTime12Hours(entity.fecha_salida)
             : '';
 
         return {
@@ -98,6 +98,7 @@ export class ControlVehiculoMapper {
             otra_marca: entity.otra_marca || null,
             placa_vh_remolcado: entity.placa_vh_remolcado || null,
             id_empresa: entity.id_empresa ?? null,
+            empresa_nombre: (entity as any).empresa_nombre || null,
         };
     }
 
@@ -108,23 +109,23 @@ export class ControlVehiculoMapper {
      */
     static toRegistrarLlegadaResponseDto(entity: ControlVehiculoEntity): RegistrarLlegadaResponseDto['data'] {
         // Formatear fecha de salida (YYYY-MM-DD)
-        const fechaSalidaStr = entity.fecha_salida 
-            ? entity.fecha_salida.toISOString().split('T')[0] 
+        const fechaSalidaStr = entity.fecha_salida
+            ? entity.fecha_salida.toISOString().split('T')[0]
             : '';
 
         // Formatear hora de salida (12 horas con AM/PM)
-        const horaSalidaStr = entity.fecha_salida 
-            ? this.formatTime12Hours(entity.fecha_salida) 
+        const horaSalidaStr = entity.fecha_salida
+            ? this.formatTime12Hours(entity.fecha_salida)
             : '';
 
         // Formatear fecha de llegada (YYYY-MM-DD)
-        const fechaLlegadaStr = entity.fecha_llegada 
-            ? entity.fecha_llegada.toISOString().split('T')[0] 
+        const fechaLlegadaStr = entity.fecha_llegada
+            ? entity.fecha_llegada.toISOString().split('T')[0]
             : null;
 
         // Formatear hora de llegada (12 horas con AM/PM)
-        const horaLlegadaStr = entity.fecha_llegada 
-            ? this.formatTime12Hours(entity.fecha_llegada) 
+        const horaLlegadaStr = entity.fecha_llegada
+            ? this.formatTime12Hours(entity.fecha_llegada)
             : null;
 
         return {
@@ -147,6 +148,7 @@ export class ControlVehiculoMapper {
             otra_marca: entity.otra_marca || null,
             placa_vh_remolcado: entity.placa_vh_remolcado || null,
             id_empresa: entity.id_empresa ?? null,
+            empresa_nombre: (entity as any).empresa_nombre || null,
         };
     }
 

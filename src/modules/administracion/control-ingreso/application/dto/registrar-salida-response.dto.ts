@@ -7,7 +7,7 @@ export class RegistrarSalidaResponseDto {
     @ApiProperty({ example: 'Salida registrada correctamente', description: 'Mensaje de respuesta' })
     message: string;
 
-    @ApiProperty({ 
+    @ApiProperty({
         description: 'Datos del vehículo registrado',
         required: false,
         example: {
@@ -44,6 +44,7 @@ export class RegistrarSalidaResponseDto {
         otra_marca?: string | null;
         placa_vh_remolcado?: string | null;
         id_empresa?: number | null;
+        empresa_nombre?: string | null;
     };
 }
 

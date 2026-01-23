@@ -8,6 +8,7 @@ import { AssignHorarioDto } from "../../application/dto/assign-horario.dto";
 import { JefesEntity, SedesEntity, PerfilesEntity, HorarioEntity, UsuarioEntity } from "../../domain/usuario.entity";
 import { AssignEmpresaDto } from "../../application/dto/assign-empresa.dto";
 import { CreateJefeDto } from "../../application/dto/assign-jefe.dto";
+import { log } from "console";
 
 @Injectable()
 export class UsuarioRepository {
@@ -297,13 +298,13 @@ export class UsuarioRepository {
   async verSedeUsuario(id: number): Promise<SedesEntity[]> {
     const sql = `SELECT idsede
                       FROM sw_usuariosede
-                      WHERE idusuario=${id};
+                      WHERE idusuario=${id} AND idsede IS NOT NULL;
         `;
 
     const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
 
     return results.map((item) => new SedesEntity({
-      id: item.idsede.toString()
+      id: item.idsede?.toString() || ''
     }));
   }
 
@@ -381,8 +382,10 @@ export class UsuarioRepository {
       hora_sal_sem_pm: item.hora_sal_sem_pm,
       hora_ent_am_viernes: item.hora_ent_am_viernes,
       hora_sal_am_viernes: item.hora_sal_am_viernes,
-      hora_ent_pm_viernes: item.hora_ent_pm_viernes,
-      hora_sal_pm_viernes: item.hora_sal_pm_viernes,
+      hora_ent_pm_viernes: '', // Campo no existe en BD, mantener vacío para compatibilidad
+      hora_sal_pm_viernes: '', // Campo no existe en BD, mantener vacío para compatibilidad
+      hora_ent_viernes_pm: item.hora_ent_viernes_pm || '',
+      hora_sal_viernes: item.hora_sal_viernes || '',
       hora_ent_fds: item.hora_ent_fds,
       hora_sal_fds: item.hora_sal_fds,
     });
@@ -393,47 +396,12 @@ export class UsuarioRepository {
 
     // Insertar la relación usuario-horario
     await this.prisma.$executeRaw`
-      INSERT INTO postv_horarios_empleados (nit_empleado, sede, hora_ent_sem_am, hora_sal_sem_am, hora_ent_sem_pm, hora_sal_sem_pm, hora_ent_am_viernes, hora_sal_am_viernes, hora_ent_pm_viernes, hora_sal_pm_viernes, hora_ent_fds, hora_sal_fds)
-      VALUES (${idUsuario}, ${dto.sede}, ${dto.hora_ent_sem_am}, ${dto.hora_sal_sem_am}, ${dto.hora_ent_sem_pm}, ${dto.hora_sal_sem_pm}, ${dto.hora_ent_am_viernes}, ${dto.hora_sal_am_viernes}, ${dto.hora_ent_pm_viernes}, ${dto.hora_sal_pm_viernes}, ${dto.hora_ent_fds}, ${dto.hora_sal_fds})
+      INSERT INTO postv_horarios_empleados (nit_empleado, sede, hora_ent_sem_am, hora_sal_sem_am, hora_ent_sem_pm, hora_sal_sem_pm, hora_ent_am_viernes, hora_sal_am_viernes, hora_ent_viernes_pm, hora_sal_viernes, hora_ent_fds, hora_sal_fds)
+      VALUES (${idUsuario}, ${dto.sede}, ${dto.hora_ent_sem_am}, ${dto.hora_sal_sem_am}, ${dto.hora_ent_sem_pm}, ${dto.hora_sal_sem_pm}, ${dto.hora_ent_am_viernes}, ${dto.hora_sal_am_viernes}, ${dto.hora_ent_viernes_pm}, ${dto.hora_sal_viernes}, ${dto.hora_ent_fds}, ${dto.hora_sal_fds})
     `;
 
     // Obtener los datos del horario para retornarlos
-    const horarioData = await this.prisma.$queryRaw<Array<{ nit_empleado: number, sede: string, hora_ent_sem_am: string, hora_sal_sem_am: string, hora_ent_sem_pm: string, hora_sal_sem_pm: string, hora_ent_am_viernes: string, hora_sal_am_viernes: string, hora_ent_pm_viernes: string, hora_sal_pm_viernes: string, hora_ent_fds: string, hora_sal_fds: string }>>`
-      SELECT nit_empleado, sede, hora_ent_sem_am, hora_sal_sem_am, hora_ent_sem_pm, hora_sal_sem_pm, hora_ent_am_viernes, hora_sal_am_viernes, hora_ent_pm_viernes, hora_sal_pm_viernes, hora_ent_fds, hora_sal_fds
-      FROM postv_horarios_empleados
-      WHERE nit_empleado = ${idUsuario}
-    `;
-
-    return new HorarioEntity({
-      id: horarioData[0].nit_empleado.toString(),
-      sede: horarioData[0].sede,
-      hora_ent_sem_am: horarioData[0].hora_ent_sem_am,
-      hora_sal_sem_am: horarioData[0].hora_sal_sem_am,
-      hora_ent_sem_pm: horarioData[0].hora_ent_sem_pm,
-      hora_sal_sem_pm: horarioData[0].hora_sal_sem_pm,
-      hora_ent_am_viernes: horarioData[0].hora_ent_am_viernes,
-      hora_sal_am_viernes: horarioData[0].hora_sal_am_viernes,
-      hora_ent_pm_viernes: horarioData[0].hora_ent_pm_viernes,
-      hora_sal_pm_viernes: horarioData[0].hora_sal_pm_viernes,
-      hora_ent_fds: horarioData[0].hora_ent_fds,
-      hora_sal_fds: horarioData[0].hora_sal_fds,
-    });
-  }
-
-
-  async updateHorario(idUsuario: number, dto: AssignHorarioDto): Promise<HorarioEntity> {
-
-    // Insertar la relación usuario-horario
-    await this.prisma.$executeRaw`
-      UPDATE postv_horarios_empleados
-      SET sede = ${dto.sede}, hora_ent_sem_am = ${dto.hora_ent_sem_am}, hora_sal_sem_am = ${dto.hora_sal_sem_am}, hora_ent_sem_pm = ${dto.hora_ent_sem_pm},
-      hora_sal_sem_pm = ${dto.hora_sal_sem_pm}, hora_ent_am_viernes = ${dto.hora_ent_am_viernes}, hora_sal_am_viernes = ${dto.hora_sal_am_viernes},
-      hora_ent_viernes_pm = ${dto.hora_ent_pm_viernes}, hora_sal_viernes = ${dto.hora_sal_pm_viernes}, hora_ent_fds = ${dto.hora_ent_fds}, hora_sal_fds = ${dto.hora_sal_fds}
-      WHERE nit_empleado = ${idUsuario}
-    `;
-
-    // Obtener los datos del horario para retornarlos
-    const horarioData = await this.prisma.$queryRaw<Array<{ nit_empleado: number, sede: string, hora_ent_sem_am: string, hora_sal_sem_am: string, hora_ent_sem_pm: string, hora_sal_sem_pm: string, hora_ent_am_viernes: string, hora_sal_am_viernes: string, hora_ent_pm_viernes: string, hora_sal_pm_viernes: string, hora_ent_fds: string, hora_sal_fds: string }>>`
+    const horarioData = await this.prisma.$queryRaw<Array<{ nit_empleado: number, sede: string, hora_ent_sem_am: string, hora_sal_sem_am: string, hora_ent_sem_pm: string, hora_sal_sem_pm: string, hora_ent_am_viernes: string, hora_sal_am_viernes: string, hora_ent_viernes_pm: string, hora_sal_viernes: string, hora_ent_fds: string, hora_sal_fds: string }>>`
       SELECT nit_empleado, sede, hora_ent_sem_am, hora_sal_sem_am, hora_ent_sem_pm, hora_sal_sem_pm, hora_ent_am_viernes, hora_sal_am_viernes, hora_ent_viernes_pm, hora_sal_viernes, hora_ent_fds, hora_sal_fds
       FROM postv_horarios_empleados
       WHERE nit_empleado = ${idUsuario}
@@ -448,8 +416,48 @@ export class UsuarioRepository {
       hora_sal_sem_pm: horarioData[0].hora_sal_sem_pm,
       hora_ent_am_viernes: horarioData[0].hora_ent_am_viernes,
       hora_sal_am_viernes: horarioData[0].hora_sal_am_viernes,
-      hora_ent_pm_viernes: horarioData[0].hora_ent_pm_viernes,
-      hora_sal_pm_viernes: horarioData[0].hora_sal_pm_viernes,
+      hora_ent_pm_viernes: '', // Campo no existe en BD, mantener vacío para compatibilidad
+      hora_sal_pm_viernes: '', // Campo no existe en BD, mantener vacío para compatibilidad
+      hora_ent_viernes_pm: horarioData[0].hora_ent_viernes_pm || '',
+      hora_sal_viernes: horarioData[0].hora_sal_viernes || '',
+      hora_ent_fds: horarioData[0].hora_ent_fds,
+      hora_sal_fds: horarioData[0].hora_sal_fds,
+    });
+  }
+
+
+  async updateHorario(idUsuario: number, dto: AssignHorarioDto): Promise<HorarioEntity> {
+
+    // Insertar la relación usuario-horario
+    await this.prisma.$executeRaw`
+      UPDATE postv_horarios_empleados
+      SET sede = ${dto.sede}, hora_ent_sem_am = ${dto.hora_ent_sem_am}, hora_sal_sem_am = ${dto.hora_sal_sem_am}, hora_ent_sem_pm = ${dto.hora_ent_sem_pm},
+      hora_sal_sem_pm = ${dto.hora_sal_sem_pm}, hora_ent_am_viernes = ${dto.hora_ent_am_viernes}, hora_sal_am_viernes = ${dto.hora_sal_am_viernes},
+      hora_ent_viernes_pm = ${dto.hora_ent_viernes_pm}, hora_sal_viernes = ${dto.hora_sal_viernes}, 
+      hora_ent_fds = ${dto.hora_ent_fds}, hora_sal_fds = ${dto.hora_sal_fds}
+      WHERE nit_empleado = ${idUsuario}
+    `;
+
+    // Obtener los datos del horario para retornarlos
+    const horarioData = await this.prisma.$queryRaw<Array<{ nit_empleado: number, sede: string, hora_ent_sem_am: string, hora_sal_sem_am: string, hora_ent_sem_pm: string, hora_sal_sem_pm: string, hora_ent_am_viernes: string, hora_sal_am_viernes: string, hora_ent_viernes_pm: string, hora_sal_viernes: string, hora_ent_fds: string, hora_sal_fds: string }>>`
+      SELECT nit_empleado, sede, hora_ent_sem_am, hora_sal_sem_am, hora_ent_sem_pm, hora_sal_sem_pm, hora_ent_am_viernes, hora_sal_am_viernes, hora_ent_viernes_pm, hora_sal_viernes, hora_ent_fds, hora_sal_fds
+      FROM postv_horarios_empleados
+      WHERE nit_empleado = ${idUsuario}
+    `;
+
+    return new HorarioEntity({
+      id: horarioData[0].nit_empleado.toString(),
+      sede: horarioData[0].sede,
+      hora_ent_sem_am: horarioData[0].hora_ent_sem_am,
+      hora_sal_sem_am: horarioData[0].hora_sal_sem_am,
+      hora_ent_sem_pm: horarioData[0].hora_ent_sem_pm,
+      hora_sal_sem_pm: horarioData[0].hora_sal_sem_pm,
+      hora_ent_am_viernes: horarioData[0].hora_ent_am_viernes,
+      hora_sal_am_viernes: horarioData[0].hora_sal_am_viernes,
+      hora_ent_pm_viernes: '', // Campo no existe en BD, mantener vacío para compatibilidad
+      hora_sal_pm_viernes: '', // Campo no existe en BD, mantener vacío para compatibilidad
+      hora_ent_viernes_pm: horarioData[0].hora_ent_viernes_pm || '',
+      hora_sal_viernes: horarioData[0].hora_sal_viernes || '',
       hora_ent_fds: horarioData[0].hora_ent_fds,
       hora_sal_fds: horarioData[0].hora_sal_fds,
     });
@@ -589,6 +597,7 @@ export class UsuarioRepository {
   }
 
   async crearJefe(dto: CreateJefeDto): Promise<{ success: boolean; message: string }> {
+      console.log('data jefe', dto);
     try {
       await this.prisma.$executeRaw`
         INSERT INTO postv_jefes (nit_jefe, correo) VALUES (${dto.nit}, ${dto.email})

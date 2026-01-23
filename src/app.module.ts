@@ -16,8 +16,8 @@ import { AdministracionModule } from './modules/administracion/administracion.mo
       isGlobal: true,
     }),
     ThrottlerModule.forRoot([{
-      ttl: 60000, // 1 minuto
-      limit: 5, // 5 solicitudes por minuto por IP (global)
+      ttl: 60_000,
+      limit: 120, // 120 req/min por IP (evita abuso sin bloquear uso normal)
     }]),
     PrismaModule,
     AuthModule,

@@ -20,7 +20,7 @@ export class CreateTicketDto {
     @IsArray()
     @IsNumber({ allowNaN: false, allowInfinity: false }, { each: true })
     @ApiProperty({ example: 'Empresa', description: 'Empresa' })
-    empresa: number[];
+    empresa?: number[];
     @IsString()
     @ApiProperty({ example: 'Prioridad', description: 'Prioridad' })
     prioridad: string;

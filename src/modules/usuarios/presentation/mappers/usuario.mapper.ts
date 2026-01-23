@@ -215,9 +215,10 @@ export class UsuarioMapper {
             hora_sal_am_viernes: entity.hora_sal_am_viernes,
             hora_ent_pm_viernes: entity.hora_ent_pm_viernes,
             hora_sal_pm_viernes: entity.hora_sal_pm_viernes,
+            hora_ent_viernes_pm: entity.hora_ent_viernes_pm || '',
+            hora_sal_viernes: entity.hora_sal_viernes || '',
             hora_ent_fds: entity.hora_ent_fds,
             hora_sal_fds: entity.hora_sal_fds,
-
         };
     }
 

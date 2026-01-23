@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ControlVehiculoController } from './control-vehiculo.controller';
+import { ControlVehiculoController } from './ControlVehiculoController';
 import { ControlVehiculoFacade } from '../application/control-vehiculo.facade';
 import { RegistrarSalidaUseCase } from '../application/use-cases/registrar-salida.usecase';
 import { RegistrarLlegadaUseCase } from '../application/use-cases/registrar-llegada.usecase';
