@@ -17,7 +17,6 @@ export class ControlVehiculoEntity {
     otra_marca?: string | null;
     id_empresa?: number | null;
 
-
     constructor(partial: Partial<ControlVehiculoEntity>) {
         Object.assign(this, partial);
     }

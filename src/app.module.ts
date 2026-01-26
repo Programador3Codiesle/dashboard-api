@@ -11,14 +11,16 @@ import { TicketsModule } from './modules/tickets/infra/tickets.module';
 import { AdministracionModule } from './modules/administracion/administracion.module';
 
 @Module({
-  imports: [  
+  imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
-    ThrottlerModule.forRoot([{
-      ttl: 60_000,
-      limit: 120, // 120 req/min por IP (evita abuso sin bloquear uso normal)
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60_000,
+        limit: 120, // 120 req/min por IP (evita abuso sin bloquear uso normal)
+      },
+    ]),
     PrismaModule,
     AuthModule,
     UsuarioModule,
@@ -28,4 +30,4 @@ import { AdministracionModule } from './modules/administracion/administracion.mo
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

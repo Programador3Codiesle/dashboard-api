@@ -1,8 +1,6 @@
 import { UsuarioEntity, SedesEntity, JefesEntity, HorarioEntity } from "../../domain/usuario.entity";
-import { UsuarioPresenter } from "../presenters/usuario.presenter";
 import { w_sist_usuarios } from "@prisma/client";
 import { GetUsuariosResponseDto } from "../../application/dto/get-usuarios-response.dto";
-import { AssignEmpresaUseCase } from "../../application/use-cases/assign-empresa.usecase";
 import { JefesResponseDto } from "../../application/dto/assign-jefe.dto";
 import { responseSedeDto } from "../../application/dto/assign-sede.dto";
 import { responseHorarioDto } from "../../application/dto/assign-horario.dto";
@@ -24,40 +22,31 @@ export class UsuarioMapper {
         }
 
         if (dto.perfil !== undefined) {
-            mappedData.perfil_postventa = parseInt(dto.perfil); // 'perfil' del DTO → 'perfil_postventa' en BD
+            mappedData.perfil_postventa = parseInt(dto.perfil); 
         }
-
-        // Agregar otros campos que puedan venir
-        // Por ejemplo: email, estado, etc.
 
         return mappedData;
     }
 
     static mapUsuariosResponse(entity: UsuarioEntity): GetUsuariosResponseDto {
-      
-        
         const empresasArray = this.extraerEmpresasArray(entity.empresa);
         const empresasFormateadas = this.formatearEmpresas(empresasArray);
 
-
         return {
-            // Campos básicos (ya tenías)
+          
             id_empleado: entity.id_empleado,
             id: entity.id,
             createdAt: entity.createdAt,
             updatedAt: entity.updatedAt,
-            // ✅ NUEVOS campos de los JOINs
-            nombresCompletos: entity.nombresCompletos || '',  // De terceros.nombres
-            nit: entity.nit || '',                            // De w_sist_usuarios.nit_usuario
-            perfil: entity.perfil || '',                      // De postv_perfiles.nom_perfil
-            estado: entity.estado || '',                      // De w_sist_usuarios.estado_usuario
-            sede: entity.sede || '',                          // De postv_horarios_empleados.sede
-            // ✅ Para empresas
-            empresa: entity.empresa || '', // String original: "1,2,3"
-            empresaFormateada: empresasFormateadas, // "CODIESEL, DIESELCO, MITSUBISHI"
-            empresasArray: empresasArray, // ["1", "2", "3"]
+            nombresCompletos: entity.nombresCompletos || '',  
+            nit: entity.nit || '',                            
+            perfil: entity.perfil || '',                      
+            estado: entity.estado || '',                      
+            sede: entity.sede || '',                         
+            empresa: entity.empresa || '', 
+            empresaFormateada: empresasFormateadas, 
+            empresasArray: empresasArray, 
             empresasNombresArray: this.mapearEmpresasNombres(empresasArray),
-            // Campos formateados/calculados (opcional)
             estadoDisplay: this.formatearEstado(entity.estado),
             fechaCreacionFormateada: this.formatearFecha(entity.createdAt),
             tieneSede: !!entity.sede,
@@ -106,7 +95,6 @@ export class UsuarioMapper {
 
     private static formatearEmpresas(ids: string[]): string {
         if (ids.length === 0) return 'SIN EMPRESA';
-
         const nombres = this.mapearEmpresasNombres(ids);
 
         if (nombres.length === 1) {
@@ -128,7 +116,6 @@ export class UsuarioMapper {
     // ✅ Helper para formatear fecha
     private static formatearFecha(fecha?: Date | string): string {
         if (!fecha) return '';
-
         const date = typeof fecha === 'string' ? new Date(fecha) : fecha;
 
         return date.toLocaleDateString('es-ES', {

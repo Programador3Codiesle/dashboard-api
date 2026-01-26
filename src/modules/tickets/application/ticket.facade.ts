@@ -17,18 +17,11 @@ export class TicketFacade {
     ) { }
 
     create(dto: CreateTicketDto) { return this.createUC.execute(dto); }
-
-    
-
     reasignar(id: number, dto: ReasignarTicketDto) { return this.updateUC.reasignar(id, dto); }
-
     getByUsuario(id: number) { return this.getUC.getByUsuario(id); }
-
     getActivos() { return this.getUC.getActivos(); }
     getFinalizados() { return this.getUC.getFinalizados(); }
     getTicket(id: number) { return this.getUC.getTicket(id); }
-
-
     addRespuesta(ticketId: number, dto: reponderTicketDto) { return this.respondUC.execute(ticketId, dto); }
     getRespuestas(ticketId: number) { return this.respondUC.getRespuestas(ticketId); }
 }

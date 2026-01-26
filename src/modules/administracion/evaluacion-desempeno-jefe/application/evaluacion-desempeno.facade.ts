@@ -13,7 +13,6 @@ export class EvaluacionDesempenoFacade {
         private readonly calificarEmpleadoUC: CalificarEmpleadoUseCase
     ) {}
 
-
     listarEmpleadosPendientes(jefeId: number) {
         return this.listarEmpleadosPendientesUC.execute(jefeId);
     }

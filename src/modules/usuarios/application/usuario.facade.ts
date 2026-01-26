@@ -1,29 +1,25 @@
 // src/modules/usuarios/infra/usuario.service.ts
-import { Injectable } from '@nestjs/common';
-import { BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 
 // DTOs
-import { CreateUsuarioDto } from '../application/dto/create-usuario.dto';
-import { UpdateUsuarioDto } from '../application/dto/update-usuario.dto';
-import { AssignSedeDto } from '../application/dto/assign-sede.dto';
-import { AssignJefeDto, CreateJefeDto } from '../application/dto/assign-jefe.dto';
-import { AssignHorarioDto } from '../application/dto/assign-horario.dto';
-import { AssignEmpresaDto } from '../application/dto/assign-empresa.dto';
-
-
+import {
+  CreateUsuarioDto,
+  UpdateUsuarioDto,
+  AssignSedeDto,
+  AssignJefeDto,
+  CreateJefeDto,
+  AssignHorarioDto,
+  AssignEmpresaDto,
+} from './dto';
 
 // Use-cases
-import { CreateUsuarioUseCase } from '../application/use-cases/create-usuario.usecase';
-
-
-import { UpdateUsuarioUseCase } from '../application/use-cases/update-usuario.usecase';
-
-import { AssignSedeUseCase } from '../application/use-cases/assign-sede.usecase';
-import { AssignJefeUseCase } from '../application/use-cases/assign-jefe.usecase';
-import { AssignHorarioUseCase } from '../application/use-cases/assign-horario.usecase';
-import { AssignEmpresaUseCase } from '../application/use-cases/assign-empresa.usecase';
-import { GetUsuariosUseCase } from '../application/use-cases/get-usuarios.usecase';
-import { DotSquareIcon } from 'lucide-react';
+import { CreateUsuarioUseCase } from './use-cases/create-usuario.usecase';
+import { UpdateUsuarioUseCase } from './use-cases/update-usuario.usecase';
+import { AssignSedeUseCase } from './use-cases/assign-sede.usecase';
+import { AssignJefeUseCase } from './use-cases/assign-jefe.usecase';
+import { AssignHorarioUseCase } from './use-cases/assign-horario.usecase';
+import { AssignEmpresaUseCase } from './use-cases/assign-empresa.usecase';
+import { GetUsuariosUseCase } from './use-cases/get-usuarios.usecase';
 
 @Injectable()
 export class UsuarioFacade {

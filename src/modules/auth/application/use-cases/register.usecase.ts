@@ -1,4 +1,3 @@
-// src/modules/auth/application/use-cases/register.usecase.ts
 import { Injectable, BadRequestException } from '@nestjs/common';
 import * as userRepository from '../../domain/user.repository';
 import * as bcrypt from 'bcrypt';
@@ -18,7 +17,7 @@ export class RegisterUseCase {
         const created = await this.userRepo.create({
             nit_usuario: data.email,
             clave: passwordHash,
-            perfil_postventa: 'USER', // Default role
+            perfil_postventa: 'USER',
         } as any);
 
 

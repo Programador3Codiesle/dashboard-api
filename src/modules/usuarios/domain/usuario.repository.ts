@@ -11,10 +11,6 @@ export abstract class IUsuarioRepository {
   abstract verUsuarioPorNit(nit: string): Promise<boolean>;
   abstract verTercero(nit: string): Promise<boolean>;
 
-
-
-
-
   abstract updateUsuario(id: number, data: any): Promise<PerfilesEntity>;
   abstract listarPerfiles(): Promise<PerfilesEntity[]>;
   abstract listarPerfilUsuario(id: number): Promise<PerfilesEntity[]>;
@@ -41,7 +37,6 @@ export abstract class IUsuarioRepository {
   abstract eliminarEmpresa(idUsuario: number, dto: AssignEmpresaDto): Promise<{ success: boolean; message: string }>;
 
   abstract resetPassword(id: number, encryptedPassword: string): Promise<{ success: boolean; message: string }>;
-  
   abstract deshabilitar(id: number): Promise<{ success: boolean; message: string }>;
   abstract habilitar(id: number): Promise<{ success: boolean; message: string }>;
 

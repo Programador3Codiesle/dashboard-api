@@ -37,8 +37,6 @@ export class RegistrarSalidaDto {
     @ApiProperty({ example: 'Carlos, Ana, Luis', description: 'Nombres de empleados que van en el vehículo', required: false })
     pasajeros?: string;
 
-    
-
     @IsOptional()
     @IsNumber()
     @ApiProperty({ example: 1, description: 'ID de la empresa', required: false })

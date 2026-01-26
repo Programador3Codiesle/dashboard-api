@@ -7,14 +7,14 @@ export class AssignEmpresaDto {
     example: ['1', '2', '3'],
     description: 'Array de IDs de empresas a asignar',
     type: [String],
-    required: true  // ← Marcar como requerido
+    required: true
   })
   @IsArray()
   @IsString({ each: true })
-  empresas: string[];  // ← Quitar el ? para hacerlo requerido
+  empresas: string[];
 }
 
-// agregar-empresas-response.dto.ts
+
 export class AgregarEmpresasResponseDto {
   @ApiProperty({ example: true })
   success: boolean;

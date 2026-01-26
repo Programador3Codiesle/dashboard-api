@@ -7,7 +7,6 @@ import { UsuarioRepository } from './repositories/usuario.prisma.repository';
 import { IUsuarioRepository } from '../domain/usuario.repository';
 import { PrismaService } from '../../../core/infra/prisma/prisma.service';
 
-
 // Use Cases
 import { UsuarioFacade } from '../application/usuario.facade';
 import { CreateUsuarioUseCase } from '../application/use-cases/create-usuario.usecase';
@@ -23,7 +22,6 @@ import { GetUsuariosUseCase } from '../application/use-cases/get-usuarios.usecas
     controllers: [UsuarioController],
     providers: [
         PrismaService,
-
         //Repositories
         {
             provide: IUsuarioRepository,

@@ -20,7 +20,6 @@ import { ControlVehiculoMapper } from '../presentation/mappers/control-vehiculo.
         VehiculosModelosUseCase,
         { provide: IControlVehiculoRepository, useClass: ControlVehiculoPrismaRepository },
         PrismaService,
-        // Mappers
         ControlVehiculoMapper
     ],
     exports: [ControlVehiculoFacade]

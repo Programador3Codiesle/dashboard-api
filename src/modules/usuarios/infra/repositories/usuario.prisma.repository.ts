@@ -14,7 +14,6 @@ import { log } from "console";
 export class UsuarioRepository {
   constructor(private readonly prisma: PrismaService) { }
 
- 
   async findAll() {
 
     const sql = `SELECT
@@ -62,17 +61,12 @@ export class UsuarioRepository {
         `;
 
     const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
-
-
-    
-
     return results.map(UsuarioMapper.mapUsuariosBD);
 
   }
 
 
   async updateUsuario(idUsuario: number, dto: any): Promise<PerfilesEntity> {
-
 
     const usuario = await this.prisma.w_sist_usuarios.update({
       where: { id_usuario: idUsuario },
@@ -88,19 +82,16 @@ export class UsuarioRepository {
       nombre: usuarioData[0].nom_perfil,
     });
 
-
   }
 
   async delete(id: number) {
     await this.prisma.w_sist_usuarios.delete({ where: { id_usuario: id } });
   }
 
-
   async findEmpresasByUsuario(cedula: string): Promise<{ id_empresa: number }[]> {
-    // REEMPLAZA "tu_tabla_usuario_empresa" con el NOMBRE REAL de tu tabla
     return this.prisma.$queryRaw`
       SELECT idEmpresa 
-      FROM sw_empresa_usuario  -- ⚠️ REEMPLAZA con tu tabla real
+      FROM sw_empresa_usuario
       WHERE idUsuario = CAST(${cedula} AS DECIMAL(18,0))
         AND estado = 1
       ORDER BY idEmpresa
@@ -117,23 +108,21 @@ export class UsuarioRepository {
           // Verificar si ya existe
           const existe = await tx.$queryRaw<Array<{ existe: number }>>`
             SELECT 1 as existe
-            FROM sw_empresa_usuario  -- ⚠️ REEMPLAZA con tu tabla real
+            FROM sw_empresa_usuario
             WHERE idUsuario = CAST(${cedula} AS DECIMAL(18,0))
               AND idEmpresa = ${parseInt(empresaId)}
               AND estado = 1
           `;
 
           if (!existe || existe.length === 0) {
-            // No existe, insertar
             await tx.$executeRaw`
-              INSERT INTO sw_empresa_usuario  -- ⚠️ REEMPLAZA con tu tabla real
+              INSERT INTO sw_empresa_usuario
               (idEmpresa, idUsuario, estado) 
               VALUES (${parseInt(empresaId)}, CAST(${cedula} AS DECIMAL(18,0)), 1)
             `;
             agregadas.push(empresaId);
           }
         } catch (error) {
-          // Log del error pero continuar con las demás
           console.error(`Error al agregar empresa ${empresaId}:`, error.message);
         }
       }
@@ -147,7 +136,7 @@ export class UsuarioRepository {
       SELECT CASE 
         WHEN EXISTS (
           SELECT 1 
-          FROM sw_empresa  -- ⚠️ REEMPLAZA con tu tabla de empresas
+          FROM sw_empresa
           WHERE id = ${parseInt(id)}
             AND estado = 1
         ) THEN 1 
@@ -158,7 +147,6 @@ export class UsuarioRepository {
     return result[0]?.existe === 1;
   }
 
-  // ✅ Método de transacción
   async transaction<T>(fn: () => Promise<T>): Promise<T> {
     return this.prisma.$transaction(fn);
   }
@@ -173,7 +161,6 @@ export class UsuarioRepository {
         };
       }
 
-      // Convertir a números para la base de datos
       const empresasIds = dto.empresas.map(e => Number(e)).filter(n => !isNaN(n));
 
       if (empresasIds.length === 0) {
@@ -194,8 +181,6 @@ export class UsuarioRepository {
         message: 'Empresas eliminadas correctamente'
       };
     } catch (error) {
-      // In case of error, you might want to return success: false or throw. 
-      // Usually catching and returning success: false is safer if valid logic.
       return {
         success: false,
         message: 'Error al eliminar la empresa: ' + error.message
@@ -382,8 +367,8 @@ export class UsuarioRepository {
       hora_sal_sem_pm: item.hora_sal_sem_pm,
       hora_ent_am_viernes: item.hora_ent_am_viernes,
       hora_sal_am_viernes: item.hora_sal_am_viernes,
-      hora_ent_pm_viernes: '', // Campo no existe en BD, mantener vacío para compatibilidad
-      hora_sal_pm_viernes: '', // Campo no existe en BD, mantener vacío para compatibilidad
+      hora_ent_pm_viernes: '', 
+      hora_sal_pm_viernes: '',
       hora_ent_viernes_pm: item.hora_ent_viernes_pm || '',
       hora_sal_viernes: item.hora_sal_viernes || '',
       hora_ent_fds: item.hora_ent_fds,
@@ -473,7 +458,6 @@ export class UsuarioRepository {
 
 
   async listarPerfilUsuario(id: number): Promise<PerfilesEntity[]> {
-    // Usamos $queryRaw y template literal tagged para seguridad y tipado
     const perfilData = await this.prisma.$queryRaw<Array<{ id_perfil: bigint, nom_perfil: string }>>`
       SELECT 
         w.perfil_postventa AS id_perfil,  -- ✅ CORRECCIÓN 1: Usar alias 'id_perfil'
@@ -486,13 +470,12 @@ export class UsuarioRepository {
 
 
     return perfilData.map((item) => {
-      // ✅ CORRECCIÓN 2: Convertir el BigInt a string de forma segura
       const perfilId = typeof item.id_perfil === 'bigint'
         ? item.id_perfil.toString()
-        : item.id_perfil; // Si ya es string o number
+        : item.id_perfil; 
 
       return new PerfilesEntity({
-        id: perfilId, // Ahora el ID es válido
+        id: perfilId,
         nombre: item.nom_perfil
       });
     });

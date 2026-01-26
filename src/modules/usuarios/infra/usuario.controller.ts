@@ -1,4 +1,4 @@
-// src/modules/usuarios/infra/usuario.controller.ts
+
 import {
   Controller,
   Get,
@@ -58,7 +58,7 @@ export class UsuarioController {
     return this.usuarioFacade.verSedeUsuario(id);
   }
 
-  //** Ver sedes */
+  /** Ver sedes */
   @Get('sedes')
   verSedes() {
     return this.usuarioFacade.verSedes();
@@ -75,7 +75,6 @@ export class UsuarioController {
   eliminarSede(@Param('idUsuario') idUsuario: string, @Body() dto: AssignSedeDto) {
     return this.usuarioFacade.eliminarSede(idUsuario, dto);
   }
-
 
   /** Ver jefes usuario */
   @Get(':id/jefes')
@@ -101,8 +100,7 @@ export class UsuarioController {
     return this.usuarioFacade.eliminarJefe(id, dto);
   }
 
-
-  //** Ver horario usuario */
+  /** Ver horario usuario */
   @Get(':id/horario')
   verHorario(@Param('id') id: string) {
     return this.usuarioFacade.verHorario(id);
@@ -120,49 +118,48 @@ export class UsuarioController {
     return this.usuarioFacade.asignarEmpresa(id, dto);
   }
 
-  //** Eliminar empresa */
+  /** Eliminar empresa */
   @Delete(':id/eliminar-empresa')
   eliminarEmpresa(@Param('id') id: string, @Body() dto: AssignEmpresaDto) {
     return this.usuarioFacade.eliminarEmpresa(id, dto);
   }
 
-  //** Reset contraseña */
+  /** Reset contraseña */
   @Patch(':id/reset-password')
   resetPassword(@Param('id') id: string, @Body() dto: UpdateUsuarioDto) {
     return this.usuarioFacade.resetPassword(id, dto);
   }
 
-  //** Deshabilitar usuario */
+  /** Deshabilitar usuario */
   @Patch(':id/deshabilitar')
   deshabilitar(@Param('id') id: string) {
     return this.usuarioFacade.deshabilitar(id);
   }
 
-  //** Habilitar usuario */
+  /** Habilitar usuario */
   @Patch(':id/habilitar')
   habilitar(@Param('id') id: string) {
     return this.usuarioFacade.habilitar(id);
   }
 
-  //** Ver jefes general */
+  /** Ver jefes general */
   @Get('jefes-general')
   verJefesAllGeneral() {
     return this.usuarioFacade.verJefesAllGeneral();
   }
 
-  //** Ver Usuarios jefes */
+  /** Ver Usuarios jefes */
   @Get('usuarios-jefes')
   verUsuariosJefes() {
     return this.usuarioFacade.verUsuariosJefes();
   }
 
-  //** Crear jefe */
+  /** Crear jefe */
   @Post('crear-jefe')
   crearJefe(@Body() dto: CreateJefeDto) { 
     console.log('crear jefe controller', dto);
     
     return this.usuarioFacade.crearJefe(dto);
   }
-
 
 }

@@ -1,4 +1,3 @@
-// src/modules/auth/infra/repositories/user.prisma.repository.ts
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import { IUserRepository } from '../../domain/user.repository';
@@ -68,7 +67,6 @@ export class UserPrismaRepository implements IUserRepository {
                 clave: userLike.passwordHash.slice(0, 32),
                 pass: userLike.passwordHash,
                 perfil_postventa: userLike.perfil_postventa && userLike.perfil_postventa !== 'USER' ? Number(userLike.perfil_postventa) : undefined,
-                // rol: userLike.role ?? 'USER',
                 tipo_tercero: 1,
                 fid_perfil: 1,
             },

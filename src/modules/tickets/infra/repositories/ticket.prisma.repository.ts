@@ -52,7 +52,6 @@ export class TicketPrismaRepository implements ITicketRepository {
     }
 
     async update(id: number, data: Partial<TicketEntity>): Promise<{status: boolean, message: string}> {
-       
         const updateData: any = {};
 
         if (data.encargado_id !== undefined) updateData.encargado = data.encargado_id;
@@ -124,7 +123,6 @@ export class TicketPrismaRepository implements ITicketRepository {
     }
 
 
-
     async findActivos(): Promise<TicketEntity[]> {
         const sql = `SELECT 
                         tk.usuario, 
@@ -150,7 +148,6 @@ export class TicketPrismaRepository implements ITicketRepository {
         `;
 
         const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
-
         return results.map(r => TicketsMapper.mapToEntity(r));
     }
 
@@ -175,9 +172,6 @@ export class TicketPrismaRepository implements ITicketRepository {
         `;
 
         const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
-     
-
-
         return results.map(r => TicketsMapper.mapToEntity(r));
     }
 
@@ -191,14 +185,11 @@ export class TicketPrismaRepository implements ITicketRepository {
 
     async addRespuesta(ticket: number, data: Partial<RespuestaTicketEntity>): Promise<{status: boolean, message: string}> {
         try {
-         
             const updateData: any = {};
 
             if (data.respuesta !== undefined) updateData.respuesta = data.respuesta;
             if (data.fecha_respuesta !== undefined) updateData.fecha_respuesta = data.fecha_respuesta;
             if (data.estado !== undefined) updateData.estado = data.estado;
-
-           
 
             await this.prisma.tickets.update({
                 where: { id_ticket: ticket },

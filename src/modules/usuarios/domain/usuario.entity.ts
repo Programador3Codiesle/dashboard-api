@@ -3,12 +3,12 @@ export class UsuarioEntity {
   id?: string;
   id_empleado?: string;
   nombre: string;
-  nombresCompletos?: string;  // De terceros.nombres
-  nit?: string;               // NIT del usuario
-  perfil?: string;            // Nombre del perfil (postv_perfiles.nom_perfil)
-  estado?: string;            // Estado del usuario
-  sede?: string;              // Sede asignada (postv_horarios_empleados.sede)
-  empresa?: string;           // Empresa asignada (sw_empresa_usuario.idEmpresa)
+  nombresCompletos?: string;  
+  nit?: string;               
+  perfil?: string;           
+  estado?: string;            
+  sede?: string;             
+  empresa?: string;
   email: string;
   telefono?: string;
   rol: string;
