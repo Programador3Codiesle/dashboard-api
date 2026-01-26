@@ -12,18 +12,18 @@ export class ListaAusentismoPrismaRepository implements IListaAusentismoReposito
             const hoy = new Date();
             const fecha = hoy.toISOString().split('T')[0];
             
-            const sql = `
+            // Optimizado: Usar $queryRaw con parámetro seguro
+            const results = await this.prisma.$queryRaw<any[]>`
                 SELECT 
                     a.id_ausen, a.empleado, a.fecha_ini AS fecha, a.motivo,
                     t.nombres AS nombre
                 FROM postv_ausentismos a
                 LEFT JOIN terceros t ON t.nit_real = a.empleado
-                WHERE CAST(a.fecha_ini AS DATE) = '${fecha}'
+                WHERE CAST(a.fecha_ini AS DATE) = ${fecha}
                 AND a.motivo != 'Tiempo Suplementario'
                 ORDER BY a.hora_ini ASC
             `;
 
-            const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
             return results.map(r => new ListaAusentismoEntity({
                 id: BigInt(r.id_ausen),
                 empleado: r.empleado ? Number(r.empleado) : null,

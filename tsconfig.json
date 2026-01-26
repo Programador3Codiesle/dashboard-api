@@ -15,10 +15,14 @@
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
+    // Modo estricto habilitado con opciones específicas
+    "strict": true,
     "strictNullChecks": true,
+    "strictBindCallApply": true,
+    "noImplicitAny": true,
     "forceConsistentCasingInFileNames": true,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "noFallthroughCasesInSwitch": false
+    "noFallthroughCasesInSwitch": true,
+    // Deshabilitado temporalmente para migración gradual (DTOs y Entities usan Object.assign)
+    "strictPropertyInitialization": false
   }
 }

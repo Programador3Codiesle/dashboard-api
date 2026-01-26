@@ -10,13 +10,22 @@ export class UserPrismaRepository implements IUserRepository {
 
 
     async findByEmail(nit_usuario: number): Promise<User | null> {
-        const u = await this.prisma.w_sist_usuarios.findFirst({ where: { nit_usuario: nit_usuario } });
-        if (!u) return null;
+        // Optimizado: Una sola query con JOIN en lugar de 2 queries separadas (N+1)
+        const results = await this.prisma.$queryRaw<any[]>`
+            SELECT 
+                u.id_usuario,
+                u.nit_usuario,
+                u.pass,
+                u.clave,
+                u.perfil_postventa,
+                t.nombres
+            FROM w_sist_usuarios u
+            LEFT JOIN terceros t ON t.nit = u.nit_usuario
+            WHERE u.nit_usuario = ${nit_usuario}
+        `;
 
-        const tercero = await this.prisma.terceros.findUnique({
-            where: { nit: nit_usuario },
-            select: { nombres: true }
-        });
+        const u = results[0];
+        if (!u) return null;
 
         return new User(
             u.id_usuario?.toString() ?? String(u.id_usuario),
@@ -24,7 +33,7 @@ export class UserPrismaRepository implements IUserRepository {
             u.pass ?? u.clave,
             u.perfil_postventa?.toString() ?? 'USER',
             undefined,
-            tercero?.nombres
+            u.nombres
         );
     }
 

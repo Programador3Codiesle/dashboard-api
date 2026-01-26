@@ -11,32 +11,32 @@ export class AssignEmpresaDto {
   })
   @IsArray()
   @IsString({ each: true })
-  empresas: string[];
+  empresas!: string[];
 }
 
 
 export class AgregarEmpresasResponseDto {
   @ApiProperty({ example: true })
-  success: boolean;
+  success!: boolean;
 
   @ApiProperty({ example: 'Se agregaron 2 nuevas empresas' })
-  message: string;
+  message!: string;
 
   @ApiProperty({ example: '1095944273' })
-  cedula: string;
+  cedula!: string;
 
   @ApiProperty({ example: ['1', '2', '3', '4'] })
-  empresasActuales: string[];
+  empresasActuales!: string[];
 
   @ApiProperty({ example: ['1', '2', '3', '4'] })
-  empresasSolicitadas: string[];
+  empresasSolicitadas!: string[];
 
   @ApiProperty({ example: ['3', '4'] })
-  empresasAgregadas: string[];
+  empresasAgregadas!: string[];
 
   @ApiProperty({ example: ['1', '2'] })
-  empresasQueYaTenía: string[];
+  empresasQueYaTenía!: string[];
 
   @ApiProperty({ example: 4 })
-  totalEmpresas: number;
+  totalEmpresas!: number;
 }

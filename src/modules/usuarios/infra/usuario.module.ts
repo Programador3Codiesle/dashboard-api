@@ -3,9 +3,25 @@ import { Module } from '@nestjs/common';
 import { UsuarioService } from './services/usuario.service';
 import { UsuarioController } from './usuario.controller';
 import { UsuarioMapper } from '../presentation/mappers/usuario.mapper';
-import { UsuarioRepository } from './repositories/usuario.prisma.repository';
-import { IUsuarioRepository } from '../domain/usuario.repository';
 import { PrismaService } from '../../../core/infra/prisma/prisma.service';
+
+// Contratos del dominio (interfaces abstractas)
+import {
+    IUsuarioCoreRepository,
+    IUsuarioEmpresaRepository,
+    IUsuarioJefeRepository,
+    IUsuarioSedeRepository,
+    IUsuarioHorarioRepository,
+} from '../domain/repositories';
+
+// Implementaciones de infraestructura (Prisma)
+import {
+    UsuarioCoreRepository,
+    UsuarioEmpresaRepository,
+    UsuarioJefeRepository,
+    UsuarioSedeRepository,
+    UsuarioHorarioRepository,
+} from './repositories';
 
 // Use Cases
 import { UsuarioFacade } from '../application/usuario.facade';
@@ -17,24 +33,55 @@ import { AssignHorarioUseCase } from '../application/use-cases/assign-horario.us
 import { AssignEmpresaUseCase } from '../application/use-cases/assign-empresa.usecase';
 import { GetUsuariosUseCase } from '../application/use-cases/get-usuarios.usecase';
 
+/**
+ * Módulo de Usuarios - Clean Architecture + DDD
+ * 
+ * Implementa el principio de Inversión de Dependencias (DIP):
+ * - Los Use Cases dependen de interfaces abstractas (dominio)
+ * - Las implementaciones concretas (Prisma) se inyectan en tiempo de ejecución
+ * 
+ * Repositorios especializados (SRP):
+ * - IUsuarioCoreRepository: CRUD básico de usuarios
+ * - IUsuarioEmpresaRepository: Gestión de empresas
+ * - IUsuarioJefeRepository: Gestión de jefes
+ * - IUsuarioSedeRepository: Gestión de sedes
+ * - IUsuarioHorarioRepository: Gestión de horarios
+ */
 @Module({
     imports: [],
     controllers: [UsuarioController],
     providers: [
         PrismaService,
-        //Repositories
+
+        // Inyección de dependencias basada en contratos (DIP - Dependency Inversion Principle)
         {
-            provide: IUsuarioRepository,
-            useClass: UsuarioRepository,
+            provide: IUsuarioCoreRepository,
+            useClass: UsuarioCoreRepository,
+        },
+        {
+            provide: IUsuarioEmpresaRepository,
+            useClass: UsuarioEmpresaRepository,
+        },
+        {
+            provide: IUsuarioJefeRepository,
+            useClass: UsuarioJefeRepository,
+        },
+        {
+            provide: IUsuarioSedeRepository,
+            useClass: UsuarioSedeRepository,
+        },
+        {
+            provide: IUsuarioHorarioRepository,
+            useClass: UsuarioHorarioRepository,
         },
 
-        //Services
+        // Services
         UsuarioService,
 
-        //Mappers
+        // Mappers
         UsuarioMapper,
 
-        //Use Cases
+        // Use Cases
         UsuarioFacade,
         CreateUsuarioUseCase,
         UpdateUsuarioUseCase,
@@ -44,6 +91,15 @@ import { GetUsuariosUseCase } from '../application/use-cases/get-usuarios.usecas
         AssignEmpresaUseCase,
         GetUsuariosUseCase,
     ],
-    exports: [UsuarioService, UsuarioFacade],
+    exports: [
+        UsuarioService,
+        UsuarioFacade,
+        // Exportar contratos para uso en otros módulos
+        IUsuarioCoreRepository,
+        IUsuarioEmpresaRepository,
+        IUsuarioJefeRepository,
+        IUsuarioSedeRepository,
+        IUsuarioHorarioRepository,
+    ],
 })
-export class UsuarioModule { }
+export class UsuarioModule {}

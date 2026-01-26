@@ -4,14 +4,13 @@ import { ApiProperty } from '@nestjs/swagger';
 export class AssignSedeDto {
   @IsNumber()
   @ApiProperty({ example: 1, description: 'ID de la sede' })
-  idSede: number;
+  idSede!: number;
 }
 
 export class responseSedeDto {
   @ApiProperty({ example: 1, description: 'ID de la sede' })
-  id: number;
+  id!: number;
   
   @ApiProperty({ example: 'Bucaramanga', description: 'Nombre de la sede' })
-  nombre: string;
+  nombre?: string;
 }
-

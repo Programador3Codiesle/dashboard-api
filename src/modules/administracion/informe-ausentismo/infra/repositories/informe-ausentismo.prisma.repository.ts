@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
 import { IAusentismoRepository } from '../../domain/ausentismo.repository';
 import { AusentismoEntity } from '../../domain/ausentismo.entity';
@@ -9,7 +10,22 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
 
     async listar(filtros?: any): Promise<AusentismoEntity[]> {
         try {
-            let sql = `
+            // Optimizado: Usar Prisma.sql para construir queries seguras
+            const conditions: Prisma.Sql[] = [Prisma.sql`1=1`];
+
+            if (filtros?.fecha_desde) {
+                conditions.push(Prisma.sql`CAST(a.fecha_ini AS DATE) >= ${filtros.fecha_desde}`);
+            }
+            if (filtros?.fecha_hasta) {
+                conditions.push(Prisma.sql`CAST(a.fecha_ini AS DATE) <= ${filtros.fecha_hasta}`);
+            }
+            if (filtros?.sede) {
+                conditions.push(Prisma.sql`a.sede LIKE ${'%' + filtros.sede + '%'}`);
+            }
+
+            const whereClause = Prisma.join(conditions, ' AND ');
+
+            const results = await this.prisma.$queryRaw<any[]>`
                 SELECT 
                     a.id_ausen, a.sede, a.area, a.fecha_ini AS fecha_inicio,
                     a.hora_ini AS hora_inicio, a.fecha_fin AS fecha_fin, 
@@ -19,22 +35,10 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
                 FROM postv_ausentismos a
                 LEFT JOIN terceros t ON t.nit_real = a.empleado
                 LEFT JOIN terceros j ON j.nit_real = a.nit_usuario_resp
-                WHERE 1=1
+                WHERE ${whereClause}
+                ORDER BY a.fecha_ini DESC
             `;
 
-            if (filtros?.fecha_desde) {
-                sql += ` AND CAST(a.fecha_ini AS DATE) >= '${filtros.fecha_desde}'`;
-            }
-            if (filtros?.fecha_hasta) {
-                sql += ` AND CAST(a.fecha_ini AS DATE) <= '${filtros.fecha_hasta}'`;
-            }
-            if (filtros?.sede) {
-                sql += ` AND a.sede LIKE '%${filtros.sede}%'`;
-            }
-
-            sql += ` ORDER BY a.fecha_ini DESC`;
-
-            const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
             return results.map(r => new AusentismoEntity({
                 id_ausen: BigInt(r.id_ausen),
                 gestionado_por: r.gestionado_por,
@@ -56,7 +60,8 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
 
     async findById(id: bigint): Promise<AusentismoEntity | null> {
         try {
-            const sql = `
+            // Optimizado: Usar $queryRaw con parámetro seguro
+            const result = await this.prisma.$queryRaw<any[]>`
                 SELECT 
                     a.id_ausen, a.sede, a.area, a.fecha_ini AS fecha_inicio,
                     a.hora_ini AS hora_inicio, a.fecha_fin AS fecha_fin, 
@@ -69,7 +74,6 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
                 WHERE a.id_ausen = ${id}
             `;
 
-            const result = await this.prisma.$queryRawUnsafe<any[]>(sql);
             if (!result || result.length === 0) return null;
 
             const r = result[0];

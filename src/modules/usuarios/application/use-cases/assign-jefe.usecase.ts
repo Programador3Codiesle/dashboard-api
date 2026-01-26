@@ -1,52 +1,54 @@
-import { Injectable } from "@nestjs/common";
-import { IUsuarioRepository } from "../../domain/usuario.repository";
-import { NotFoundException } from "@nestjs/common";
-import { AssignJefeDto } from "../../application/dto/assign-jefe.dto";
+import { Injectable, Inject } from "@nestjs/common";
+import { AssignJefeDto, CreateJefeDto } from "../../application/dto/assign-jefe.dto";
 import { UsuarioMapper } from "../../presentation/mappers/usuario.mapper";
-import { CreateJefeDto } from "../../application/dto/assign-jefe.dto";
+import { IUsuarioJefeRepository } from "../../domain/repositories/usuario-jefe.repository";
+import { IUsuarioCoreRepository } from "../../domain/repositories/usuario-core.repository";
 
+/**
+ * Use Case para gestión de Jefes
+ * Depende de las interfaces IUsuarioJefeRepository e IUsuarioCoreRepository (DIP)
+ */
 @Injectable()
 export class AssignJefeUseCase {
-  constructor(private repo: IUsuarioRepository) { }
+  constructor(
+    @Inject(IUsuarioJefeRepository)
+    private readonly jefeRepo: IUsuarioJefeRepository,
+    @Inject(IUsuarioCoreRepository)
+    private readonly coreRepo: IUsuarioCoreRepository,
+  ) {}
 
   async asignarJefe(id: number, dto: AssignJefeDto) {
-
-    const jefeAsignado = await this.repo.assignJefe(id, dto.jefeId);
+    const jefeAsignado = await this.jefeRepo.assignJefe(id, dto.jefeId);
     return UsuarioMapper.jefeResponse(jefeAsignado);
   }
 
   async eliminarJefe(id: number, dto: AssignJefeDto) {
-
-    const jefe = await this.repo.eliminarJefe(id, dto.jefeId);
+    const jefe = await this.jefeRepo.eliminarJefe(id, dto.jefeId);
     return UsuarioMapper.jefeResponse(jefe);
   }
 
   async verJefes(id: number) {
-
-    const jefes = await this.repo.verJefes(id);
-
+    const jefes = await this.jefeRepo.verJefes(id);
     return jefes.map((jefe) => UsuarioMapper.jefeResponse(jefe));
   }
 
   async verJefesAll() {
-    const jefes = await this.repo.verJefesAll();
+    const jefes = await this.jefeRepo.verJefesAll();
     return jefes.map((jefe) => UsuarioMapper.jefeResponse(jefe));
   }
 
   async verJefesAllGeneral() {
-    const jefes = await this.repo.verJefesAllGeneral();
-    return jefes
+    const jefes = await this.jefeRepo.verJefesAllGeneral();
+    return jefes;
   }
 
   async verUsuariosJefes() {
-    const jefes = await this.repo.verUsuariosJefes();
-    return jefes.map((jefe) => UsuarioMapper.jefeResponseUsuario(jefe));
+    const usuarios = await this.coreRepo.verUsuariosJefes();
+    return usuarios.map((usuario) => UsuarioMapper.jefeResponseUsuario(usuario));
   }
 
   async crearJefe(dto: CreateJefeDto) {
-    const jefe = await this.repo.crearJefe(dto);
+    const jefe = await this.jefeRepo.crearJefe(dto);
     return jefe;
   }
-
-
 }

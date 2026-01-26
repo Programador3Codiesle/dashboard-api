@@ -12,23 +12,23 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
             const fechaIni = data.fecha_ini?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0];
             const fechaFin = data.fecha_fin?.toISOString().split('T')[0] || fechaIni;
             
-            const sql = `
+            // Optimizado: Usar $queryRaw con parámetros seguros
+            const result = await this.prisma.$queryRaw<any[]>`
                 INSERT INTO postv_ausentismos 
                 (empleado, cargo_emp, sede, area, fecha_ini, hora_ini, fecha_fin, hora_fin, 
                  descripcion, autorizacion, motivo, titulo, nit_usuario_resp)
                 OUTPUT INSERTED.*
                 VALUES 
-                (${data.empleado}, ${data.cargo_emp ? `'${data.cargo_emp}'` : 'NULL'}, 
-                 ${data.sede ? `'${data.sede}'` : 'NULL'}, '${data.area}', 
-                 '${fechaIni}', ${data.hora_ini ? `'${data.hora_ini}'` : 'NULL'}, 
-                 '${fechaFin}', ${data.hora_fin ? `'${data.hora_fin}'` : 'NULL'}, 
-                 '${data.descripcion}', ${data.autorizacion || 0}, 
-                 ${data.motivo ? `'${data.motivo}'` : 'NULL'}, 
-                 ${data.titulo ? `'${data.titulo}'` : 'NULL'}, 
-                 ${data.nit_usuario_resp || 'NULL'})
+                (${data.empleado}, ${data.cargo_emp ?? null}, 
+                 ${data.sede ?? null}, ${data.area}, 
+                 ${fechaIni}, ${data.hora_ini ?? null}, 
+                 ${fechaFin}, ${data.hora_fin ?? null}, 
+                 ${data.descripcion}, ${data.autorizacion || 0}, 
+                 ${data.motivo ?? null}, 
+                 ${data.titulo ?? null}, 
+                 ${data.nit_usuario_resp ?? null})
             `;
 
-            const result = await this.prisma.$queryRawUnsafe<any[]>(sql);
             const inserted = result[0];
 
             return {
@@ -46,7 +46,8 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
 
     async obtenerPorMes(mes: number, anio: number): Promise<NuevoAusentismoEntity[]> {
         try {
-            const sql = `
+            // Optimizado: Usar $queryRaw con parámetros seguros
+            const results = await this.prisma.$queryRaw<any[]>`
                 SELECT 
                     id_ausen, empleado, cargo_emp, sede, area, fecha_ini, hora_ini, 
                     fecha_fin, hora_fin, descripcion, autorizacion, motivo, titulo, nit_usuario_resp
@@ -55,7 +56,6 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
                 ORDER BY fecha_ini ASC
             `;
 
-            const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
             return results.map(r => this.mapToEntity(r));
         } catch (error) {
             console.error('Error obteniendo ausentismos:', error);

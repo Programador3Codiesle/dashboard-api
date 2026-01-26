@@ -9,16 +9,16 @@ export class OrdenSalidaPrismaRepository implements IOrdenSalidaRepository {
 
     async buscarPorPlaca(placa: string): Promise<OrdenSalidaEntity[]> {
         try {
-            const sql = `
+            // Optimizado: Usar $queryRaw con parámetro seguro
+            const results = await this.prisma.$queryRaw<any[]>`
                 SELECT 
                     id_cotizacion, placa, clase, descripcion, des_modelo, 
                     bodega, fecha_creacion, revision AS numero_orden
                 FROM postv_cotizacion_contact
-                WHERE placa = '${placa}'
+                WHERE placa = ${placa}
                 ORDER BY fecha_creacion DESC
             `;
 
-            const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
             return results.map(r => this.mapToEntity(r));
         } catch (error) {
             console.error('Error buscando órdenes por placa:', error);

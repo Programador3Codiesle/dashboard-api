@@ -1,16 +1,21 @@
-import { Injectable } from "@nestjs/common";
-
+import { Injectable, Inject } from "@nestjs/common";
 import { UsuarioMapper } from "../../presentation/mappers/usuario.mapper";
-import { IUsuarioRepository } from "../../domain/usuario.repository";
+import { IUsuarioCoreRepository } from "../../domain/repositories/usuario-core.repository";
 
+/**
+ * Use Case para listar Usuarios
+ * Depende de la interfaz IUsuarioCoreRepository (DIP - Inversión de Dependencias)
+ * @deprecated Usar GetUsuariosUseCase en su lugar
+ */
 @Injectable()
 export class ListUsuariosUseCase {
   constructor(
-    private readonly repo: IUsuarioRepository
-  ) { }
+    @Inject(IUsuarioCoreRepository)
+    private readonly coreRepo: IUsuarioCoreRepository
+  ) {}
 
   async execute() {
-    const usuarios = await this.repo.findAll();
-
+    const usuarios = await this.coreRepo.findAll();
+    return usuarios.map(usuario => UsuarioMapper.mapUsuariosResponse(usuario));
   }
 }

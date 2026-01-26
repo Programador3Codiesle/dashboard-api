@@ -4,6 +4,7 @@ import { AppService } from './app.service';
 
 import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
+import { CacheModule } from '@nestjs/cache-manager';
 import { PrismaModule } from './core/infra/prisma/prisma.module';
 import { AuthModule } from './modules/auth/infra/auth.module';
 import { UsuarioModule } from './modules/usuarios/infra/usuario.module';
@@ -14,6 +15,12 @@ import { AdministracionModule } from './modules/administracion/administracion.mo
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    // Caché en memoria para endpoints de lectura frecuente
+    CacheModule.register({
+      isGlobal: true,
+      ttl: 5 * 60 * 1000, // 5 minutos por defecto
+      max: 100, // máximo 100 items en caché
     }),
     ThrottlerModule.forRoot([
       {

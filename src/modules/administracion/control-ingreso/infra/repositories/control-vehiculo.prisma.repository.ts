@@ -106,7 +106,8 @@ export class ControlVehiculoPrismaRepository implements IControlVehiculoReposito
 
     async listar(): Promise<Array<ControlVehiculoEntity & { modelo_descripcion?: string; empresa_nombre?: string }>> {
         try {
-            const sql = `
+            // Optimizado: Usar $queryRaw (seguro contra SQL injection)
+            const results = await this.prisma.$queryRaw<any[]>`
                 SELECT 
                     ctrl.id,
                     ctrl.fecha_salida,
@@ -124,16 +125,14 @@ export class ControlVehiculoPrismaRepository implements IControlVehiculoReposito
                     ctrl.placa_vh_remolcado,
                     ctrl.porteria,
                     ctrl.taller,
-                    -- Información adicional para el mapper
                     fam.descripcion AS modelo_descripcion,
                     se.nombre AS empresa_nombre
                 FROM postv_control_ing_sal_vehiculos AS ctrl
                 LEFT JOIN vh_familias AS fam ON fam.id = ctrl.modelo
-                LEFT JOIN sw_empresa as se on ctrl.id_empresa=se.id
+                LEFT JOIN sw_empresa as se on ctrl.id_empresa = se.id
                 ORDER BY ctrl.id DESC
             `;
 
-            const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
             return results.map(row => ({
                 ...this.mapToEntity(row),
                 modelo_descripcion: row.modelo_descripcion || undefined,
@@ -147,7 +146,8 @@ export class ControlVehiculoPrismaRepository implements IControlVehiculoReposito
 
     async findById(id: bigint): Promise<ControlVehiculoEntity | null> {
         try {
-            const sql = `
+            // Optimizado: Usar $queryRaw con parámetro seguro
+            const result = await this.prisma.$queryRaw<any[]>`
                 SELECT 
                     id, fecha_salida, km_salida, placa, tipo_vehiculo, 
                     conductor, pasajeros, persona_autorizo, fecha_llegada, 
@@ -157,7 +157,6 @@ export class ControlVehiculoPrismaRepository implements IControlVehiculoReposito
                 WHERE id = ${id}
             `;
 
-            const result = await this.prisma.$queryRawUnsafe<any[]>(sql);
             if (!result || result.length === 0) return null;
 
             return this.mapToEntity(result[0]);

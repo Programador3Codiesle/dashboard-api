@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
 import { IInformeTiempoSuplementarioRepository } from '../../domain/informe-tiempo-suplementario.repository';
 import { InformeTiempoSuplementarioEntity } from '../../domain/informe-tiempo-suplementario.entity';
@@ -9,7 +10,29 @@ export class InformeTiempoSuplementarioPrismaRepository implements IInformeTiemp
 
     async listar(filtros?: any): Promise<InformeTiempoSuplementarioEntity[]> {
         try {
-            let sql = `
+            // Optimizado: Usar Prisma.sql para construir queries seguras
+            const conditions: Prisma.Sql[] = [Prisma.sql`a.motivo = 'Tiempo Suplementario'`];
+
+            if (filtros?.mes) {
+                conditions.push(Prisma.sql`MONTH(a.fecha_ini) = ${filtros.mes}`);
+            }
+            if (filtros?.sede) {
+                conditions.push(Prisma.sql`a.sede LIKE ${'%' + filtros.sede + '%'}`);
+            }
+            if (filtros?.area) {
+                conditions.push(Prisma.sql`a.area LIKE ${'%' + filtros.area + '%'}`);
+            }
+            if (filtros?.empleado) {
+                conditions.push(Prisma.sql`a.empleado = ${filtros.empleado}`);
+            }
+            if (filtros?.buscar) {
+                const searchTerm = '%' + filtros.buscar + '%';
+                conditions.push(Prisma.sql`(t.nombres LIKE ${searchTerm} OR a.descripcion LIKE ${searchTerm})`);
+            }
+
+            const whereClause = Prisma.join(conditions, ' AND ');
+
+            const results = await this.prisma.$queryRaw<any[]>`
                 SELECT 
                     a.id_ausen, a.fecha_ini AS fecha_inicio, a.hora_ini AS hora_inicio,
                     a.fecha_ini AS fecha_solicitud, a.descripcion, a.autorizacion,
@@ -19,28 +42,10 @@ export class InformeTiempoSuplementarioPrismaRepository implements IInformeTiemp
                 FROM postv_ausentismos a
                 LEFT JOIN terceros t ON t.nit_real = a.empleado
                 LEFT JOIN terceros j ON j.nit_real = a.nit_usuario_resp
-                WHERE a.motivo = 'Tiempo Suplementario'
+                WHERE ${whereClause}
+                ORDER BY a.fecha_ini DESC
             `;
 
-            if (filtros?.mes) {
-                sql += ` AND MONTH(a.fecha_ini) = ${filtros.mes}`;
-            }
-            if (filtros?.sede) {
-                sql += ` AND a.sede LIKE '%${filtros.sede}%'`;
-            }
-            if (filtros?.area) {
-                sql += ` AND a.area LIKE '%${filtros.area}%'`;
-            }
-            if (filtros?.empleado) {
-                sql += ` AND a.empleado = ${filtros.empleado}`;
-            }
-            if (filtros?.buscar) {
-                sql += ` AND (t.nombres LIKE '%${filtros.buscar}%' OR a.descripcion LIKE '%${filtros.buscar}%')`;
-            }
-
-            sql += ` ORDER BY a.fecha_ini DESC`;
-
-            const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
             return results.map(r => new InformeTiempoSuplementarioEntity({
                 id: BigInt(r.id_ausen),
                 nombre_jefe: r.nombre_jefe,

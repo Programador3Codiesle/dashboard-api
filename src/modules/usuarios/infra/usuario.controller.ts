@@ -1,4 +1,3 @@
-
 import {
   Controller,
   Get,
@@ -8,7 +7,9 @@ import {
   Param,
   Body,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
+import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 
 import { UsuarioFacade } from '../application/usuario.facade';
 import { JwtAuthGuard } from '../../auth/infra/jwt-auth.guard';
@@ -34,8 +35,10 @@ export class UsuarioController {
     return this.usuarioFacade.actualizarUsuario(id, dto);
   }
 
-  //** Traer todos los perfiles */
+  //** Traer todos los perfiles - Con caché de 15 minutos (datos estáticos) */
   @Get('perfiles')
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(15 * 60 * 1000) // 15 minutos
   listarPerfiles() {
     return this.usuarioFacade.listarPerfiles();
   }
@@ -46,8 +49,10 @@ export class UsuarioController {
     return this.usuarioFacade.listarPerfilUsuario(id);
   }
 
-  /** Listar usuarios */
+  /** Listar usuarios - Con caché de 5 minutos */
   @Get()
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(5 * 60 * 1000) // 5 minutos
   listar() {
     return this.usuarioFacade.listar();
   }
@@ -58,8 +63,10 @@ export class UsuarioController {
     return this.usuarioFacade.verSedeUsuario(id);
   }
 
-  /** Ver sedes */
+  /** Ver sedes - Con caché de 15 minutos (datos muy estáticos) */
   @Get('sedes')
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(15 * 60 * 1000) // 15 minutos
   verSedes() {
     return this.usuarioFacade.verSedes();
   }
@@ -82,8 +89,10 @@ export class UsuarioController {
     return this.usuarioFacade.verJefes(id);
   }
 
-  /** Ver jefes */
+  /** Ver jefes - Con caché de 10 minutos */
   @Get('jefes')
+  @UseInterceptors(CacheInterceptor)
+  @CacheTTL(10 * 60 * 1000) // 10 minutos
   verJefesAll() {
     return this.usuarioFacade.verJefesAll();
   }

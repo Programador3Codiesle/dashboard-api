@@ -9,26 +9,24 @@ export class TiempoSuplementarioPrismaRepository implements ITiempoSuplementario
 
     async create(data: Partial<TiempoSuplementarioEntity>): Promise<{status: boolean, message: string, data?: TiempoSuplementarioEntity}> {
         try {
-            // Usar la misma tabla de ausentismos pero con un tipo diferente o crear tabla específica
-            // Por ahora usaré postv_ausentismos con un campo de tipo diferente
             const fechaIni = data.fecha_ini?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0];
+            const titulo = `Jornada Adicional: ${data.hora_ini || ''} - ${data.hora_fin || ''}`;
             
-            const sql = `
+            // Optimizado: Usar $queryRaw con parámetros seguros
+            const result = await this.prisma.$queryRaw<any[]>`
                 INSERT INTO postv_ausentismos 
                 (empleado, cargo_emp, sede, area, fecha_ini, hora_ini, fecha_fin, hora_fin, 
                  descripcion, autorizacion, motivo, titulo)
                 OUTPUT INSERTED.*
                 VALUES 
-                (${data.empleado}, ${data.cargo_emp ? `'${data.cargo_emp}'` : 'NULL'}, 
-                 ${data.sede ? `'${data.sede}'` : 'NULL'}, '${data.area}', 
-                 '${fechaIni}', ${data.hora_ini ? `'${data.hora_ini}'` : 'NULL'}, 
-                 '${fechaIni}', ${data.hora_fin ? `'${data.hora_fin}'` : 'NULL'}, 
-                 '${data.descripcion}', ${data.estado || 0}, 
-                 'Tiempo Suplementario', 
-                 'Jornada Adicional: ${data.hora_ini} - ${data.hora_fin}')
+                (${data.empleado}, ${data.cargo_emp ?? null}, 
+                 ${data.sede ?? null}, ${data.area}, 
+                 ${fechaIni}, ${data.hora_ini ?? null}, 
+                 ${fechaIni}, ${data.hora_fin ?? null}, 
+                 ${data.descripcion}, ${data.estado || 0}, 
+                 ${'Tiempo Suplementario'}, ${titulo})
             `;
 
-            const result = await this.prisma.$queryRawUnsafe<any[]>(sql);
             const inserted = result[0];
 
             return {
@@ -46,7 +44,8 @@ export class TiempoSuplementarioPrismaRepository implements ITiempoSuplementario
 
     async obtenerPorMes(mes: number, anio: number): Promise<TiempoSuplementarioEntity[]> {
         try {
-            const sql = `
+            // Optimizado: Usar $queryRaw con parámetros seguros
+            const results = await this.prisma.$queryRaw<any[]>`
                 SELECT 
                     id_ausen, empleado, cargo_emp, sede, area, fecha_ini, hora_ini, 
                     fecha_fin, hora_fin, descripcion, autorizacion, motivo, titulo
@@ -56,7 +55,6 @@ export class TiempoSuplementarioPrismaRepository implements ITiempoSuplementario
                 ORDER BY fecha_ini ASC
             `;
 
-            const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
             return results.map(r => this.mapToEntity(r));
         } catch (error) {
             console.error('Error obteniendo tiempo suplementario:', error);

@@ -9,10 +9,14 @@ import { Request } from 'express';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(private config: ConfigService) {
+        const secretKey = config.get<string>('JWT_ACCESS_TOKEN_SECRET');
+        if (!secretKey) {
+            throw new Error('JWT_ACCESS_TOKEN_SECRET no está configurado');
+        }
         super({
             jwtFromRequest: JwtStrategy.extractJwtFromCookie,
             ignoreExpiration: false,
-            secretOrKey: config.get('JWT_ACCESS_TOKEN_SECRET'),
+            secretOrKey: secretKey,
         });
     }
 

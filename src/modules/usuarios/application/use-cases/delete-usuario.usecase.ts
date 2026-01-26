@@ -1,11 +1,18 @@
-import { Injectable } from "@nestjs/common";
-import { UsuarioRepository } from "../../infra/repositories/usuario.prisma.repository";
+import { Injectable, Inject } from "@nestjs/common";
+import { IUsuarioCoreRepository } from "../../domain/repositories/usuario-core.repository";
 
+/**
+ * Use Case para eliminar Usuario
+ * Depende de la interfaz IUsuarioCoreRepository (DIP - Inversión de Dependencias)
+ */
 @Injectable()
 export class DeleteUsuarioUseCase {
-    constructor(private readonly repo: UsuarioRepository) { }
+    constructor(
+        @Inject(IUsuarioCoreRepository)
+        private readonly coreRepo: IUsuarioCoreRepository
+    ) {}
 
     async execute(id: number) {
-        await this.repo.delete(id);
+        await this.coreRepo.delete(id);
     }
 }

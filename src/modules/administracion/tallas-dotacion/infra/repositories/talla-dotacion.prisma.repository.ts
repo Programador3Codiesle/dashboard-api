@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
 import { ITallaDotacionRepository } from '../../domain/talla-dotacion.repository';
 import { TallaDotacionEntity } from '../../domain/talla-dotacion.entity';
@@ -9,9 +10,8 @@ export class TallaDotacionPrismaRepository implements ITallaDotacionRepository {
 
     async obtenerTallas(usuarioId: number): Promise<TallaDotacionEntity | null> {
         try {
-            // Buscar en la tabla de terceros o usuarios, asumiendo que las tallas están ahí
-            // Si hay una tabla específica, ajustar la consulta
-            const sql = `
+            // Optimizado: Usar $queryRaw con parámetro seguro
+            const result = await this.prisma.$queryRaw<any[]>`
                 SELECT 
                     t.nit AS usuario_id,
                     t.genero,
@@ -23,9 +23,7 @@ export class TallaDotacionPrismaRepository implements ITallaDotacionRepository {
                 WHERE t.nit = ${usuarioId}
             `;
 
-            const result = await this.prisma.$queryRawUnsafe<any[]>(sql);
             if (!result || result.length === 0) {
-                // Si no hay datos, retornar entidad con usuario_id
                 return new TallaDotacionEntity({
                     usuario_id: usuarioId,
                     genero: null,
@@ -60,38 +58,18 @@ export class TallaDotacionPrismaRepository implements ITallaDotacionRepository {
 
     async actualizarTallas(usuarioId: number, data: Partial<TallaDotacionEntity>): Promise<{status: boolean, message: string, data?: TallaDotacionEntity}> {
         try {
-            const updateFields: string[] = [];
-
-            if (data.genero !== undefined) {
-                updateFields.push(`genero = '${data.genero}'`);
-            }
-            if (data.talla_camisa !== undefined) {
-                updateFields.push(`talla_camisa = '${data.talla_camisa}'`);
-            }
-            if (data.talla_pantalon !== undefined) {
-                updateFields.push(`talla_pantalon = '${data.talla_pantalon}'`);
-            }
-            if (data.talla_botas !== undefined) {
-                updateFields.push(`talla_botas = '${data.talla_botas}'`);
-            }
-            if (data.ultima_actualizacion) {
-                updateFields.push(`fecha_actualizacion_tallas = GETDATE()`);
-            }
-
-            if (updateFields.length === 0) {
-                return {
-                    status: false,
-                    message: 'No hay campos para actualizar'
-                };
-            }
-
-            const sql = `
+            // Optimizado: Usar $executeRaw con parámetros seguros
+            // Construir update dinámico de forma segura
+            await this.prisma.$executeRaw`
                 UPDATE terceros
-                SET ${updateFields.join(', ')}
+                SET 
+                    genero = COALESCE(${data.genero ?? null}, genero),
+                    talla_camisa = COALESCE(${data.talla_camisa ?? null}, talla_camisa),
+                    talla_pantalon = COALESCE(${data.talla_pantalon ?? null}, talla_pantalon),
+                    talla_botas = COALESCE(${data.talla_botas ?? null}, talla_botas),
+                    fecha_actualizacion_tallas = GETDATE()
                 WHERE nit = ${usuarioId}
             `;
-
-            await this.prisma.$executeRawUnsafe(sql);
 
             const updated = await this.obtenerTallas(usuarioId);
 

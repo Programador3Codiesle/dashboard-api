@@ -70,7 +70,7 @@ export class TicketPrismaRepository implements ITicketRepository {
                 status: true,
                 message: 'Ticket actualizado correctamente'
             };
-        } catch (error) {
+        } catch (error: any) {
             return {
                 status: false,
                 message: 'Error al actualizar el ticket: ' + error.message
@@ -124,54 +124,56 @@ export class TicketPrismaRepository implements ITicketRepository {
 
 
     async findActivos(): Promise<TicketEntity[]> {
-        const sql = `SELECT 
-                        tk.usuario, 
-                        tk.prioridad, 
-                        tk.id_ticket as id, 
-                        tk.tipo_soporte, 
-                        en.nombres AS nombre_encargado, 
-                        us.nombres AS nombre_usuario, 
-                        tk.fecha_creacion, 
-                        tk.estado,
-                        STUFF((
-                            SELECT ', ' + CAST(em2.idEmpresa AS VARCHAR(10))
-                            FROM sw_empresa_usuario em2
-                            WHERE em2.idUsuario = tk.usuario
-                            FOR XML PATH(''), TYPE
-                        ).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS idEmpresas  
-                    FROM tickets tk
-                    LEFT JOIN terceros us ON us.nit_real = tk.usuario
-                    LEFT JOIN terceros en ON en.nit_real = tk.encargado
-                    WHERE 1 = 1
-                        AND tk.estado IN ('activo', 'En Proceso')
-                    ORDER BY tk.fecha_creacion DESC;
+        // Optimizado: Usar $queryRaw con template literal (seguro contra SQL injection)
+        const results = await this.prisma.$queryRaw<any[]>`
+            SELECT 
+                tk.usuario, 
+                tk.prioridad, 
+                tk.id_ticket as id, 
+                tk.tipo_soporte, 
+                en.nombres AS nombre_encargado, 
+                us.nombres AS nombre_usuario, 
+                tk.fecha_creacion, 
+                tk.estado,
+                STUFF((
+                    SELECT ', ' + CAST(em2.idEmpresa AS VARCHAR(10))
+                    FROM sw_empresa_usuario em2
+                    WHERE em2.idUsuario = tk.usuario
+                    FOR XML PATH(''), TYPE
+                ).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS idEmpresas  
+            FROM tickets tk
+            LEFT JOIN terceros us ON us.nit_real = tk.usuario
+            LEFT JOIN terceros en ON en.nit_real = tk.encargado
+            WHERE 1 = 1
+                AND tk.estado IN ('activo', 'En Proceso')
+            ORDER BY tk.fecha_creacion DESC
         `;
 
-        const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
         return results.map(r => TicketsMapper.mapToEntity(r));
     }
 
 
 
     async findFinalizados(): Promise<TicketEntity[]> {
-        const sql = `SELECT 
-                        tk.usuario, 
-                        tk.prioridad, 
-                        tk.id_ticket AS id, 
-                        tk.tipo_soporte, 
-                        en.nombres AS nombre_encargado, 
-                        us.nombres AS nombre_usuario, 
-                        tk.fecha_creacion, 
-                        tk.estado
-                    FROM tickets tk
-                    LEFT JOIN terceros us ON us.nit_real = tk.usuario
-                    LEFT JOIN terceros en ON en.nit_real = tk.encargado
-                    WHERE tk.estado IN ('cerrado')
-                        AND tk.fecha_creacion >= DATEADD(year, -1, GETDATE())
-                    ORDER BY tk.fecha_creacion DESC;
+        // Optimizado: Usar $queryRaw con template literal (seguro contra SQL injection)
+        const results = await this.prisma.$queryRaw<any[]>`
+            SELECT 
+                tk.usuario, 
+                tk.prioridad, 
+                tk.id_ticket AS id, 
+                tk.tipo_soporte, 
+                en.nombres AS nombre_encargado, 
+                us.nombres AS nombre_usuario, 
+                tk.fecha_creacion, 
+                tk.estado
+            FROM tickets tk
+            LEFT JOIN terceros us ON us.nit_real = tk.usuario
+            LEFT JOIN terceros en ON en.nit_real = tk.encargado
+            WHERE tk.estado IN ('cerrado')
+                AND tk.fecha_creacion >= DATEADD(year, -1, GETDATE())
+            ORDER BY tk.fecha_creacion DESC
         `;
 
-        const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
         return results.map(r => TicketsMapper.mapToEntity(r));
     }
 
@@ -200,7 +202,7 @@ export class TicketPrismaRepository implements ITicketRepository {
                 status: true,
                 message: 'Respuesta exitosa'
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error(error);
             return {
                 status: false,

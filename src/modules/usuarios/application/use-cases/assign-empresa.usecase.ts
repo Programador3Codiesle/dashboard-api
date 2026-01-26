@@ -1,32 +1,39 @@
-import { Injectable } from "@nestjs/common";
-import { IUsuarioRepository } from "../../domain/usuario.repository";
-import { NotFoundException, BadRequestException } from "@nestjs/common";
-import { AgregarEmpresasResponseDto } from "../../application/dto/assign-empresa.dto";
-import { AssignEmpresaDto } from "../../application/dto/assign-empresa.dto";
+import { Injectable, Inject, BadRequestException } from "@nestjs/common";
+import { AgregarEmpresasResponseDto, AssignEmpresaDto } from "../../application/dto/assign-empresa.dto";
+import { IUsuarioEmpresaRepository } from "../../domain/repositories/usuario-empresa.repository";
+import { IUsuarioCoreRepository } from "../../domain/repositories/usuario-core.repository";
 
+/**
+ * Use Case para gestión de Empresas
+ * Depende de las interfaces IUsuarioEmpresaRepository e IUsuarioCoreRepository (DIP)
+ */
 @Injectable()
 export class AssignEmpresaUseCase {
-  constructor(private usuarioRepo: IUsuarioRepository) {}
+  constructor(
+    @Inject(IUsuarioEmpresaRepository)
+    private readonly empresaRepo: IUsuarioEmpresaRepository,
+    @Inject(IUsuarioCoreRepository)
+    private readonly coreRepo: IUsuarioCoreRepository,
+  ) {}
 
   async execute(cedulaUsuario: string, nuevasEmpresasIds: string[]): Promise<AgregarEmpresasResponseDto> {
-    
-    // 2. Validar que las empresas existen
+    // Validar que las empresas existen
     await this.validarEmpresasExisten(nuevasEmpresasIds);
 
-    // 3. Obtener empresas ACTUALES del usuario
-    const empresasActuales = await this.usuarioRepo.findEmpresasByUsuario(cedulaUsuario);
+    // Obtener empresas ACTUALES del usuario
+    const empresasActuales = await this.empresaRepo.findEmpresasByUsuario(cedulaUsuario);
 
-   // Filtra cualquier objeto donde la propiedad sea null o undefined
-  const idsActuales = empresasActuales
-    .filter(e => e.id_empresa != null) // Usamos != null para capturar null y undefined
-    .map(e => e.id_empresa.toString());
+    // Filtra cualquier objeto donde la propiedad sea null o undefined
+    const idsActuales = empresasActuales
+      .filter(e => e.id_empresa != null)
+      .map(e => e.id_empresa.toString());
 
-    // 4. Filtrar solo las NUEVAS (que no tiene)
+    // Filtrar solo las NUEVAS (que no tiene)
     const empresasParaAgregar = nuevasEmpresasIds.filter(
       id => !idsActuales.includes(id)
     );
 
-    // 5. Si no hay nuevas, retornar mensaje
+    // Si no hay nuevas, retornar mensaje
     if (empresasParaAgregar.length === 0) {
       return {
         success: true,
@@ -40,12 +47,12 @@ export class AssignEmpresaUseCase {
       };
     }
 
-    // 6. ✅ Usar transacción para atomicidad
-    const empresasRealmenteAgregadas = await this.usuarioRepo.transaction(async () => {
-      return this.usuarioRepo.addEmpresasSafe(cedulaUsuario, empresasParaAgregar);
+    // Usar transacción para atomicidad
+    const empresasRealmenteAgregadas = await this.coreRepo.transaction(async () => {
+      return this.empresaRepo.addEmpresasSafe(cedulaUsuario, empresasParaAgregar);
     });
 
-    // 7. Retornar resultado
+    // Retornar resultado
     return {
       success: true,
       message: empresasRealmenteAgregadas.length > 0 
@@ -62,7 +69,7 @@ export class AssignEmpresaUseCase {
 
   private async validarEmpresasExisten(empresasIds: string[]) {
     for (const empresaId of empresasIds) {
-      const existe = await this.usuarioRepo.existsEmpresa(empresaId);
+      const existe = await this.empresaRepo.existsEmpresa(empresaId);
       if (!existe) {
         throw new BadRequestException(`Empresa ${empresaId} no existe`);
       }
@@ -70,9 +77,6 @@ export class AssignEmpresaUseCase {
   }
 
   async eliminarEmpresa(idUsuario: number, dto: AssignEmpresaDto) {
-    return this.usuarioRepo.eliminarEmpresa(idUsuario, dto);
+    return this.empresaRepo.eliminarEmpresa(idUsuario, dto);
   }
-
-
-
 }

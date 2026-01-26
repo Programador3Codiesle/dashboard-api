@@ -1,46 +1,46 @@
-import { Injectable } from "@nestjs/common";
+import { Injectable, Inject } from "@nestjs/common";
 import * as crypto from 'crypto';
 import { UpdateUsuarioDto } from "../dto/update-usuario.dto";
-import { IUsuarioRepository } from "../../domain/usuario.repository";
 import { UsuarioMapper } from "../../presentation/mappers/usuario.mapper";
+import { IUsuarioCoreRepository } from "../../domain/repositories/usuario-core.repository";
 
+/**
+ * Use Case para actualización de Usuario
+ * Depende de la interfaz IUsuarioCoreRepository (DIP - Inversión de Dependencias)
+ */
 @Injectable()
 export class UpdateUsuarioUseCase {
-    constructor(private readonly repo: IUsuarioRepository) { }
+    constructor(
+        @Inject(IUsuarioCoreRepository)
+        private readonly coreRepo: IUsuarioCoreRepository
+    ) {}
 
     async actualizarUsuario(id: number, dto: UpdateUsuarioDto) {
-
-        // ✅ Mapear el DTO de entrada a la estructura de BD
+        // Mapear el DTO de entrada a la estructura de BD
         const mappedData = UsuarioMapper.mapUpdateUsuarioDto(dto);
-
-
-        const usuario = await this.repo.updateUsuario(id, mappedData);
-   
+        const usuario = await this.coreRepo.updateUsuario(id, mappedData);
         return usuario;
-
     }
 
     /** Listar perfiles */
     async listarPerfiles() {
-        return this.repo.listarPerfiles();
+        return this.coreRepo.listarPerfiles();
     }
 
     /** Listar perfil del usuario */
     async listarPerfilUsuario(id: number) {
-        return this.repo.listarPerfilUsuario(id);
+        return this.coreRepo.listarPerfilUsuario(id);
     }
 
     /** Reset contraseña */
     async resetPassword(id: number | string, dto: UpdateUsuarioDto) {
         const _id = typeof id === 'string' ? Number(id) : id;
 
-        // La contraseña a encriptar es el NIT que viene en el DTO (o el ID si no viene NIT, según requerimiento "siempre va llegar una cedula")
-        // Asumimos que dto.nit trae la cedula/contraseña.
+        // La contraseña a encriptar es el NIT que viene en el DTO
         const passwordRaw = dto.nit ? String(dto.nit) : String(id);
-
         const encryptedPassword = this.encryptLegacyPassword(passwordRaw);
 
-        return this.repo.resetPassword(_id, encryptedPassword);
+        return this.coreRepo.resetPassword(_id, encryptedPassword);
     }
 
     public encryptLegacyPassword(text: string): string {
@@ -64,11 +64,11 @@ export class UpdateUsuarioUseCase {
 
     /** Deshabilitar usuario */
     async deshabilitar(id: number) {
-        return this.repo.deshabilitar(id);
+        return this.coreRepo.deshabilitar(id);
     }
 
     /** Habilitar usuario */
     async habilitar(id: number) {
-        return this.repo.habilitar(id);
+        return this.coreRepo.habilitar(id);
     }
 }

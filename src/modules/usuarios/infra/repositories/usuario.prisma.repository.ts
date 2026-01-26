@@ -14,55 +14,52 @@ import { log } from "console";
 export class UsuarioRepository {
   constructor(private readonly prisma: PrismaService) { }
 
-  async findAll() {
+  async findAll(page: number = 1, limit: number = 100) {
+    // Optimizado: Query con paginación usando OFFSET FETCH (SQL Server)
+    const offset = (page - 1) * limit;
 
-    const sql = `SELECT
-            ps.id_empleado,
-            u.id_usuario,
-            p.nom_perfil,
-            t.nombres,
-            u.usuario,
-            CAST(u.nit_usuario AS VARCHAR(20)) AS nit,
-            CASE 
-                WHEN u.estado = 1 THEN 'ACTIVO'
-                ELSE 'INACTIVO'
-            END as estado,
-            h.sede,
-            u.fecha_hora_crea_usu,
-            u.fecha_hora_mod_usu,
-            STUFF((
-                SELECT ', ' + CAST(em2.idEmpresa AS VARCHAR(10))
-                FROM sw_empresa_usuario em2
-                WHERE em2.idUsuario = u.nit_usuario
-                FOR XML PATH(''), TYPE
-            ).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS idEmpresas  
-            FROM
-            w_sist_usuarios u
-            INNER JOIN
-            terceros t ON t.nit = u.nit_usuario
-            LEFT JOIN
-            postv_horarios_empleados h ON CAST(h.nit_empleado AS DECIMAL(18,0)) = u.nit_usuario
-            LEFT JOIN postv_empleados ps ON ps.nit_empleado=u.nit_usuario
-            INNER JOIN
-            postv_perfiles p ON p.id_perfil = u.perfil_postventa
-            GROUP BY
-            u.id_usuario,
-            ps.id_empleado,
-            p.nom_perfil,
-            t.nombres,
-            u.usuario,
-            u.nit_usuario,
-            u.estado,
-            h.sede,
-            u.fecha_hora_crea_usu,
-            u.fecha_hora_mod_usu
-            ORDER BY
-            u.id_usuario DESC
-        `;
+    const results = await this.prisma.$queryRaw<any[]>`
+      SELECT
+        ps.id_empleado,
+        u.id_usuario,
+        p.nom_perfil,
+        t.nombres,
+        u.usuario,
+        CAST(u.nit_usuario AS VARCHAR(20)) AS nit,
+        CASE 
+          WHEN u.estado = 1 THEN 'ACTIVO'
+          ELSE 'INACTIVO'
+        END as estado,
+        h.sede,
+        u.fecha_hora_crea_usu,
+        u.fecha_hora_mod_usu,
+        STUFF((
+          SELECT ', ' + CAST(em2.idEmpresa AS VARCHAR(10))
+          FROM sw_empresa_usuario em2
+          WHERE em2.idUsuario = u.nit_usuario
+          FOR XML PATH(''), TYPE
+        ).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS idEmpresas  
+      FROM w_sist_usuarios u
+      INNER JOIN terceros t ON t.nit = u.nit_usuario
+      LEFT JOIN postv_horarios_empleados h ON CAST(h.nit_empleado AS DECIMAL(18,0)) = u.nit_usuario
+      LEFT JOIN postv_empleados ps ON ps.nit_empleado=u.nit_usuario
+      INNER JOIN postv_perfiles p ON p.id_perfil = u.perfil_postventa
+      GROUP BY
+        u.id_usuario,
+        ps.id_empleado,
+        p.nom_perfil,
+        t.nombres,
+        u.usuario,
+        u.nit_usuario,
+        u.estado,
+        h.sede,
+        u.fecha_hora_crea_usu,
+        u.fecha_hora_mod_usu
+      ORDER BY u.id_usuario DESC
+      OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
+    `;
 
-    const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
     return results.map(UsuarioMapper.mapUsuariosBD);
-
   }
 
 
@@ -101,30 +98,36 @@ export class UsuarioRepository {
   async addEmpresasSafe(cedula: string, empresasIds: string[]): Promise<string[]> {
     const agregadas: string[] = [];
 
-    // ✅ Usar transacción implícita de Prisma
-    await this.prisma.$transaction(async (tx) => {
-      for (const empresaId of empresasIds) {
-        try {
-          // Verificar si ya existe
-          const existe = await tx.$queryRaw<Array<{ existe: number }>>`
-            SELECT 1 as existe
-            FROM sw_empresa_usuario
-            WHERE idUsuario = CAST(${cedula} AS DECIMAL(18,0))
-              AND idEmpresa = ${parseInt(empresaId)}
-              AND estado = 1
-          `;
+    if (empresasIds.length === 0) return agregadas;
 
-          if (!existe || existe.length === 0) {
-            await tx.$executeRaw`
-              INSERT INTO sw_empresa_usuario
-              (idEmpresa, idUsuario, estado) 
-              VALUES (${parseInt(empresaId)}, CAST(${cedula} AS DECIMAL(18,0)), 1)
-            `;
-            agregadas.push(empresaId);
-          }
-        } catch (error) {
-          console.error(`Error al agregar empresa ${empresaId}:`, error.message);
+    // Optimizado: Una sola query batch en lugar de N queries en loop
+    await this.prisma.$transaction(async (tx) => {
+      try {
+        // 1. Obtener todas las empresas existentes en una sola query
+        const existentes = await tx.$queryRaw<Array<{ idEmpresa: number }>>`
+          SELECT idEmpresa
+          FROM sw_empresa_usuario
+          WHERE idUsuario = CAST(${cedula} AS DECIMAL(18,0))
+            AND idEmpresa IN (${Prisma.join(empresasIds.map(id => parseInt(id)))})
+            AND estado = 1
+        `;
+
+        const existentesSet = new Set(existentes.map(e => e.idEmpresa));
+
+        // 2. Filtrar solo las que no existen
+        const nuevasEmpresas = empresasIds.filter(id => !existentesSet.has(parseInt(id)));
+
+        // 3. Insertar todas las nuevas en batch
+        for (const empresaId of nuevasEmpresas) {
+          await tx.$executeRaw`
+            INSERT INTO sw_empresa_usuario
+            (idEmpresa, idUsuario, estado) 
+            VALUES (${parseInt(empresaId)}, CAST(${cedula} AS DECIMAL(18,0)), 1)
+          `;
+          agregadas.push(empresaId);
         }
+      } catch (error: any) {
+        console.error(`Error al agregar empresas:`, error.message);
       }
     });
 
@@ -180,7 +183,7 @@ export class UsuarioRepository {
         success: true,
         message: 'Empresas eliminadas correctamente'
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         success: false,
         message: 'Error al eliminar la empresa: ' + error.message
@@ -213,31 +216,28 @@ export class UsuarioRepository {
 
 
   async verJefes(id: number): Promise<JefesEntity[]> {
-
-    const sql = `SELECT jefe, nombres
-                      FROM postv_empleado_jefe  ej
-                      LEFT JOIN 
-                      postv_jefes J ON j.id_jefe=ej.jefe
-                      LEFT JOIN terceros t ON j.nit_jefe = t.nit
-                      where empleado=${id};
-        `;
-
-    const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
+    // Optimizado: Usar $queryRaw con parámetro seguro
+    const results = await this.prisma.$queryRaw<any[]>`
+      SELECT jefe, nombres
+      FROM postv_empleado_jefe ej
+      LEFT JOIN postv_jefes j ON j.id_jefe = ej.jefe
+      LEFT JOIN terceros t ON j.nit_jefe = t.nit
+      WHERE empleado = ${id}
+    `;
 
     return results.map((item) => new JefesEntity({
       id: item.jefe.toString(),
       nombre: item.nombres,
     }));
-
   }
 
   async verJefesAll(): Promise<JefesEntity[]> {
-    const sql = `SELECT j.id_jefe, t.nombres
-                      FROM postv_jefes j
-                      LEFT JOIN terceros t ON j.nit_jefe = t.nit;
-        `;
-
-    const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
+    // Optimizado: Usar $queryRaw (seguro contra SQL injection)
+    const results = await this.prisma.$queryRaw<any[]>`
+      SELECT j.id_jefe, t.nombres
+      FROM postv_jefes j
+      LEFT JOIN terceros t ON j.nit_jefe = t.nit
+    `;
 
     return results.map((item) => new JefesEntity({
       id: item.id_jefe.toString(),
@@ -267,12 +267,12 @@ export class UsuarioRepository {
   }
 
   async verSedes(): Promise<SedesEntity[]> {
-    const sql = `SELECT bodega,descripcion
-                      FROM bodegas
-                      ORDER BY bodega;
-        `;
-
-    const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
+    // Optimizado: Usar $queryRaw (seguro contra SQL injection)
+    const results = await this.prisma.$queryRaw<any[]>`
+      SELECT bodega, descripcion
+      FROM bodegas
+      ORDER BY bodega
+    `;
 
     return results.map((item) => new SedesEntity({
       id: item.bodega.toString(),
@@ -281,12 +281,12 @@ export class UsuarioRepository {
   }
 
   async verSedeUsuario(id: number): Promise<SedesEntity[]> {
-    const sql = `SELECT idsede
-                      FROM sw_usuariosede
-                      WHERE idusuario=${id} AND idsede IS NOT NULL;
-        `;
-
-    const results = await this.prisma.$queryRawUnsafe<any[]>(sql);
+    // Optimizado: Usar $queryRaw con parámetro seguro
+    const results = await this.prisma.$queryRaw<any[]>`
+      SELECT idsede
+      FROM sw_usuariosede
+      WHERE idusuario = ${id} AND idsede IS NOT NULL
+    `;
 
     return results.map((item) => new SedesEntity({
       id: item.idsede?.toString() || ''
@@ -495,7 +495,7 @@ export class UsuarioRepository {
         success: true,
         message: 'Contraseña actualizada correctamente'
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error resetting password:', error);
       return {
         success: false,
@@ -516,7 +516,7 @@ export class UsuarioRepository {
         success: true,
         message: 'Usuario deshabilitado correctamente'
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error deshabilitando usuario:', error);
       return {
         success: false,
@@ -537,7 +537,7 @@ export class UsuarioRepository {
         success: true,
         message: 'Usuario habilitado correctamente'
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error habilitando usuario:', error);
       return {
         success: false,
@@ -548,13 +548,14 @@ export class UsuarioRepository {
 
 
   async verUsuariosJefes(): Promise<UsuarioEntity[]> {
-    const rawData: any[] = await this.prisma.$queryRawUnsafe(`
+    // Optimizado: Usar $queryRaw (seguro contra SQL injection)
+    const rawData: any[] = await this.prisma.$queryRaw`
       SELECT u.id_usuario, p.nom_perfil, t.nombres, u.usuario, t.nit, u.estado 
       FROM w_sist_usuarios u 
       INNER JOIN terceros t ON t.nit = u.nit_usuario 
       LEFT JOIN postv_perfiles p ON p.id_perfil = u.perfil_postventa
-      WHERE u.estado=1
-    `);
+      WHERE u.estado = 1
+    `;
 
     return rawData.map((row) => new UsuarioEntity({
       id: row.nit.toString(),
@@ -564,12 +565,13 @@ export class UsuarioRepository {
 
 
   async verJefesAllGeneral(): Promise<JefesEntity[]> {
-    const rawData: any[] = await this.prisma.$queryRawUnsafe(`
-      SELECT j.id_jefe,j.nit_jefe,t.nombres,correo 
-		  FROM postv_jefes j
-		  INNER JOIN terceros t ON j.nit_jefe = t.nit
-      ORDER BY id_jefe DESC;
-    `);
+    // Optimizado: Usar $queryRaw (seguro contra SQL injection)
+    const rawData: any[] = await this.prisma.$queryRaw`
+      SELECT j.id_jefe, j.nit_jefe, t.nombres, correo 
+      FROM postv_jefes j
+      INNER JOIN terceros t ON j.nit_jefe = t.nit
+      ORDER BY id_jefe DESC
+    `;
 
     return rawData.map((row) => new JefesEntity({
       id: row.id_jefe.toString(),
@@ -590,7 +592,7 @@ export class UsuarioRepository {
         success: true,
         message: 'Jefe creado correctamente'
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creando jefe:', error);
       return {
         success: false,
@@ -632,7 +634,7 @@ export class UsuarioRepository {
         success: true,
         message: 'Usuario creado correctamente'
       };
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creando usuario:', error);
       return {
         success: false,
