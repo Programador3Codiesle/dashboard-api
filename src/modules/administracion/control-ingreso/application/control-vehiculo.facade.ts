@@ -16,16 +16,16 @@ export class ControlVehiculoFacade {
         private readonly vehiculosModelosUC: VehiculosModelosUseCase
     ) {}
 
-    registrarSalida(dto: RegistrarSalidaDto, userId: number) {
-        return this.registrarSalidaUC.execute(dto, userId);
+    registrarSalida(dto: RegistrarSalidaDto, userId: number, perfil: number) {
+        return this.registrarSalidaUC.execute(dto, userId, perfil);
     }
 
     registrarLlegada(id: number, dto: RegistrarLlegadaDto) {
         return this.registrarLlegadaUC.execute(id, dto);
     }
 
-    listarVehiculos() {
-        return this.listarVehiculosUC.execute();
+    listarVehiculos(perfil?: number) {
+        return this.listarVehiculosUC.execute(perfil);
     }
 
     listarModelos() {

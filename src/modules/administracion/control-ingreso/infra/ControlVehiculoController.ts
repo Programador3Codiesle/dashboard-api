@@ -1,4 +1,4 @@
-import { UseGuards, Controller, Post, Body, Put, Param, Get, Req } from '@nestjs/common';
+import { UseGuards, Controller, Post, Body, Put, Param, Get, Req, BadRequestException } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/modules/auth/infra/jwt-auth.guard';
 import { ControlVehiculoFacade } from '../application/control-vehiculo.facade';
 import { RegistrarLlegadaDto } from '../application/dto/registrar-llegada.dto';
@@ -13,6 +13,13 @@ export class ControlVehiculoController {
   @Post('salida')
   registrarSalida(@Req() req: any, @Body() dto: RegistrarSalidaDto) {
     const userId = req.user.sub;
+    
+    // Obtener el perfil del usuario desde el token JWT (req.user.role contiene el perfil_postventa)
+    const perfil = req.user?.role ? Number(req.user.role) : null;
+    
+    if (!perfil) {
+      throw new BadRequestException('No se pudo obtener el perfil del usuario');
+    }
 
     // Obtener empresa del cookie 'user'
     if (req.cookies && req.cookies['user']) {
@@ -26,7 +33,7 @@ export class ControlVehiculoController {
       }
     }
 
-    return this.facade.registrarSalida(dto, Number(userId));
+    return this.facade.registrarSalida(dto, Number(userId), perfil);
   }
 
   @Put(':id/llegada')
@@ -35,8 +42,10 @@ export class ControlVehiculoController {
   }
 
   @Get()
-  listar() {
-    return this.facade.listarVehiculos();
+  listar(@Req() req: any) {
+    // Obtener el perfil del usuario desde el token JWT (req.user.role contiene el perfil_postventa)
+    const perfil = req.user?.role ? Number(req.user.role) : undefined;
+    return this.facade.listarVehiculos(perfil);
   }
 
   @Get('vehiculos/modelos')

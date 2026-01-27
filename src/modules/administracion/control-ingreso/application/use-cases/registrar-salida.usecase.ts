@@ -8,12 +8,8 @@ import { ControlVehiculoMapper } from '../../presentation/mappers/control-vehicu
 export class RegistrarSalidaUseCase {
     constructor(private readonly repo: IControlVehiculoRepository) {}
 
-    async execute(dto: RegistrarSalidaDto, userId: number): Promise<RegistrarSalidaResponseDto> {
-
-        // Obtener el perfil desde donde corresponda (por ejemplo, de los datos de la sesión/userId/token...)
-        // Aquí se mantiene el valor fijo como ejemplo; reemplazar por la obtención real del perfil
-        const perfil: number = 7; // TODO: Reemplazar con el valor real consultado de la sesión
-
+    async execute(dto: RegistrarSalidaDto, userId: number, perfil: number): Promise<RegistrarSalidaResponseDto> {
+        // Mapeo de perfiles de vigilancia a nombres de portería
         const perfilesVigilancia: { [key: number]: string } = {
             7: 'Vigilancia Giron',
             45: 'Vigilancia Bocono',
@@ -21,12 +17,9 @@ export class RegistrarSalidaUseCase {
             60: 'Vigilancia Barranca',
         };
 
-        const porteria = perfilesVigilancia[perfil] ?? `Otro Usuario de perfil ${perfil}`;
-
-
-        if (!porteria) {
-            throw new NotFoundException('Portería no encontrada');
-        }
+        // Si el perfil está en la lista de vigilancia, usar el nombre de la portería
+        // Si no, usar un texto genérico pero permitir la creación
+        const porteria = perfilesVigilancia[perfil] || `Otro Usuario de perfil ${perfil}`;
 
 
         const result = await this.repo.registrarSalida({

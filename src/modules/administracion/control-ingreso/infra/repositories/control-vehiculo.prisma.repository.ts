@@ -104,34 +104,67 @@ export class ControlVehiculoPrismaRepository implements IControlVehiculoReposito
         }
     }
 
-    async listar(): Promise<Array<ControlVehiculoEntity & { modelo_descripcion?: string; empresa_nombre?: string }>> {
+    async listar(perfil?: number): Promise<Array<ControlVehiculoEntity & { modelo_descripcion?: string; empresa_nombre?: string }>> {
         try {
+            // Si el perfil no es 1, filtrar solo vehículos sin fecha_llegada
+            let query: Prisma.Sql;
+            if (perfil === 1) {
+                query = Prisma.sql`
+                    SELECT 
+                        ctrl.id,
+                        ctrl.fecha_salida,
+                        ctrl.km_salida,
+                        ctrl.placa,
+                        ctrl.tipo_vehiculo,
+                        ctrl.modelo,
+                        ctrl.otra_marca,
+                        ctrl.conductor,
+                        ctrl.pasajeros,
+                        ctrl.persona_autorizo,
+                        ctrl.fecha_llegada,
+                        ctrl.km_llegada,
+                        ctrl.observacion,
+                        ctrl.placa_vh_remolcado,
+                        ctrl.porteria,
+                        ctrl.taller,
+                        fam.descripcion AS modelo_descripcion,
+                        se.nombre AS empresa_nombre
+                    FROM postv_control_ing_sal_vehiculos AS ctrl
+                    LEFT JOIN vh_familias AS fam ON fam.id = ctrl.modelo
+                    LEFT JOIN sw_empresa as se on ctrl.id_empresa = se.id
+                    ORDER BY ctrl.id DESC
+                `;
+            } else {
+                query = Prisma.sql`
+                    SELECT 
+                        ctrl.id,
+                        ctrl.fecha_salida,
+                        ctrl.km_salida,
+                        ctrl.placa,
+                        ctrl.tipo_vehiculo,
+                        ctrl.modelo,
+                        ctrl.otra_marca,
+                        ctrl.conductor,
+                        ctrl.pasajeros,
+                        ctrl.persona_autorizo,
+                        ctrl.fecha_llegada,
+                        ctrl.km_llegada,
+                        ctrl.observacion,
+                        ctrl.placa_vh_remolcado,
+                        ctrl.porteria,
+                        ctrl.taller,
+                        fam.descripcion AS modelo_descripcion,
+                        se.nombre AS empresa_nombre
+                    FROM postv_control_ing_sal_vehiculos AS ctrl
+                    LEFT JOIN vh_familias AS fam ON fam.id = ctrl.modelo
+                    LEFT JOIN sw_empresa as se on ctrl.id_empresa = se.id
+                    WHERE ctrl.fecha_llegada IS NULL
+                    ORDER BY ctrl.id DESC
+                `;
+            }
+            
             // Optimizado: Usar $queryRaw (seguro contra SQL injection)
-            const results = await this.prisma.$queryRaw<any[]>`
-                SELECT 
-                    ctrl.id,
-                    ctrl.fecha_salida,
-                    ctrl.km_salida,
-                    ctrl.placa,
-                    ctrl.tipo_vehiculo,
-                    ctrl.modelo,
-                    ctrl.otra_marca,
-                    ctrl.conductor,
-                    ctrl.pasajeros,
-                    ctrl.persona_autorizo,
-                    ctrl.fecha_llegada,
-                    ctrl.km_llegada,
-                    ctrl.observacion,
-                    ctrl.placa_vh_remolcado,
-                    ctrl.porteria,
-                    ctrl.taller,
-                    fam.descripcion AS modelo_descripcion,
-                    se.nombre AS empresa_nombre
-                FROM postv_control_ing_sal_vehiculos AS ctrl
-                LEFT JOIN vh_familias AS fam ON fam.id = ctrl.modelo
-                LEFT JOIN sw_empresa as se on ctrl.id_empresa = se.id
-                ORDER BY ctrl.id DESC
-            `;
+            const results = await this.prisma.$queryRaw<any[]>(query);
 
             return results.map(row => ({
                 ...this.mapToEntity(row),
