@@ -7,13 +7,15 @@ export class CrearAusentismoUseCase {
     constructor(private readonly repo: INuevoAusentismoRepository) {}
 
     async execute(dto: CreateAusentismoDto, userId: number) {
-        const fechaIni = new Date(dto.fecha_ini);
-        const fechaFin = new Date(dto.fecha_ini); // Mismo día, máximo un día
-        
+
+        // Parsear 'YYYY-MM-DD' como fecha local (evita que UTC reste un día en zonas UTC-)
+        const [y, m, d] = dto.fecha_ini.split('-').map(Number);
+        const fechaIni = new Date(y, m - 1, d);
+        const fechaFin = new Date(y, m - 1, d); // Mismo día, máximo un día
+
         // Validar que no sea fecha pasada
         const hoy = new Date();
         hoy.setHours(0, 0, 0, 0);
-        fechaIni.setHours(0, 0, 0, 0);
         
         if (fechaIni < hoy) {
             throw new BadRequestException('No se puede crear un ausentismo para fechas pasadas');
@@ -37,7 +39,8 @@ export class CrearAusentismoUseCase {
             descripcion: dto.descripcion,
             motivo: dto.motivo,
             autorizacion: 0, // Pendiente
-            titulo: `${dto.hora_ini || ''}-${dto.motivo}`
+            titulo: dto.motivo,
+            id_empresa: dto.id_empresa
         });
     }
 }

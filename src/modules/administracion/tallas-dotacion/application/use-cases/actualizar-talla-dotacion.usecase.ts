@@ -8,7 +8,11 @@ export class ActualizarTallaDotacionUseCase {
 
     async execute(usuarioId: number, dto: UpdateTallaDotacionDto) {
         return this.repo.actualizarTallas(usuarioId, {
-            ...dto,
+            genero: dto.genero,
+            talla_camisa: dto.talla_camisa,
+            talla_pantalon: dto.talla_pantalon,
+            talla_botas: dto.talla_botas,
+            id_empresa: dto.id_empresa,
             ultima_actualizacion: new Date()
         });
     }

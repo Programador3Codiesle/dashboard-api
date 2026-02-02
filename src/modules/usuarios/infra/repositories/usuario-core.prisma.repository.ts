@@ -216,6 +216,23 @@ export class UsuarioCoreRepository implements IUsuarioCoreRepository {
   }
 
   /**
+   * Obtener el id_empleado desde postv_empleados a partir del NIT del empleado.
+   */
+  async obtenerIdEmpleadoPorNit(nit: number): Promise<number | null> {
+    const rows = await this.prisma.$queryRaw<{ id_empleado: number | null }[]>`
+      SELECT TOP 1 id_empleado
+      FROM postv_empleados
+      WHERE nit_empleado = ${nit}
+    `;
+
+    if (!rows.length || rows[0].id_empleado == null) {
+      return null;
+    }
+
+    return Number(rows[0].id_empleado);
+  }
+
+  /**
    * Verificar si existe un usuario por NIT
    */
   async verUsuarioPorNit(nit: string): Promise<boolean> {

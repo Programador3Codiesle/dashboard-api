@@ -41,7 +41,7 @@ export class UsuarioJefeRepository implements IUsuarioJefeRepository {
    */
   async verJefes(id: number): Promise<JefesEntity[]> {
     const results = await this.prisma.$queryRaw<any[]>`
-      SELECT jefe, nombres
+      SELECT jefe, j.nit_jefe, nombres
       FROM postv_empleado_jefe ej
       LEFT JOIN postv_jefes j ON j.id_jefe = ej.jefe
       LEFT JOIN terceros t ON j.nit_jefe = t.nit
@@ -51,6 +51,7 @@ export class UsuarioJefeRepository implements IUsuarioJefeRepository {
     return results.map((item) => new JefesEntity({
       id: item.jefe.toString(),
       nombre: item.nombres,
+      nit: item.nit_jefe?.toString(),
     }));
   }
 
@@ -117,7 +118,6 @@ export class UsuarioJefeRepository implements IUsuarioJefeRepository {
    * Crear un nuevo jefe
    */
   async crearJefe(dto: CreateJefeDto): Promise<{ success: boolean; message: string }> {
-    console.log('data jefe', dto);
     try {
       await this.prisma.$executeRaw`
         INSERT INTO postv_jefes (nit_jefe, correo) VALUES (${dto.nit}, ${dto.email})

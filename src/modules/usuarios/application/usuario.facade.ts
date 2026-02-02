@@ -90,6 +90,12 @@ export class UsuarioFacade {
     return this.assignJefeUC.verJefes(_id);
   }
 
+  /** Ver jefes del usuario autenticado (por NIT) */
+  async verMisJefes(nitEmpleado: number | string) {
+    const _nit = typeof nitEmpleado === 'string' ? Number(nitEmpleado) : nitEmpleado;
+    return this.assignJefeUC.verJefesPorNit(_nit);
+  }
+
   /** Ver jefes */
   async verJefesAll() {
     return this.assignJefeUC.verJefesAll();

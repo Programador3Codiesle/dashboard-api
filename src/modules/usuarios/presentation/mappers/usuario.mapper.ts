@@ -167,7 +167,8 @@ export class UsuarioMapper {
     static jefeResponse(entity: JefesEntity): JefesResponseDto {
         return {
             id: parseInt(entity.id, 10),
-            nombre: entity.nombre,
+            nit: entity.nit ?? '',
+            nombre: entity.nombre ?? '',
         };
     }
 

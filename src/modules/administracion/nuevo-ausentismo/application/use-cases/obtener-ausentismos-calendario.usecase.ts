@@ -5,7 +5,7 @@ import { INuevoAusentismoRepository } from '../../domain/nuevo-ausentismo.reposi
 export class ObtenerAusentismosCalendarioUseCase {
     constructor(private readonly repo: INuevoAusentismoRepository) {}
 
-    async execute(mes: number, anio: number) {
-        return this.repo.obtenerPorMes(mes, anio);
+    async execute(mes: number, anio: number, userId: number) {
+        return this.repo.obtenerPorMes(mes, anio, userId);
     }
 }

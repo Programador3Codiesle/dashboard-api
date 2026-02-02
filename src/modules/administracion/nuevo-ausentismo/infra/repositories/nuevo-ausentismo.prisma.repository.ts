@@ -16,7 +16,7 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
             const result = await this.prisma.$queryRaw<any[]>`
                 INSERT INTO postv_ausentismos 
                 (empleado, cargo_emp, sede, area, fecha_ini, hora_ini, fecha_fin, hora_fin, 
-                 descripcion, autorizacion, motivo, titulo, nit_usuario_resp)
+                 descripcion, autorizacion, motivo, titulo, nit_usuario_resp, id_empresa)
                 OUTPUT INSERTED.*
                 VALUES 
                 (${data.empleado}, ${data.cargo_emp ?? null}, 
@@ -26,7 +26,8 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
                  ${data.descripcion}, ${data.autorizacion || 0}, 
                  ${data.motivo ?? null}, 
                  ${data.titulo ?? null}, 
-                 ${data.nit_usuario_resp ?? null})
+                 ${data.nit_usuario_resp ?? 0}, 
+                 ${data.id_empresa ?? null})
             `;
 
             const inserted = result[0];
@@ -44,7 +45,7 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
         }
     }
 
-    async obtenerPorMes(mes: number, anio: number): Promise<NuevoAusentismoEntity[]> {
+    async obtenerPorMes(mes: number, anio: number, empleado: number): Promise<NuevoAusentismoEntity[]> {
         try {
             // Optimizado: Usar $queryRaw con parámetros seguros
             const results = await this.prisma.$queryRaw<any[]>`
@@ -52,7 +53,7 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
                     id_ausen, empleado, cargo_emp, sede, area, fecha_ini, hora_ini, 
                     fecha_fin, hora_fin, descripcion, autorizacion, motivo, titulo, nit_usuario_resp
                 FROM postv_ausentismos
-                WHERE MONTH(fecha_ini) = ${mes} AND YEAR(fecha_ini) = ${anio}
+                WHERE MONTH(fecha_ini) = ${mes} AND YEAR(fecha_ini) = ${anio} AND empleado = ${empleado}
                 ORDER BY fecha_ini ASC
             `;
 

@@ -11,23 +11,24 @@ export class HorasExtrasPrismaRepository implements IHorasExtrasRepository {
         try {
             const hoy = new Date();
             const fecha = hoy.toISOString().split('T')[0];
+           
             
-            // Optimizado: Usar $queryRaw con parámetro seguro
+            // Optimizado: Usar $queryRaw con parámetro seguro.
+            // SQL Server: text/ntext no se pueden comparar ni ordenar; usar CAST a VARCHAR/NVARCHAR.
             const results = await this.prisma.$queryRaw<any[]>`
                 SELECT 
-                    a.id_ausen, a.empleado, a.fecha_ini AS fecha, 
+                    a.id_solicitud, a.nit_empleado, a.fecha_ini AS fecha, 
                     a.hora_ini, a.hora_fin, a.descripcion,
                     t.nombres AS nombre_empleado
-                FROM postv_ausentismos a
-                LEFT JOIN terceros t ON t.nit_real = a.empleado
-                WHERE CAST(a.fecha_ini AS DATE) = ${fecha}
-                AND a.motivo = 'Tiempo Suplementario'
-                ORDER BY a.hora_ini ASC
+                FROM postv_solicitud_hora_extra a
+                LEFT JOIN terceros t ON t.nit_real = a.nit_empleado
+                WHERE CONVERT(DATE, CAST(a.fecha_ini AS NVARCHAR(30))) = ${fecha}
+                ORDER BY CAST(a.hora_ini AS NVARCHAR(20)) ASC
             `;
 
             return results.map(r => new HorasExtrasEntity({
-                id: BigInt(r.id_ausen),
-                empleado: Number(r.empleado),
+                id: BigInt(r.id_solicitud),
+                empleado: Number(r.nit_empleado),
                 nombre_empleado: r.nombre_empleado,
                 fecha: new Date(r.fecha),
                 hora_ini: r.hora_ini,

@@ -1,5 +1,6 @@
 import { IsString, IsNumber, IsOptional, IsDateString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class CreateGestionCompraDto {
     @IsString()
@@ -18,15 +19,18 @@ export class CreateGestionCompraDto {
     @ApiProperty({ example: 'Analista', description: 'Cargo de la persona que solicita' })
     cargo_usu_solicita: string;
 
+    @IsOptional()
+    @Type(() => Number)
     @IsNumber()
-    @ApiProperty({ example: 123, description: 'NIT del gerente que autoriza' })
-    gerente_autoriza: number;
+    @ApiProperty({ example: 123, description: 'NIT del gerente que autoriza (opcional, se llena con usuarios)', required: false })
+    gerente_autoriza?: number;
 
     @IsOptional()
     @IsString()
     @ApiProperty({ example: 'Proveedor ABC', description: 'Proveedores o contratistas sugeridos', required: false })
     proveedor?: string;
 
+    @Type(() => Number)
     @IsNumber()
     @ApiProperty({ example: 1, description: 'Nivel de urgencia (1-3, siendo 3 más urgente)' })
     urgencia: number;
@@ -42,4 +46,10 @@ export class CreateGestionCompraDto {
     @IsDateString()
     @ApiProperty({ example: '2025-01-15', description: 'Fecha tentativa' })
     fecha_tentativa: string;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsNumber()
+    @ApiProperty({ example: 1, description: 'ID de la empresa seleccionada en el dashboard', required: false })
+    id_empresa?: number;
 }

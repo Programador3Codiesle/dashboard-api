@@ -5,7 +5,7 @@ import { ITallaDotacionRepository } from '../../domain/talla-dotacion.repository
 export class ObtenerTallaDotacionUseCase {
     constructor(private readonly repo: ITallaDotacionRepository) {}
 
-    async execute(usuarioId: number) {
-        return this.repo.obtenerTallas(usuarioId);
+    async execute(usuarioId: number, idEmpresa?: number) {
+        return this.repo.obtenerTallas(usuarioId, idEmpresa);
     }
 }

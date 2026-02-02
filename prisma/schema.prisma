@@ -1592,6 +1592,7 @@ model postv_gestion_compras {
   cotizacion_file     String?   @db.VarChar(1000)
   estado_autorizacion Int
   con_factura         String?   @db.VarChar(5)
+  id_empresa          Int?      @db.Int
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.

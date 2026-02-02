@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
 import { ITallaDotacionRepository } from '../../domain/talla-dotacion.repository';
 import { TallaDotacionEntity } from '../../domain/talla-dotacion.entity';
@@ -8,20 +7,34 @@ import { TallaDotacionEntity } from '../../domain/talla-dotacion.entity';
 export class TallaDotacionPrismaRepository implements ITallaDotacionRepository {
     constructor(private readonly prisma: PrismaService) {}
 
-    async obtenerTallas(usuarioId: number): Promise<TallaDotacionEntity | null> {
+    async obtenerTallas(usuarioId: number, idEmpresa?: number): Promise<TallaDotacionEntity | null> {
         try {
-            // Optimizado: Usar $queryRaw con parámetro seguro
-            const result = await this.prisma.$queryRaw<any[]>`
-                SELECT 
-                    t.nit AS usuario_id,
-                    t.genero,
-                    t.talla_camisa,
-                    t.talla_pantalon,
-                    t.talla_botas,
-                    t.fecha_actualizacion_tallas AS ultima_actualizacion
-                FROM terceros t
-                WHERE t.nit = ${usuarioId}
-            `;
+            const result = idEmpresa != null
+                ? await this.prisma.$queryRaw<any[]>`
+                    SELECT
+                        nit AS usuario_id,
+                        genero,
+                        talla_camisa,
+                        talla_pantalon,
+                        talla_botas,
+                        fecha_reg AS ultima_actualizacion,
+                        id_empresa
+                    FROM swcrm_tallas_personal
+                    WHERE nit = ${usuarioId} AND id_empresa = ${idEmpresa}
+                `
+                : await this.prisma.$queryRaw<any[]>`
+                    SELECT TOP 1
+                        nit AS usuario_id,
+                        genero,
+                        talla_camisa,
+                        talla_pantalon,
+                        talla_botas,
+                        fecha_reg AS ultima_actualizacion,
+                        id_empresa
+                    FROM swcrm_tallas_personal
+                    WHERE nit = ${usuarioId}
+                    ORDER BY fecha_reg DESC
+                `;
 
             if (!result || result.length === 0) {
                 return new TallaDotacionEntity({
@@ -30,18 +43,20 @@ export class TallaDotacionPrismaRepository implements ITallaDotacionRepository {
                     talla_camisa: null,
                     talla_pantalon: null,
                     talla_botas: null,
-                    ultima_actualizacion: null
+                    ultima_actualizacion: null,
+                    id_empresa: idEmpresa ?? null
                 });
             }
 
-            const data = result[0];
+            const row = result[0];
             return new TallaDotacionEntity({
-                usuario_id: Number(data.usuario_id),
-                genero: data.genero,
-                talla_camisa: data.talla_camisa,
-                talla_pantalon: data.talla_pantalon,
-                talla_botas: data.talla_botas,
-                ultima_actualizacion: data.ultima_actualizacion ? new Date(data.ultima_actualizacion) : null
+                usuario_id: Number(row.usuario_id),
+                genero: row.genero,
+                talla_camisa: row.talla_camisa,
+                talla_pantalon: row.talla_pantalon,
+                talla_botas: row.talla_botas,
+                ultima_actualizacion: row.ultima_actualizacion ? new Date(row.ultima_actualizacion) : null,
+                id_empresa: row.id_empresa != null ? Number(row.id_empresa) : null
             });
         } catch (error) {
             console.error('Error obteniendo tallas:', error);
@@ -51,34 +66,50 @@ export class TallaDotacionPrismaRepository implements ITallaDotacionRepository {
                 talla_camisa: null,
                 talla_pantalon: null,
                 talla_botas: null,
-                ultima_actualizacion: null
+                ultima_actualizacion: null,
+                id_empresa: idEmpresa ?? null
             });
         }
     }
 
-    async actualizarTallas(usuarioId: number, data: Partial<TallaDotacionEntity>): Promise<{status: boolean, message: string, data?: TallaDotacionEntity}> {
+    async actualizarTallas(usuarioId: number, data: Partial<TallaDotacionEntity>): Promise<{ status: boolean; message: string; data?: TallaDotacionEntity }> {
         try {
-            // Optimizado: Usar $executeRaw con parámetros seguros
-            // Construir update dinámico de forma segura
+            const idEmpresa = data.id_empresa ?? null;
+            if (idEmpresa == null) {
+                return {
+                    status: false,
+                    message: 'id_empresa es requerido para actualizar tallas'
+                };
+            }
+
+            const genero = data.genero ?? null;
+            const tallaCamisa = data.talla_camisa ?? null;
+            const tallaPantalon = data.talla_pantalon ?? null;
+            const tallaBotas = data.talla_botas ?? null;
+
             await this.prisma.$executeRaw`
-                UPDATE terceros
-                SET 
-                    genero = COALESCE(${data.genero ?? null}, genero),
-                    talla_camisa = COALESCE(${data.talla_camisa ?? null}, talla_camisa),
-                    talla_pantalon = COALESCE(${data.talla_pantalon ?? null}, talla_pantalon),
-                    talla_botas = COALESCE(${data.talla_botas ?? null}, talla_botas),
-                    fecha_actualizacion_tallas = GETDATE()
-                WHERE nit = ${usuarioId}
+                MERGE swcrm_tallas_personal AS t
+                USING (SELECT ${usuarioId} AS nit, ${idEmpresa} AS id_empresa) AS s ON t.nit = s.nit AND t.id_empresa = s.id_empresa
+                WHEN MATCHED THEN
+                    UPDATE SET
+                        genero = COALESCE(${genero}, t.genero),
+                        talla_camisa = COALESCE(${tallaCamisa}, t.talla_camisa),
+                        talla_pantalon = COALESCE(${tallaPantalon}, t.talla_pantalon),
+                        talla_botas = COALESCE(${tallaBotas}, t.talla_botas),
+                        fecha_reg = GETDATE()
+                WHEN NOT MATCHED THEN
+                    INSERT (nit, genero, talla_camisa, talla_pantalon, talla_botas, fecha_reg, id_empresa)
+                    VALUES (${usuarioId}, ${genero}, ${tallaCamisa}, ${tallaPantalon}, ${tallaBotas}, GETDATE(), ${idEmpresa});
             `;
 
-            const updated = await this.obtenerTallas(usuarioId);
+            const updated = await this.obtenerTallas(usuarioId, idEmpresa);
 
             return {
                 status: true,
                 message: 'Tallas actualizadas correctamente',
-                data: updated || undefined
+                data: updated ?? undefined
             };
-        } catch (error: any) {
+        } catch (error: unknown) {
             return {
                 status: false,
                 message: 'Error al actualizar tallas: ' + (error instanceof Error ? error.message : 'Error desconocido')

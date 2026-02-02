@@ -94,7 +94,8 @@ export class AuthService {
     }
 
     async login(user: User) {
-        const payload = { sub: user.id, email: user.nit_usuario, role: user.perfil_postventa };
+        // sub: id_usuario, nit: cédula del empleado, role: perfil_postventa
+        const payload = { sub: user.id, nit: user.nit_usuario, role: user.perfil_postventa };
         const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
         const refreshToken = this.jwtService.sign({ sub: user.id }, { expiresIn: '7d' });
 
@@ -134,7 +135,7 @@ export class AuthService {
         if (!valid) throw new UnauthorizedException('Refresh token inválido');
 
 
-        const accessToken = this.jwtService.sign({ sub: user.id, email: user.nit_usuario, role: user.perfil_postventa }, { expiresIn: '15m' });
+        const accessToken = this.jwtService.sign({ sub: user.id, nit: user.nit_usuario, role: user.perfil_postventa }, { expiresIn: '15m' });
 
 
         // Rotación de refresh token: emitir nuevo y guardar hash

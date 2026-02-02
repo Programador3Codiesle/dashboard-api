@@ -14,7 +14,7 @@ export class NuevoAusentismoFacade {
         return this.crearAusentismoUC.execute(dto, userId);
     }
 
-    obtenerCalendario(mes: number, anio: number) {
-        return this.obtenerCalendarioUC.execute(mes, anio);
+    obtenerCalendario(mes: number, anio: number, userId: number) {
+        return this.obtenerCalendarioUC.execute(mes, anio, userId);
     }
 }

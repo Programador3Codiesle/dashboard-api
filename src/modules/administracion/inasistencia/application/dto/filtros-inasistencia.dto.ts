@@ -1,10 +1,12 @@
 import { IsOptional, IsNumber, IsDateString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class FiltrosInasistenciaDto {
     @IsOptional()
+    @Type(() => Number)
     @IsNumber()
-    @ApiProperty({ example: 123, description: 'ID del empleado', required: false })
+    @ApiProperty({ example: 1095944273, description: 'NIT (documento) del empleado para filtrar', required: false })
     empleado?: number;
 
     @IsOptional()

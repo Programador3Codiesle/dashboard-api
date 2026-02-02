@@ -13,6 +13,7 @@ export class NuevoAusentismoEntity {
     motivo?: string | null;
     titulo?: string | null;
     nit_usuario_resp?: number | null;
+    id_empresa?: number | null;
 
     constructor(partial: Partial<NuevoAusentismoEntity>) {
         Object.assign(this, partial);

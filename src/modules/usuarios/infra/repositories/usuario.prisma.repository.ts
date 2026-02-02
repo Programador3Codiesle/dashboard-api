@@ -582,7 +582,6 @@ export class UsuarioRepository {
   }
 
   async crearJefe(dto: CreateJefeDto): Promise<{ success: boolean; message: string }> {
-      console.log('data jefe', dto);
     try {
       await this.prisma.$executeRaw`
         INSERT INTO postv_jefes (nit_jefe, correo) VALUES (${dto.nit}, ${dto.email})

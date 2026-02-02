@@ -51,6 +51,11 @@ export abstract class IUsuarioCoreRepository {
   abstract verUsuariosJefes(): Promise<UsuarioEntity[]>;
 
   /**
+   * Obtener el id_empleado (postv_empleados) a partir del NIT del empleado.
+   */
+  abstract obtenerIdEmpleadoPorNit(nit: number): Promise<number | null>;
+
+  /**
    * Verificar si existe un usuario por NIT
    */
   abstract verUsuarioPorNit(nit: string): Promise<boolean>;

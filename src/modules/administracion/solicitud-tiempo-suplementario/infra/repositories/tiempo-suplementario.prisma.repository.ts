@@ -1,30 +1,28 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
-import { ITiempoSuplementarioRepository } from '../../domain/tiempo-suplementario.repository';
+import { CrearTiempoSuplementarioData, ITiempoSuplementarioRepository } from '../../domain/tiempo-suplementario.repository';
 import { TiempoSuplementarioEntity } from '../../domain/tiempo-suplementario.entity';
 
 @Injectable()
 export class TiempoSuplementarioPrismaRepository implements ITiempoSuplementarioRepository {
     constructor(private readonly prisma: PrismaService) {}
 
-    async create(data: Partial<TiempoSuplementarioEntity>): Promise<{status: boolean, message: string, data?: TiempoSuplementarioEntity}> {
+    async create(data: CrearTiempoSuplementarioData): Promise<{status: boolean, message: string, data?: TiempoSuplementarioEntity}> {
         try {
-            const fechaIni = data.fecha_ini?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0];
-            const titulo = `Jornada Adicional: ${data.hora_ini || ''} - ${data.hora_fin || ''}`;
-            
-            // Optimizado: Usar $queryRaw con parámetros seguros
+            const fechaIni = data.fecha_ini.toISOString().split('T')[0];
+            const fechaSolicitud = data.fecha_solicitud.toISOString().split('T')[0];
+
             const result = await this.prisma.$queryRaw<any[]>`
-                INSERT INTO postv_ausentismos 
-                (empleado, cargo_emp, sede, area, fecha_ini, hora_ini, fecha_fin, hora_fin, 
-                 descripcion, autorizacion, motivo, titulo)
+                INSERT INTO postv_solicitud_hora_extra 
+                (nit_jefe, nit_empleado, fecha_ini, hora_ini, hora_fin, fecha_solicitud, area, cargo, sede, descripcion, autorizacion, autorizacionporteria, id_empresa)
                 OUTPUT INSERTED.*
                 VALUES 
-                (${data.empleado}, ${data.cargo_emp ?? null}, 
-                 ${data.sede ?? null}, ${data.area}, 
-                 ${fechaIni}, ${data.hora_ini ?? null}, 
-                 ${fechaIni}, ${data.hora_fin ?? null}, 
-                 ${data.descripcion}, ${data.estado || 0}, 
-                 ${'Tiempo Suplementario'}, ${titulo})
+                (${data.nit_jefe}, ${data.nit_empleado}, 
+                 ${fechaIni}, ${data.hora_ini ?? null}, ${data.hora_fin ?? null}, 
+                 ${fechaSolicitud}, ${data.area}, ${data.cargo ?? null}, 
+                 ${data.sede ?? null}, ${data.descripcion}, 
+                 ${data.autorizacion ?? 0}, ${data.autorizacionporteria ?? null}, 
+                 ${data.id_empresa ?? null})
             `;
 
             const inserted = result[0];
@@ -42,17 +40,18 @@ export class TiempoSuplementarioPrismaRepository implements ITiempoSuplementario
         }
     }
 
-    async obtenerPorMes(mes: number, anio: number): Promise<TiempoSuplementarioEntity[]> {
+    async obtenerPorMes(mes: number, anio: number, nit_empleado: number): Promise<TiempoSuplementarioEntity[]> {
         try {
-            // Optimizado: Usar $queryRaw con parámetros seguros
             const results = await this.prisma.$queryRaw<any[]>`
                 SELECT 
-                    id_ausen, empleado, cargo_emp, sede, area, fecha_ini, hora_ini, 
-                    fecha_fin, hora_fin, descripcion, autorizacion, motivo, titulo
-                FROM postv_ausentismos
-                WHERE MONTH(fecha_ini) = ${mes} AND YEAR(fecha_ini) = ${anio}
-                AND motivo = 'Tiempo Suplementario'
-                ORDER BY fecha_ini ASC
+                    s.id_solicitud, s.nit_jefe, s.nit_empleado, t.nombres AS nombre_empleado,
+                    s.fecha_ini, s.hora_ini, s.hora_fin, s.fecha_solicitud, s.area, s.cargo, s.sede,
+                    s.descripcion, s.autorizacion, s.autorizacionporteria, s.id_empresa
+                FROM postv_solicitud_hora_extra s
+                LEFT JOIN terceros t ON t.nit_real = s.nit_empleado
+                WHERE MONTH(s.fecha_ini) = ${mes} AND YEAR(s.fecha_ini) = ${anio}
+                AND s.nit_jefe = ${nit_empleado}
+                ORDER BY s.fecha_ini ASC
             `;
 
             return results.map(r => this.mapToEntity(r));
@@ -64,16 +63,18 @@ export class TiempoSuplementarioPrismaRepository implements ITiempoSuplementario
 
     private mapToEntity(data: any): TiempoSuplementarioEntity {
         return new TiempoSuplementarioEntity({
-            id: BigInt(data.id_ausen),
-            empleado: Number(data.empleado),
-            cargo_emp: data.cargo_emp,
+            id: data.id_solicitud != null ? Number(data.id_solicitud) : undefined,
+            empleado: Number(data.nit_empleado),
+            nombre_empleado: data.nombre_empleado ?? null,
+            cargo_emp: data.cargo,
             sede: data.sede,
             area: data.area,
             fecha_ini: new Date(data.fecha_ini),
             hora_ini: data.hora_ini,
             hora_fin: data.hora_fin,
             descripcion: data.descripcion,
-            estado: Number(data.autorizacion)
+            estado: data.autorizacion != null ? Number(data.autorizacion) : null,
+            id_empresa: data.id_empresa != null ? Number(data.id_empresa) : null
         });
     }
 }

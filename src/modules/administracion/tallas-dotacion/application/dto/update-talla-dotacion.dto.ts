@@ -1,4 +1,4 @@
-import { IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateTallaDotacionDto {
@@ -21,4 +21,9 @@ export class UpdateTallaDotacionDto {
     @IsString()
     @ApiProperty({ example: '42', description: 'Talla botas', required: false })
     talla_botas?: string;
+
+    @IsOptional()
+    @IsNumber()
+    @ApiProperty({ example: 1, description: 'ID de la empresa (cookie/dashboard)', required: false })
+    id_empresa?: number;
 }

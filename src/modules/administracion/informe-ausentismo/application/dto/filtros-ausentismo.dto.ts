@@ -1,5 +1,6 @@
-import { IsOptional, IsDateString, IsString } from 'class-validator';
+import { IsOptional, IsDateString, IsString, IsNumber } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class FiltrosAusentismoDto {
     @IsOptional()
@@ -19,6 +20,23 @@ export class FiltrosAusentismoDto {
 
     @IsOptional()
     @IsString()
-    @ApiProperty({ example: 'Central de beneficios', description: 'Central de beneficios', required: false })
-    central_beneficios?: string;
+    @ApiProperty({ example: 'Administracion', description: 'Área', required: false })
+    area?: string;
+
+    @IsOptional()
+    @IsString()
+    @ApiProperty({ example: 'Juan Pérez', description: 'Buscar por nombre del empleado/colaborador', required: false })
+    empleado?: string;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsNumber()
+    @ApiProperty({ example: 1, description: 'Página', required: false })
+    pagina?: number;
+
+    @IsOptional()
+    @Type(() => Number)
+    @IsNumber()
+    @ApiProperty({ example: 10, description: 'Límite por página', required: false })
+    limite?: number;
 }

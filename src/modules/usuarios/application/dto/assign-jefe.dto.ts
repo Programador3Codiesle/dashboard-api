@@ -8,9 +8,10 @@ export class AssignJefeDto {
 }
 
 export class JefesResponseDto {
-    id!: number;
-    nombre?: string;
-    email?: string;
+  id!: number;
+  nit?: string;
+  nombre: string;
+  email?: string;
 }
 
 export class CreateJefeDto {

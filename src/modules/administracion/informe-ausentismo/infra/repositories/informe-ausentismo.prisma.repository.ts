@@ -8,9 +8,8 @@ import { AusentismoEntity } from '../../domain/ausentismo.entity';
 export class InformeAusentismoPrismaRepository implements IAusentismoRepository {
     constructor(private readonly prisma: PrismaService) {}
 
-    async listar(filtros?: any): Promise<AusentismoEntity[]> {
+    async listar(filtros?: any): Promise<{ items: AusentismoEntity[]; total: number }> {
         try {
-            // Optimizado: Usar Prisma.sql para construir queries seguras
             const conditions: Prisma.Sql[] = [Prisma.sql`1=1`];
 
             if (filtros?.fecha_desde) {
@@ -20,10 +19,29 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
                 conditions.push(Prisma.sql`CAST(a.fecha_ini AS DATE) <= ${filtros.fecha_hasta}`);
             }
             if (filtros?.sede) {
-                conditions.push(Prisma.sql`a.sede LIKE ${'%' + filtros.sede + '%'}`);
+                conditions.push(Prisma.sql`a.sede = ${filtros.sede}`);
+            }
+            if (filtros?.area) {
+                conditions.push(Prisma.sql`a.area = ${filtros.area}`);
+            }
+            if (filtros?.empleado && String(filtros.empleado).trim()) {
+                const patron = `%${String(filtros.empleado).trim()}%`;
+                conditions.push(Prisma.sql`t.nombres LIKE ${patron}`);
             }
 
             const whereClause = Prisma.join(conditions, ' AND ');
+            const limit = filtros?.limite ?? 10;
+            const page = filtros?.pagina ?? 1;
+            const offset = (page - 1) * limit;
+
+            const totalResult = await this.prisma.$queryRaw<[{ total: bigint }]>`
+                SELECT COUNT(*) as total
+                FROM postv_ausentismos a
+                LEFT JOIN terceros t ON t.nit_real = a.empleado
+                LEFT JOIN terceros j ON j.nit_real = a.nit_usuario_resp
+                WHERE ${whereClause}
+            `;
+            const total = Number(totalResult[0].total);
 
             const results = await this.prisma.$queryRaw<any[]>`
                 SELECT 
@@ -37,9 +55,10 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
                 LEFT JOIN terceros j ON j.nit_real = a.nit_usuario_resp
                 WHERE ${whereClause}
                 ORDER BY a.fecha_ini DESC
+                OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
             `;
 
-            return results.map(r => new AusentismoEntity({
+            const items = results.map(r => new AusentismoEntity({
                 id_ausen: BigInt(r.id_ausen),
                 gestionado_por: r.gestionado_por,
                 colaborador: r.colaborador,
@@ -52,15 +71,16 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
                 estado: r.estado ? Number(r.estado) : null,
                 detalle: r.detalle
             }));
+
+            return { items, total };
         } catch (error) {
             console.error('Error listando ausentismos:', error);
-            return [];
+            return { items: [], total: 0 };
         }
     }
 
     async findById(id: bigint): Promise<AusentismoEntity | null> {
         try {
-            // Optimizado: Usar $queryRaw con parámetro seguro
             const result = await this.prisma.$queryRaw<any[]>`
                 SELECT 
                     a.id_ausen, a.sede, a.area, a.fecha_ini AS fecha_inicio,

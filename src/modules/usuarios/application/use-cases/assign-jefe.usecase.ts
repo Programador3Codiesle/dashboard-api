@@ -32,6 +32,19 @@ export class AssignJefeUseCase {
     return jefes.map((jefe) => UsuarioMapper.jefeResponse(jefe));
   }
 
+  /**
+   * Ver jefes del usuario autenticado, resolviendo primero el id_empleado
+   * a partir del NIT (nit_empleado en postv_empleados).
+   */
+  async verJefesPorNit(nitEmpleado: number) {
+    const idEmpleado = await this.coreRepo.obtenerIdEmpleadoPorNit(nitEmpleado);
+    if (!idEmpleado) {
+      return [];
+    }
+    const jefes = await this.jefeRepo.verJefes(idEmpleado);
+    return jefes.map((jefe) => UsuarioMapper.jefeResponse(jefe));
+  }
+
   async verJefesAll() {
     const jefes = await this.jefeRepo.verJefesAll();
     return jefes.map((jefe) => UsuarioMapper.jefeResponse(jefe));

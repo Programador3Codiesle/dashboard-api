@@ -1,8 +1,10 @@
-import { Controller, Get, Param, Res } from '@nestjs/common';
+import { Controller, Get, Param, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { FormatosNominaFacade } from '../application/formatos-nomina.facade';
+import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 import { join } from 'path';
 
+@UseGuards(JwtAuthGuard)
 @Controller('administracion/formatos-nomina')
 export class FormatosNominaController {
     constructor(private readonly facade: FormatosNominaFacade) {}

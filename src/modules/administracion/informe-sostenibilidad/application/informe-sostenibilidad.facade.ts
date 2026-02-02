@@ -1,8 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { IInformeSostenibilidadRepository } from '../domain/informe-sostenibilidad.repository';
 
 @Injectable()
 export class InformeSostenibilidadFacade {
+    constructor(
+        private readonly informeSostenibilidadRepository: IInformeSostenibilidadRepository,
+    ) {}
+
     obtenerRutaArchivo(): string {
-        return '/informes/informe-sostenibilidad-2024.pdf';
+        return this.informeSostenibilidadRepository.obtenerRutaArchivo();
     }
 }
+

@@ -26,11 +26,16 @@ export class CreateTiempoSuplementarioDto {
     @ApiProperty({ example: 'Bucaramanga', description: 'Sede' })
     sede: string;
 
-    @IsNumber()
-    @ApiProperty({ example: 123, description: 'ID del empleado' })
-    empleado: number;
-
     @IsString()
     @ApiProperty({ example: 'Descripción del motivo', description: 'Describe el motivo de la solicitud' })
     descripcion: string;
+
+    @IsNumber()
+    @ApiProperty({ example: 1, description: 'ID de la empresa (desde cookie/contexto)' })
+    id_empresa: number;
+
+    @IsOptional()
+    @IsNumber()
+    @ApiProperty({ example: 123456789, description: 'NIT del empleado para quien es la solicitud; si no se envía se usa el usuario autenticado', required: false })
+    empleado?: number;
 }

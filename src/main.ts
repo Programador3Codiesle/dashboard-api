@@ -2,9 +2,16 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { join } from 'path';
+
+// Permite que JSON.stringify serialice BigInt (p. ej. IDs de Prisma) como string
+(BigInt.prototype as unknown as { toJSON: () => string }).toJSON = function () {
+  return this.toString();
+};
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const corsOrigin = process.env.CORS_ORIGIN ?? 'http://localhost:3001';
   app.enableCors({
@@ -15,6 +22,10 @@ async function bootstrap() {
   });
 
   app.use(cookieParser());
+
+  // Servir archivos estáticos (por ejemplo: /uploads/...)
+  // Guarda los archivos en: <root>/public/uploads/...
+  app.useStaticAssets(join(process.cwd(), 'public'));
 
   app.useGlobalPipes(
     new ValidationPipe({

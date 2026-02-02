@@ -17,6 +17,7 @@ export class GestionCompraEntity {
     cotizacion_file?: string | null;
     estado_autorizacion: number;
     con_factura?: string | null;
+    id_empresa?: number | null;
 
     constructor(partial: Partial<GestionCompraEntity>) {
         Object.assign(this, partial);

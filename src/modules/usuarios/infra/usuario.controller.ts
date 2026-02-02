@@ -8,6 +8,7 @@ import {
   Body,
   UseGuards,
   UseInterceptors,
+  Req,
 } from '@nestjs/common';
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 
@@ -89,6 +90,13 @@ export class UsuarioController {
     return this.usuarioFacade.verJefes(id);
   }
 
+  /** Ver jefes del usuario autenticado */
+  @Get('mis-jefes')
+  verMisJefes(@Req() req: any) {
+    const userId = req.user?.nit; // id_usuario del JWT
+    return this.usuarioFacade.verMisJefes(userId);
+  }
+
   /** Ver jefes - Con caché de 10 minutos */
   @Get('jefes')
   @UseInterceptors(CacheInterceptor)
@@ -166,8 +174,6 @@ export class UsuarioController {
   /** Crear jefe */
   @Post('crear-jefe')
   crearJefe(@Body() dto: CreateJefeDto) { 
-    console.log('crear jefe controller', dto);
-    
     return this.usuarioFacade.crearJefe(dto);
   }
 

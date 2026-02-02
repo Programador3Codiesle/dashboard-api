@@ -34,4 +34,8 @@ export class CreateAusentismoDto {
     @IsString()
     @ApiProperty({ example: 'Descripción detallada del motivo', description: 'Describe el motivo del permiso' })
     descripcion: string;
+
+    @IsNumber()
+    @ApiProperty({ example: 1, description: 'ID de la empresa (desde cookie/contexto)' })
+    id_empresa: number;
 }

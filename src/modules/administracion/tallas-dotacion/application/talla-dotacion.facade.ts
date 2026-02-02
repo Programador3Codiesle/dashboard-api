@@ -10,8 +10,8 @@ export class TallaDotacionFacade {
         private readonly actualizarTallaUC: ActualizarTallaDotacionUseCase
     ) {}
 
-    obtenerTallas(usuarioId: number) {
-        return this.obtenerTallaUC.execute(usuarioId);
+    obtenerTallas(usuarioId: number, idEmpresa?: number) {
+        return this.obtenerTallaUC.execute(usuarioId, idEmpresa);
     }
 
     actualizarTallas(usuarioId: number, dto: UpdateTallaDotacionDto) {

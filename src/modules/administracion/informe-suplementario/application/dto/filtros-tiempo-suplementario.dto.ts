@@ -1,11 +1,16 @@
-import { IsOptional, IsNumber, IsString } from 'class-validator';
+import { IsOptional, IsString, IsDateString } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class FiltrosTiempoSuplementarioDto {
     @IsOptional()
-    @IsNumber()
-    @ApiProperty({ example: 1, description: 'Mes', required: false })
-    mes?: number;
+    @IsDateString()
+    @ApiProperty({ example: '2025-01-01', description: 'Fecha desde', required: false })
+    fecha_desde?: string;
+
+    @IsOptional()
+    @IsDateString()
+    @ApiProperty({ example: '2025-01-31', description: 'Fecha hasta', required: false })
+    fecha_hasta?: string;
 
     @IsOptional()
     @IsString()
@@ -18,12 +23,7 @@ export class FiltrosTiempoSuplementarioDto {
     area?: string;
 
     @IsOptional()
-    @IsNumber()
-    @ApiProperty({ example: 123, description: 'Empleado', required: false })
-    empleado?: number;
-
-    @IsOptional()
     @IsString()
-    @ApiProperty({ example: '', description: 'Búsqueda', required: false })
-    buscar?: string;
+    @ApiProperty({ example: 'Juan Pérez', description: 'Filtrar por nombre del empleado', required: false })
+    empleado?: string;
 }

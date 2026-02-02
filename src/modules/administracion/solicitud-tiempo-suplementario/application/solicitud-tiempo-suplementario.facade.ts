@@ -10,11 +10,11 @@ export class SolicitudTiempoSuplementarioFacade {
         private readonly obtenerCalendarioUC: ObtenerCalendarioTiempoSuplementarioUseCase
     ) {}
 
-    crearSolicitud(dto: CreateTiempoSuplementarioDto) {
-        return this.crearTiempoUC.execute(dto);
+    crearSolicitud(dto: CreateTiempoSuplementarioDto, userId: number) {
+        return this.crearTiempoUC.execute(dto, userId);
     }
 
-    obtenerCalendario(mes: number, anio: number) {
-        return this.obtenerCalendarioUC.execute(mes, anio);
+    obtenerCalendario(mes: number, anio: number, userId: number) {
+        return this.obtenerCalendarioUC.execute(mes, anio, userId);
     }
 }

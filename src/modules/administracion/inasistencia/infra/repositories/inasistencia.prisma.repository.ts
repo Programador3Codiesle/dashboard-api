@@ -12,6 +12,7 @@ export class InasistenciaPrismaRepository implements IInasistenciaRepository {
         try {
             // Optimizado: Usar Prisma.sql para construir queries seguras con parámetros
             const conditions: Prisma.Sql[] = [Prisma.sql`1=1`];
+      
 
             if (filtros?.empleado) {
                 conditions.push(Prisma.sql`a.empleado = ${filtros.empleado}`);
