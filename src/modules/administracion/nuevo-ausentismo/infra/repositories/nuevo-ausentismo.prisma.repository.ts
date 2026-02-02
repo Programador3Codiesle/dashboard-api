@@ -64,6 +64,36 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
         }
     }
 
+    async findById(id: bigint): Promise<NuevoAusentismoEntity | null> {
+        try {
+            const result = await this.prisma.$queryRaw<any[]>`
+                SELECT id_ausen, empleado, cargo_emp, sede, area, fecha_ini, hora_ini,
+                    fecha_fin, hora_fin, descripcion, autorizacion, motivo, titulo, nit_usuario_resp
+                FROM postv_ausentismos
+                WHERE id_ausen = ${id}
+            `;
+            if (!result || result.length === 0) return null;
+            return this.mapToEntity(result[0]);
+        } catch (error) {
+            console.error('Error buscando ausentismo:', error);
+            return null;
+        }
+    }
+
+    async actualizarAutorizacion(id: bigint, autorizacion: number): Promise<boolean> {
+        try {
+            await this.prisma.$executeRaw`
+                UPDATE postv_ausentismos
+                SET autorizacion = ${autorizacion}
+                WHERE id_ausen = ${id}
+            `;
+            return true;
+        } catch (error) {
+            console.error('Error actualizando autorización ausentismo:', error);
+            return false;
+        }
+    }
+
     private mapToEntity(data: any): NuevoAusentismoEntity {
         return new NuevoAusentismoEntity({
             id_ausen: BigInt(data.id_ausen),

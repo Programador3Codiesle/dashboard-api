@@ -20,4 +20,6 @@ export interface CrearTiempoSuplementarioData {
 export abstract class ITiempoSuplementarioRepository {
     abstract create(data: CrearTiempoSuplementarioData): Promise<{status: boolean, message: string, data?: TiempoSuplementarioEntity}>;
     abstract obtenerPorMes(mes: number, anio: number, nit_empleado: number): Promise<TiempoSuplementarioEntity[]>;
+    abstract findById(id: number): Promise<TiempoSuplementarioEntity | null>;
+    abstract actualizarAutorizacion(id: number, autorizacion: number): Promise<boolean>;
 }

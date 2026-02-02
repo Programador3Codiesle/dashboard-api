@@ -61,6 +61,38 @@ export class TiempoSuplementarioPrismaRepository implements ITiempoSuplementario
         }
     }
 
+    async findById(id: number): Promise<TiempoSuplementarioEntity | null> {
+        try {
+            const result = await this.prisma.$queryRaw<any[]>`
+                SELECT s.id_solicitud, s.nit_jefe, s.nit_empleado, t.nombres AS nombre_empleado,
+                    s.fecha_ini, s.hora_ini, s.hora_fin, s.fecha_solicitud, s.area, s.cargo, s.sede,
+                    s.descripcion, s.autorizacion, s.autorizacionporteria, s.id_empresa
+                FROM postv_solicitud_hora_extra s
+                LEFT JOIN terceros t ON t.nit_real = s.nit_empleado
+                WHERE s.id_solicitud = ${id}
+            `;
+            if (!result || result.length === 0) return null;
+            return this.mapToEntity(result[0]);
+        } catch (error) {
+            console.error('Error buscando tiempo suplementario:', error);
+            return null;
+        }
+    }
+
+    async actualizarAutorizacion(id: number, autorizacion: number): Promise<boolean> {
+        try {
+            await this.prisma.$executeRaw`
+                UPDATE postv_solicitud_hora_extra
+                SET autorizacion = ${autorizacion}
+                WHERE id_solicitud = ${id}
+            `;
+            return true;
+        } catch (error) {
+            console.error('Error actualizando autorización tiempo suplementario:', error);
+            return false;
+        }
+    }
+
     private mapToEntity(data: any): TiempoSuplementarioEntity {
         return new TiempoSuplementarioEntity({
             id: data.id_solicitud != null ? Number(data.id_solicitud) : undefined,

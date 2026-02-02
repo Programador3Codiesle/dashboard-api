@@ -173,14 +173,23 @@ export class GestionCompraPrismaRepository implements IGestionCompraRepository {
         }
     }
 
-    async cambiarEstado(id: bigint, estado: number): Promise<boolean> {
+    async cambiarEstado(id: bigint, estado: number, estadoAutorizacion?: number): Promise<boolean> {
         try {
-            await this.prisma.$executeRaw`
+            const idNum = Number(id);
+            if (estadoAutorizacion !== undefined && estadoAutorizacion !== null) {
+                const count = await this.prisma.$executeRaw`
+                    UPDATE postv_gestion_compras
+                    SET estado = ${estado}, estado_autorizacion = ${estadoAutorizacion}
+                    WHERE id_solicitud = ${idNum}
+                `;
+                return Number(count) > 0;
+            }
+            const count = await this.prisma.$executeRaw`
                 UPDATE postv_gestion_compras
                 SET estado = ${estado}
-                WHERE id_solicitud = ${id}
+                WHERE id_solicitud = ${idNum}
             `;
-            return true;
+            return Number(count) > 0;
         } catch (error) {
             console.error('Error cambiando estado:', error);
             return false;
@@ -267,6 +276,22 @@ export class GestionCompraPrismaRepository implements IGestionCompraRepository {
         } catch (error) {
             console.error('Error enviando autorización:', error);
             return false;
+        }
+    }
+
+    async getEmailByNit(nit: number): Promise<string | null> {
+        try {
+            const result = await this.prisma.$queryRaw<any[]>`
+                SELECT mail FROM terceros WHERE (nit = ${nit} OR nit_real = ${nit}) AND mail IS NOT NULL AND LTRIM(RTRIM(ISNULL(mail, ''))) <> ''
+            `;
+            if (!result || result.length === 0) return null;
+            const row = result[0];
+            const mail = row?.mail ?? row?.Mail;
+            const email = typeof mail === 'string' ? mail.trim() : null;
+            return email && email.length > 0 ? email : null;
+        } catch (error) {
+            console.error('Error obteniendo email por NIT:', error);
+            return null;
         }
     }
 

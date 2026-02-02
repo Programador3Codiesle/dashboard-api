@@ -1,14 +1,23 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { IGestionCompraRepository } from '../../domain/gestion-compra.repository';
 import { EnviarAutorizacionCompraDto } from '../dto/enviar-autorizacion-compra.dto';
 import { EmailService } from '../../../../../core/infra/email/email.service';
+import { TokenRespuestaService } from '../../../../../core/infra/token-respuesta/token-respuesta.service';
 
 @Injectable()
 export class EnviarAutorizacionCompraUseCase {
     constructor(
         private readonly repo: IGestionCompraRepository,
         private readonly emailService: EmailService,
+        private readonly tokenRespuesta: TokenRespuestaService,
+        private readonly config: ConfigService,
     ) {}
+
+    private baseUrl(): string {
+        const url = this.config.get<string>('APP_URL') ?? 'http://localhost:3000';
+        return url.endsWith('/') ? url.slice(0, -1) : url;
+    }
 
     async execute(solicitudId: bigint, dto: EnviarAutorizacionCompraDto) {
         const archivos = dto.archivos || [];
@@ -24,8 +33,16 @@ export class EnviarAutorizacionCompraUseCase {
         const compra = await this.repo.findById(solicitudId);
         const subject = 'Nueva Solicitud de Compra';
 
+        const token = this.tokenRespuesta.generarToken(solicitudId, 'gestion-compra');
+        const urlAutorizar = this.tokenRespuesta.urlResponder(token, 'aprobar');
+        const urlRechazar = this.tokenRespuesta.urlResponder(token, 'rechazar');
+
+        const base = this.baseUrl();
         const links = (archivos || [])
-            .map((u) => `<li><a href="${u}" target="_blank" rel="noreferrer">${u}</a></li>`)
+            .map((u) => {
+                const urlCompleta = u.startsWith('http') ? u : `${base}${u.startsWith('/') ? u : '/' + u}`;
+                return `<li><a href="${urlCompleta}" target="_blank" rel="noreferrer">${u}</a></li>`;
+            })
             .join('');
 
         const html = `
@@ -46,18 +63,30 @@ export class EnviarAutorizacionCompraUseCase {
                         ? `<p style="margin:0 0 8px 0;"><strong>Cotizaciones:</strong></p><ul style="margin:0; padding-left: 18px;">${links}</ul>`
                         : `<p style="margin:0; color:#6b7280;">Sin cotizaciones adjuntas.</p>`
                 }
+                <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 18px 0;" />
+                <p style="margin:0 0 10px 0;"><strong>Responder:</strong></p>
+                <p style="margin:0 0 8px 0;">
+                  <a href="${urlAutorizar}" style="display:inline-block; margin-right:12px; padding:10px 20px; background:#16a34a; color:#fff; text-decoration:none; border-radius:6px;">Autorizar gesti\u00f3n de compra</a>
+                  <a href="${urlRechazar}" style="display:inline-block; padding:10px 20px; background:#dc2626; color:#fff; text-decoration:none; border-radius:6px;">Rechazar gesti\u00f3n de compra</a>
+                </p>
               </div>
             </div>
           </div>
         `;
 
+        const toEmails: string[] = [];
+        const envTo = this.config.get<string>('EMAIL_AUTORIZACION_COMPRAS');
+        if (envTo) {
+            envTo.split(',').map((e) => e.trim()).filter(Boolean).forEach((e) => toEmails.push(e));
+        }
+        if (compra?.gerente_autoriza) {
+            const emailGerente = await this.repo.getEmailByNit(compra.gerente_autoriza);
+            if (emailGerente && !toEmails.includes(emailGerente)) toEmails.push(emailGerente);
+        }
+        if (toEmails.length === 0) toEmails.push('programador3@codiesel.co');
+
         const mailResult = await this.emailService.sendEmail({
-            to: [
-                // 'personal@codiesel.co',
-                // 'gerencia@codiesel.co',
-                // 'ger.servicio@codiesel.co',
-                'programador3@codiesel.co',
-            ],
+            to: toEmails,
             subject,
             html,
         });

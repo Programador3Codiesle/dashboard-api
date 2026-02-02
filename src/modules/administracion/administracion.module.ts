@@ -16,6 +16,7 @@ import { InformeAusentismoModule } from './informe-ausentismo/infra/informe-ause
 import { ListaAusentismoModule } from './lista-ausentismo/infra/lista-ausentismo.module';
 import { EvaluacionDesempenoModule } from './evaluacion-desempeno-jefe/infra/evaluacion-desempeno.module';
 import { FormatoDesempenoModule } from './formato-desempeno-empleado/infra/formato-desempeno.module';
+import { ResponderAutorizacionModule } from './responder-autorizacion/infra/responder-autorizacion.module';
 
 @Module({
     imports: [
@@ -36,6 +37,7 @@ import { FormatoDesempenoModule } from './formato-desempeno-empleado/infra/forma
         ListaAusentismoModule,
         EvaluacionDesempenoModule,
         FormatoDesempenoModule,
+        ResponderAutorizacionModule,
     ],
     exports: []
 })

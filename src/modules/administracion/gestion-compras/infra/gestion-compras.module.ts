@@ -28,6 +28,6 @@ import { EmailModule } from '../../../../core/infra/email/email.module';
         { provide: IGestionCompraRepository, useClass: GestionCompraPrismaRepository },
         PrismaService
     ],
-    exports: [GestionCompraFacade]
+    exports: [GestionCompraFacade, IGestionCompraRepository]
 })
 export class GestionComprasModule { }

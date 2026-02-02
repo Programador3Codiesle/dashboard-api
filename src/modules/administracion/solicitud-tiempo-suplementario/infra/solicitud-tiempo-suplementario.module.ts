@@ -6,8 +6,10 @@ import { ObtenerCalendarioTiempoSuplementarioUseCase } from '../application/use-
 import { ITiempoSuplementarioRepository } from '../domain/tiempo-suplementario.repository';
 import { TiempoSuplementarioPrismaRepository } from './repositories/tiempo-suplementario.prisma.repository';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
+import { EmailModule } from '../../../../core/infra/email/email.module';
 
 @Module({
+    imports: [EmailModule],
     controllers: [SolicitudTiempoSuplementarioController],
     providers: [
         SolicitudTiempoSuplementarioFacade,
@@ -16,6 +18,6 @@ import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
         { provide: ITiempoSuplementarioRepository, useClass: TiempoSuplementarioPrismaRepository },
         PrismaService
     ],
-    exports: [SolicitudTiempoSuplementarioFacade]
+    exports: [SolicitudTiempoSuplementarioFacade, ITiempoSuplementarioRepository]
 })
 export class SolicitudTiempoSuplementarioModule { }

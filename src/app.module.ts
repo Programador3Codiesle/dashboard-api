@@ -6,6 +6,7 @@ import { ConfigModule } from '@nestjs/config';
 import { ThrottlerModule } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
 import { PrismaModule } from './core/infra/prisma/prisma.module';
+import { TokenRespuestaModule } from './core/infra/token-respuesta/token-respuesta.module';
 import { AuthModule } from './modules/auth/infra/auth.module';
 import { UsuarioModule } from './modules/usuarios/infra/usuario.module';
 import { TicketsModule } from './modules/tickets/infra/tickets.module';
@@ -29,6 +30,7 @@ import { AdministracionModule } from './modules/administracion/administracion.mo
       },
     ]),
     PrismaModule,
+    TokenRespuestaModule,
     AuthModule,
     UsuarioModule,
     TicketsModule,
