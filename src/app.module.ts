@@ -11,6 +11,7 @@ import { AuthModule } from './modules/auth/infra/auth.module';
 import { UsuarioModule } from './modules/usuarios/infra/usuario.module';
 import { TicketsModule } from './modules/tickets/infra/tickets.module';
 import { AdministracionModule } from './modules/administracion/administracion.module';
+import { DashboardModule } from './modules/dashboard/infra/dashboard.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { AdministracionModule } from './modules/administracion/administracion.mo
     UsuarioModule,
     TicketsModule,
     AdministracionModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
