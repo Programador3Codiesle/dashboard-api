@@ -111,11 +111,14 @@ export interface DashboardComprasDto extends DashboardBase {
 /** Perfil 34: Asesor de repuestos — presupuesto por sede + gráfica ventas (placeholder). */
 export interface DashboardAsesorRepDto extends DashboardBase {
   variant: 'asesor_rep';
+  /** Lista de sedes del usuario (para tabs cuando hay más de una). */
+  sedes?: Array<{ idsede: number; idsede_v: string; descripcion: string }>;
   /** Presupuesto por sede del usuario (descripcion, presupuesto). */
   presupuestos_sede?: Array<{ sede: string; presupuesto: number }>;
   resumen_actual?: Array<{
     nombre: string;
     sede: string;
+    sede_label2: string;
     venta_neta: number;
     margen_bruto: number;
     utilidad_bruta: number;

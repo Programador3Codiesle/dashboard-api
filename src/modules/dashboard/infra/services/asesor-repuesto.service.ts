@@ -12,9 +12,21 @@ export class AsesorRepuestoService {
     fechaActual: string,
     diaFestivo: number,
     idUsu: string,
+    idsede?: number,
   ): Promise<DashboardAsesorRepDto> {
-    const sedesRows = await this.repo.getSedesUser(nitUsuario);
-    console.log(sedesRows);
+    let sedesRows = await this.repo.getSedesUser(nitUsuario);
+    const sedesParaResponse = sedesRows.map((r) => ({
+      idsede: r.idsede,
+      idsede_v: r.idsede_v ?? String(r.idsede),
+      descripcion: r.descripcion ?? `Sede ${r.idsede}`,
+    }));
+    if (sedesRows.length > 1) {
+      if (idsede != null) {
+        sedesRows = sedesRows.filter((r) => r.idsede === idsede);
+      } else {
+        sedesRows = sedesRows.slice(0, 1);
+      }
+    }
     const presupuestosSede: Array<{ sede: string; presupuesto: number }> = [];
 
     const date = await this.repo.getMesAnoActual();
@@ -79,7 +91,8 @@ export class AsesorRepuestoService {
 
       // Buscar la sede real según la descripción del usuario; si no se encuentra, usar la sede del asesor.
       const sedeLabel = sedesRows[0]?.descripcion ?? `Sede ${sedesRows[0]?.idsede}`;
-        
+      const sedeLabel2 = asesor.sede;
+   
      
       const pushFila = (params: {
         ventaNeta: number;
@@ -103,6 +116,7 @@ export class AsesorRepuestoService {
         resumenActual.push({
           nombre: asesor.nombre,
           sede: sedeLabel,
+          sede_label2: sedeLabel2,
           venta_neta: ventaNeta,
           margen_bruto: margenBruto,
           utilidad_bruta: utilidadBruta,
@@ -113,20 +127,19 @@ export class AsesorRepuestoService {
           total_comision: valorComision + (valorComisionVariable ?? 0),
         });
       };
-      console.log(asesor.nombre);
 
       switch (asesor.nombre) {
         case 'QUIÑONEZ NAVAS DIEGO ALONSO': {
           const dataMos = await this.repo.getComisionRepMostrador(asesor.nombre, mes, ano);
           const dataTall = await this.repo.getComisionRepTaller('QDIEGO', mes, ano);
-          if (sedeLabel === 'MOSTRADOR' && dataMos) {
+          if (sedeLabel2 === 'MOSTRADOR' && dataMos) {
             const ventaNeta = dataMos.venta_neta;
             const margen = dataMos.margen;
             const utilidadBruta = ventaNeta * (margen / 100);
             const comision = 12.0;
             const valorComision = utilidadBruta * (comision / 100);
             pushFila({ ventaNeta, margenBruto: margen, utilidadBruta, comision, valorComision });
-          } else if (sedeLabel === 'TALLER' && dataTall) {
+          } else if (sedeLabel2 === 'TALLER' && dataTall) {
             const ventaNeta = dataTall.venta_neta;
             const margen = dataTall.margen;
             const utilidadBruta = ventaNeta * (margen / 100);
@@ -425,12 +438,17 @@ export class AsesorRepuestoService {
           break;
       }
     }
+    console.log(resumenActual);
+    console.log(sedesParaResponse);
+    console.log(presupuestosSede);
+    console.log(totalVendidoGlobal);
 
     return {
       variant: 'asesor_rep',
       fecha_actual: fechaActual,
       dia_festivo: diaFestivo,
       id_usu: idUsu,
+      sedes: sedesParaResponse,
       presupuestos_sede: presupuestosSede.length > 0 ? presupuestosSede : undefined,
       resumen_actual: resumenActual.length > 0 ? resumenActual : undefined,
       total_vendido_global: totalVendidoGlobal || undefined,

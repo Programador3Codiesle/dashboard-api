@@ -37,6 +37,7 @@ export class GetDashboardUseCase {
     userId: string,
     nitUsuario: number,
     perfil: number | string,
+    idsede?: number,
   ): Promise<DashboardResponseDto> {
     const perfilNum = typeof perfil === 'string' ? Number(perfil) : perfil;
     const fechaRow = await this.repo.getFecha();
@@ -89,6 +90,7 @@ export class GetDashboardUseCase {
         fechaActual,
         diaFestivo,
         userId,
+        idsede,
       );
     }
     if (PERFIL_GERENCIA.includes(perfilNum)) {

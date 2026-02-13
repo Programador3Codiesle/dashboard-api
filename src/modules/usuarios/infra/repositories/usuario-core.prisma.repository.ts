@@ -15,7 +15,7 @@ export class UsuarioCoreRepository implements IUsuarioCoreRepository {
   /**
    * Listar todos los usuarios con paginación
    */
-  async findAll(page: number = 1, limit: number = 100) {
+  async findAll(page: number = 1, limit: number = 1000) {
     const offset = (page - 1) * limit;
 
     const results = await this.prisma.$queryRaw<any[]>`
