@@ -15,9 +15,9 @@ export class GetUsuariosUseCase {
     private readonly coreRepo: IUsuarioCoreRepository
   ) {}
 
-  async execute(): Promise<GetUsuariosResponseDto[]> {
-    // Obtener datos con JOINs desde el Repository
-    const usuarios = await this.coreRepo.findAll();
+  async execute(page?: number, limit?: number): Promise<GetUsuariosResponseDto[]> {
+    // Obtener datos con JOINs desde el Repository (paginación en BD)
+    const usuarios = await this.coreRepo.findAll(page, limit);
 
     // Usar el Mapper para convertir Entity → DTO Response
     return usuarios.map(usuario => 

@@ -8,7 +8,6 @@ import { AssignHorarioDto } from "../../application/dto/assign-horario.dto";
 import { JefesEntity, SedesEntity, PerfilesEntity, HorarioEntity, UsuarioEntity } from "../../domain/usuario.entity";
 import { AssignEmpresaDto } from "../../application/dto/assign-empresa.dto";
 import { CreateJefeDto } from "../../application/dto/assign-jefe.dto";
-import { log } from "console";
 
 @Injectable()
 export class UsuarioRepository {

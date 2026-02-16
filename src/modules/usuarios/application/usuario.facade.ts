@@ -33,9 +33,9 @@ export class UsuarioFacade {
     private readonly getUsuariosUC: GetUsuariosUseCase,
   ) { }
 
-  /** Listar usuarios */
-  async listar() {
-    return this.getUsuariosUC.execute();
+  /** Listar usuarios (paginación: page, limit) */
+  async listar(page?: number, limit?: number) {
+    return this.getUsuariosUC.execute(page, limit);
   }
 
   /** Crear usuario */

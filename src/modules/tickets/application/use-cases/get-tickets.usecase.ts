@@ -14,11 +14,11 @@ export class GetTicketsUseCase {
         return this.repo.findById(id);
     }
     
-    async getActivos() {
-        return this.repo.findActivos();
+    async getActivos(page?: number, limit?: number) {
+        return this.repo.findActivos(page, limit);
     }
 
-    async getFinalizados() {
-        return this.repo.findFinalizados();
+    async getFinalizados(page?: number, limit?: number) {
+        return this.repo.findFinalizados(page, limit);
     }
 }

@@ -1,12 +1,17 @@
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import { ITicketRepository } from '../../domain/ticket.repository';
 import { TicketEntity, RespuestaTicketEntity } from '../../domain/ticket.entity';
 import { TicketsMapper } from '../../presentation/mappers/tickets.mapper';
 
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 50;
+
 @Injectable()
 export class TicketPrismaRepository implements ITicketRepository {
+    private readonly logger = new Logger(TicketPrismaRepository.name);
+
     constructor(private readonly prisma: PrismaService) { }
 
     async create(data: Partial<TicketEntity>): Promise<{status: boolean, message: string, data: TicketEntity | null}> {
@@ -123,8 +128,8 @@ export class TicketPrismaRepository implements ITicketRepository {
     }
 
 
-    async findActivos(): Promise<TicketEntity[]> {
-        // Optimizado: Usar $queryRaw con template literal (seguro contra SQL injection)
+    async findActivos(page: number = DEFAULT_PAGE, limit: number = DEFAULT_LIMIT): Promise<TicketEntity[]> {
+        const offset = (page - 1) * limit;
         const results = await this.prisma.$queryRaw<any[]>`
             SELECT 
                 tk.usuario, 
@@ -147,6 +152,7 @@ export class TicketPrismaRepository implements ITicketRepository {
             WHERE 1 = 1
                 AND tk.estado IN ('activo', 'En Proceso')
             ORDER BY tk.fecha_creacion DESC
+            OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
         `;
 
         return results.map(r => TicketsMapper.mapToEntity(r));
@@ -154,8 +160,8 @@ export class TicketPrismaRepository implements ITicketRepository {
 
 
 
-    async findFinalizados(): Promise<TicketEntity[]> {
-        // Optimizado: Usar $queryRaw con template literal (seguro contra SQL injection)
+    async findFinalizados(page: number = DEFAULT_PAGE, limit: number = DEFAULT_LIMIT): Promise<TicketEntity[]> {
+        const offset = (page - 1) * limit;
         const results = await this.prisma.$queryRaw<any[]>`
             SELECT 
                 tk.usuario, 
@@ -172,6 +178,7 @@ export class TicketPrismaRepository implements ITicketRepository {
             WHERE tk.estado IN ('cerrado')
                 AND tk.fecha_creacion >= DATEADD(year, -1, GETDATE())
             ORDER BY tk.fecha_creacion DESC
+            OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
         `;
 
         return results.map(r => TicketsMapper.mapToEntity(r));
@@ -203,7 +210,7 @@ export class TicketPrismaRepository implements ITicketRepository {
                 message: 'Respuesta exitosa'
             };
         } catch (error: any) {
-            console.error(error);
+            this.logger.error('Error al agregar la respuesta', error?.stack || error);
             return {
                 status: false,
                 message: 'Error al agregar la respuesta ' + error.message

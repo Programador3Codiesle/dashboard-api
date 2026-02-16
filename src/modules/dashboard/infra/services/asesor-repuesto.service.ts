@@ -438,10 +438,6 @@ export class AsesorRepuestoService {
           break;
       }
     }
-    console.log(resumenActual);
-    console.log(sedesParaResponse);
-    console.log(presupuestosSede);
-    console.log(totalVendidoGlobal);
 
     return {
       variant: 'asesor_rep',

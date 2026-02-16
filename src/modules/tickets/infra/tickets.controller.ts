@@ -1,5 +1,5 @@
 
-import { Controller, Get, Post, Put, Body, Param, UseInterceptors, UploadedFile, BadRequestException, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Put, Body, Param, Query, UseInterceptors, UploadedFile, BadRequestException, UseGuards } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { TicketFacade } from '../application/ticket.facade';
 import { JwtAuthGuard } from '../../auth/infra/jwt-auth.guard';
@@ -17,10 +17,18 @@ export class TicketController {
     create(@Body() dto: CreateTicketDto) { return this.facade.create(dto);}
 
     @Get('activos')
-    getActivos() { return this.facade.getActivos(); }
+    getActivos(@Query('page') page?: string, @Query('limit') limit?: string) {
+        const p = page ? parseInt(page, 10) : 1;
+        const l = limit ? parseInt(limit, 10) : 50;
+        return this.facade.getActivos(p, l);
+    }
 
     @Get('finalizados')
-    getFinalizados() { return this.facade.getFinalizados(); }
+    getFinalizados(@Query('page') page?: string, @Query('limit') limit?: string) {
+        const p = page ? parseInt(page, 10) : 1;
+        const l = limit ? parseInt(limit, 10) : 50;
+        return this.facade.getFinalizados(p, l);
+    }
 
     @Get('mis-tickets/:userId')
     getByUsuario(@Param('userId') userId: string) { return this.facade.getByUsuario(+userId); }

@@ -6,6 +6,7 @@ import {
   Delete,
   Param,
   Body,
+  Query,
   UseGuards,
   UseInterceptors,
   Req,
@@ -50,12 +51,14 @@ export class UsuarioController {
     return this.usuarioFacade.listarPerfilUsuario(id);
   }
 
-  /** Listar usuarios - Con caché de 5 minutos */
+  /** Listar usuarios - Con caché de 5 minutos. Query params: page, limit */
   @Get()
   @UseInterceptors(CacheInterceptor)
   @CacheTTL(5 * 60 * 1000) // 5 minutos
-  listar() {
-    return this.usuarioFacade.listar();
+  listar(@Query('page') page?: string, @Query('limit') limit?: string) {
+    const p = page ? parseInt(page, 10) : 1;
+    const l = limit ? parseInt(limit, 10) : 1500;
+    return this.usuarioFacade.listar(p, l);
   }
 
   /** Ver sedes del usuario */
