@@ -3,6 +3,29 @@
  * Usados por services (jefe-taller, técnico).
  */
 
+/** Mapeo idsede → nombre sede para NPS GM (nps_tec). Legacy: InfVentasTallerModel sedes_giron/barranca/rosita/cucuta. */
+export function mapSedeIdToSedeNameGm(idsede: number): string {
+  switch (idsede) {
+    case 1:
+    case 9:
+    case 11:
+    case 21:
+      return 'giron';
+    case 6:
+    case 19:
+      return 'barranca';
+    case 7:
+      return 'rosita';
+    case 8:
+    case 14:
+    case 16:
+    case 22:
+      return 'bocono';
+    default:
+      return '';
+  }
+}
+
 export function mapSedesToSedeName(sedesIds: string): string {
   const trimmed = sedesIds.replace(/\s/g, '');
   switch (trimmed) {

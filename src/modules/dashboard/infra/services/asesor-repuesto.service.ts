@@ -1,11 +1,15 @@
 import { Injectable } from '@nestjs/common';
-import { IDashboardRepository } from '../../domain/dashboard.repository';
+import { IDashboardCommonRepository } from '../../domain/dashboard-common.repository';
+import { IAsesorRepuestoDashboardRepository } from '../../domain/asesor-repuesto.repository';
 import { DashboardAsesorRepDto } from '../../application/dto/dashboard-response.dto';
 import { ASESORES } from '../../domain/dashboard.constants';
 
 @Injectable()
 export class AsesorRepuestoService {
-  constructor(private readonly repo: IDashboardRepository) {}
+  constructor(
+    private readonly commonRepo: IDashboardCommonRepository,
+    private readonly asesorRepo: IAsesorRepuestoDashboardRepository,
+  ) {}
 
   async buildAsesorRep(
     nitUsuario: number,
@@ -14,7 +18,7 @@ export class AsesorRepuestoService {
     idUsu: string,
     idsede?: number,
   ): Promise<DashboardAsesorRepDto> {
-    let sedesRows = await this.repo.getSedesUser(nitUsuario);
+    let sedesRows = await this.commonRepo.getSedesUser(nitUsuario);
     const sedesParaResponse = sedesRows.map((r) => ({
       idsede: r.idsede,
       idsede_v: r.idsede_v ?? String(r.idsede),
@@ -29,12 +33,16 @@ export class AsesorRepuestoService {
     }
     const presupuestosSede: Array<{ sede: string; presupuesto: number }> = [];
 
-    const date = await this.repo.getMesAnoActual();
+    const date = await this.commonRepo.getMesAnoActual();
     const mes = date?.mes ?? new Date().getMonth() + 1;
     const ano = date?.ano ?? new Date().getFullYear();
 
     for (const row of sedesRows) {
-      const filasPresupuesto = await this.repo.getPresupuestoSede(ano, mes, row.idsede);
+      const filasPresupuesto = await this.commonRepo.getPresupuestoSede(
+        ano,
+        mes,
+        row.idsede,
+      );
 
       let presupuesto = 0;
         
@@ -130,8 +138,16 @@ export class AsesorRepuestoService {
 
       switch (asesor.nombre) {
         case 'QUIÑONEZ NAVAS DIEGO ALONSO': {
-          const dataMos = await this.repo.getComisionRepMostrador(asesor.nombre, mes, ano);
-          const dataTall = await this.repo.getComisionRepTaller('QDIEGO', mes, ano);
+          const dataMos = await this.asesorRepo.getComisionRepMostrador(
+            asesor.nombre,
+            mes,
+            ano,
+          );
+          const dataTall = await this.asesorRepo.getComisionRepTaller(
+            'QDIEGO',
+            mes,
+            ano,
+          );
           if (sedeLabel2 === 'MOSTRADOR' && dataMos) {
             const ventaNeta = dataMos.venta_neta;
             const margen = dataMos.margen;
@@ -150,7 +166,12 @@ export class AsesorRepuestoService {
           break;
         }
         case 'CASTRO BLANCO LUIS EDUARDO': {
-          const dataMos = await this.repo.getComisionRepMostradorLuisE(asesor.nombre, mes, ano);
+          const dataMos =
+            await this.asesorRepo.getComisionRepMostradorLuisE(
+              asesor.nombre,
+              mes,
+              ano,
+            );
           if (dataMos) {
             const ventaNeta = dataMos.venta_neta;
             const margen = dataMos.margen;
@@ -162,8 +183,16 @@ export class AsesorRepuestoService {
           break;
         }
         case 'OLAYA CALDERON JOSE ALLENDY': {
-          const dataMos = await this.repo.getComisionRepMostrador(asesor.nombre, mes, ano);
-          const dataTall = await this.repo.getComisionRepTaller('JOLAYA', mes, ano);
+          const dataMos = await this.asesorRepo.getComisionRepMostrador(
+            asesor.nombre,
+            mes,
+            ano,
+          );
+          const dataTall = await this.asesorRepo.getComisionRepTaller(
+            'JOLAYA',
+            mes,
+            ano,
+          );
           if (sedeLabel === 'MOSTRADOR-MAYOR' && dataMos) {
             const ventaNeta = dataMos.venta_neta;
             const margen = dataMos.margen;
@@ -182,8 +211,16 @@ export class AsesorRepuestoService {
           break;
         }
         case 'CARRILLO ANGARITA FIDEL': {
-          const dataMos = await this.repo.getComisionRepMostrador(asesor.nombre, mes, ano);
-          const dataTall = await this.repo.getComisionRepTaller('FIDEL', mes, ano);
+          const dataMos = await this.asesorRepo.getComisionRepMostrador(
+            asesor.nombre,
+            mes,
+            ano,
+          );
+          const dataTall = await this.asesorRepo.getComisionRepTaller(
+            'FIDEL',
+            mes,
+            ano,
+          );
           if (dataMos) {
             let ventaNeta = dataMos.venta_neta;
             let utilidad = dataMos.utilidad;
@@ -210,8 +247,16 @@ export class AsesorRepuestoService {
           break;
         }
         case 'RANGEL REYES CRISTIAN ORLANDO': {
-          const dataMos = await this.repo.getComisionRepMostrador(asesor.nombre, mes, ano);
-          const dataTall = await this.repo.getComisionRepTaller('CRANGEL', mes, ano);
+          const dataMos = await this.asesorRepo.getComisionRepMostrador(
+            asesor.nombre,
+            mes,
+            ano,
+          );
+          const dataTall = await this.asesorRepo.getComisionRepTaller(
+            'CRANGEL',
+            mes,
+            ano,
+          );
           if (dataMos) {
             let ventaNeta = dataMos.venta_neta;
             let utilidad = dataMos.utilidad;
@@ -234,8 +279,16 @@ export class AsesorRepuestoService {
           break;
         }
         case 'LOPEZ JUAN MANUEL': {
-          const dataMos = await this.repo.getComisionRepMostrador(asesor.nombre, mes, ano);
-          const dataTall = await this.repo.getComisionRepTaller('JMANUEL', mes, ano);
+          const dataMos = await this.asesorRepo.getComisionRepMostrador(
+            asesor.nombre,
+            mes,
+            ano,
+          );
+          const dataTall = await this.asesorRepo.getComisionRepTaller(
+            'JMANUEL',
+            mes,
+            ano,
+          );
           if (dataMos) {
             let ventaNeta = dataMos.venta_neta;
             let utilidad = dataMos.utilidad;
@@ -258,8 +311,16 @@ export class AsesorRepuestoService {
           break;
         }
           case 'CADENA RAMIREZ FERNANDO ANTONIO': {
-          const dataMos = await this.repo.getComisionRepMostrador(asesor.nombre, mes, ano);
-          const dataTall = await this.repo.getComisionRepTaller('FERNANDO', mes, ano);
+          const dataMos = await this.asesorRepo.getComisionRepMostrador(
+            asesor.nombre,
+            mes,
+            ano,
+          );
+          const dataTall = await this.asesorRepo.getComisionRepTaller(
+            'FERNANDO',
+            mes,
+            ano,
+          );
           if (dataMos) {
             let ventaNeta = dataMos.venta_neta;
             let utilidad = dataMos.utilidad;
@@ -286,9 +347,21 @@ export class AsesorRepuestoService {
           break;
         }
         case 'ABRIL RAMIREZ LEONARDO': {
-          const dataMos = await this.repo.getComisionRepMostrador(asesor.nombre, mes, ano);
-          const dataTallM = await this.repo.getComisionRepTaller('M-ABRIL', mes, ano);
-          const dataTall = await this.repo.getComisionRepTaller('LEONARDO', mes, ano);
+          const dataMos = await this.asesorRepo.getComisionRepMostrador(
+            asesor.nombre,
+            mes,
+            ano,
+          );
+          const dataTallM = await this.asesorRepo.getComisionRepTaller(
+            'M-ABRIL',
+            mes,
+            ano,
+          );
+          const dataTall = await this.asesorRepo.getComisionRepTaller(
+            'LEONARDO',
+            mes,
+            ano,
+          );
           if (dataMos) {
             let ventaNeta = dataMos.venta_neta;
             let utilidad = dataMos.utilidad;
@@ -315,8 +388,16 @@ export class AsesorRepuestoService {
           break;
         }
         case 'ARDILA SANCHEZ JOSUE': {
-          const dataMos = await this.repo.getComisionRepMostrador(asesor.nombre, mes, ano);
-          const dataTall = await this.repo.getComisionRepTaller('JARDILA', mes, ano);
+          const dataMos = await this.asesorRepo.getComisionRepMostrador(
+            asesor.nombre,
+            mes,
+            ano,
+          );
+          const dataTall = await this.asesorRepo.getComisionRepTaller(
+            'JARDILA',
+            mes,
+            ano,
+          );
           if (sedeLabel === 'GIRON MOSTRADOR' && dataMos) {
             const ventaNeta = dataMos.venta_neta;
             const margen = dataMos.margen;
@@ -347,17 +428,18 @@ export class AsesorRepuestoService {
           break;
         }
         case 'OCHOA RUEDA JHON FREDDY': {
-          const dataMosSinMayor = await this.repo.getComisionRepMostradorSinMayor(
+          const dataMosSinMayor =
+            await this.asesorRepo.getComisionRepMostradorSinMayor(
             asesor.nombre,
             mes,
             ano,
           );
-          const dataMayor = await this.repo.getComisionRepMostradosMayor(
+          const dataMayor = await this.asesorRepo.getComisionRepMostradosMayor(
             asesor.nombre,
             mes,
             ano,
           );
-          const dataAceite = await this.repo.getComisionRepMostradosAceite(
+          const dataAceite = await this.asesorRepo.getComisionRepMostradosAceite(
             asesor.nombre,
             mes,
             ano,
@@ -413,7 +495,11 @@ export class AsesorRepuestoService {
           break;
         }
         case 'MEJIA VARGAS OSCAR ALFONSO': {
-          const dataMos = await this.repo.getComisionRepMostrador(asesor.nombre, mes, ano);
+          const dataMos = await this.asesorRepo.getComisionRepMostrador(
+            asesor.nombre,
+            mes,
+            ano,
+          );
           if (dataMos) {
             const ventaNeta = dataMos.venta_neta;
             const margen = dataMos.margen;

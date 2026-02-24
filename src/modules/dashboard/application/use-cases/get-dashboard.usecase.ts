@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { IDashboardRepository } from '../../domain/dashboard.repository';
+import { IDashboardCommonRepository } from '../../domain/dashboard-common.repository';
 import {
   PERFIL_JEFE_TALLER,
   PERFIL_INFORME_TECNICOS,
@@ -22,7 +22,7 @@ import { MantenimientoService } from '../../infra/services/mantenimiento.service
 @Injectable()
 export class GetDashboardUseCase {
   constructor(
-    private readonly repo: IDashboardRepository,
+    private readonly commonRepo: IDashboardCommonRepository,
     private readonly jefeTallerService: JefeTallerService,
     private readonly tecnicoService: TecnicoService,
     private readonly administracionService: AdministracionService,
@@ -38,12 +38,14 @@ export class GetDashboardUseCase {
     nitUsuario: number,
     perfil: number | string,
     idsede?: number,
+    mes?: number,
+    ano?: number,
   ): Promise<DashboardResponseDto> {
     const perfilNum = typeof perfil === 'string' ? Number(perfil) : perfil;
-    const fechaRow = await this.repo.getFecha();
+    const fechaRow = await this.commonRepo.getFecha();
     const fechaActual =
       fechaRow?.fecha_actual ?? new Date().toISOString().slice(0, 10);
-    const diaFestivo = await this.repo.diasFestivos(fechaActual);
+    const diaFestivo = await this.commonRepo.diasFestivos(fechaActual);
 
     if (perfilNum === PERFIL_JEFE_TALLER || perfilNum === 20) {
       return this.jefeTallerService.buildJefeTaller(
@@ -59,6 +61,8 @@ export class GetDashboardUseCase {
         fechaActual,
         diaFestivo,
         userId,
+        mes,
+        ano,
       );
     }
     if (perfilNum === PERFIL_AGENTE_CC) {

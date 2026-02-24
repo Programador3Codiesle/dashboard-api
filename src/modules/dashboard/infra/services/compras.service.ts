@@ -1,19 +1,19 @@
 import { Injectable } from '@nestjs/common';
-import { IDashboardRepository } from '../../domain/dashboard.repository';
+import { IComprasDashboardRepository } from '../../domain/compras.repository';
 import { DashboardComprasDto } from '../../application/dto/dashboard-response.dto';
 
 @Injectable()
 export class ComprasService {
-  constructor(private readonly repo: IDashboardRepository) {}
+  constructor(private readonly comprasRepo: IComprasDashboardRepository) {}
 
   async buildCompras(
       fechaActual: string,
       diaFestivo: number,
       idUsu: string,
   ): Promise < DashboardComprasDto > {
-      const pend = await this.repo.getCantSolicitudesCompras('1');
-      const proc = await this.repo.getCantSolicitudesCompras('2');
-      const fin = await this.repo.getCantSolicitudesCompras('3,4');
+      const pend = await this.comprasRepo.getCantSolicitudesCompras('1');
+      const proc = await this.comprasRepo.getCantSolicitudesCompras('2');
+      const fin = await this.comprasRepo.getCantSolicitudesCompras('3,4');
       return {
           variant: 'compras',
           fecha_actual: fechaActual,

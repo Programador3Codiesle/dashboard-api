@@ -20,6 +20,33 @@ export interface DashboardBase {
   img_user?: string;
 }
 
+/** Punto para gráficos (label + valor). */
+export interface DataPointDto {
+  label: string;
+  y: number;
+}
+
+/** Datos por sede para tabs y gráficos del dashboard jefe de taller. */
+export interface JefeTallerSedeDto {
+  sede: string;
+  totalVenta: number;
+  totalVentaManoObra: number;
+  totalVentaRepuesto: number;
+  totalVentaTot: number;
+  totalHoras: number;
+  objectiveNpsIntCurrent: number;
+  objectiveNpsGMIntCurrent: number;
+  dataPoints1: DataPointDto[];
+  dataPoints2: DataPointDto[];
+  dataPoints3: DataPointDto[];
+  dataPoints4: DataPointDto[];
+  dataPoints5: DataPointDto[];
+  dataPoints6: DataPointDto[];
+  dataPoints7: DataPointDto[];
+  objetiveNps: DataPointDto[];
+  objetiveNpsGM: DataPointDto[];
+}
+
 export interface DashboardJefeTallerDto extends DashboardBase {
   variant: 'jefe_taller';
   nps_int: number;
@@ -30,7 +57,7 @@ export interface DashboardJefeTallerDto extends DashboardBase {
   rep: number;
   tot: number;
   bod: string;
-  data_bodegas: Array<{
+  data_bodegas?: Array<{
     operario: string;
     tecnico: string;
     numero_orden: number;
@@ -39,6 +66,8 @@ export interface DashboardJefeTallerDto extends DashboardBase {
     MO: number;
     horas_facturadas: number;
   }>;
+  /** Por sede: totales y series para tabs y 4 gráficos. Si tiene longitud > 0, el front muestra tabs + gráficos. */
+  sedes?: JefeTallerSedeDto[];
 }
 
 export interface DashboardTecnicosDto extends DashboardBase {
@@ -52,8 +81,73 @@ export interface DashboardTecnicosDto extends DashboardBase {
   bod_usu: string;
   ranking_talleres: { ran_vendido: number; ran_nps: number };
   ranking_sedes: { ran_vendido: number; ran_nps: number };
-  ranking_presupuesto: Array<unknown> | null;
+  ranking_presupuesto: Array<{
+    operario: number;
+    tecnico: string;
+    rptos: number;
+    MO: number;
+    suma_todo: number;
+  }> | null;
   tope_ran_pres: number;
+  ventas_mensuales?: Array<{
+    mes: string;
+    mo: number;
+    repuestos: number;
+    total: number;
+  }>;
+  horas_mensuales?: Array<{
+    mes: string;
+    horas: number;
+  }>;
+  nps_interno_mensual?: Array<{
+    mes: string;
+    nps: number;
+  }>;
+  nps_gm_mensual?: Array<{
+    mes: string;
+    nps: number;
+  }>;
+}
+
+export interface AdminSedePresupuestoDto {
+  /** Clave interna de sede, ej: giron, rosita, barranca, bocono, solochevrolet, chevropartes. */
+  key: string;
+  /** Nombre legible de la sede. */
+  sede: string;
+  /** Presupuesto mensual de la sede. */
+  presupuesto: number;
+  /** Total vendido acumulado en el mes. */
+  total: number;
+  /** Porcentaje de cumplimiento frente al presupuesto (0–∞). */
+  porcentaje: number;
+  /** true si porcentaje >= 100 (meta cumplida). */
+  metaCumplida: boolean;
+}
+
+export interface AdminTallerDetalleDto {
+  /** Nombre del taller, ej: Taller Diesel Girón. */
+  nombre: string;
+  /** Total vendido del taller. */
+  total: number;
+  /** Porcentaje de cumplimiento frente al presupuesto del taller. */
+  porcentaje: number;
+  /** true si porcentaje >= 100 (meta cumplida). */
+  metaCumplida: boolean;
+  /** Total mano de obra asociado (si aplica). */
+  mo?: number;
+  /** Total TOT asociado (si aplica). */
+  tot?: number;
+  /** Total repuestos asociado (si aplica). */
+  rep?: number;
+}
+
+export interface AdminSedeTalleresDto {
+  /** Clave interna de sede, ej: giron, rosita, barranca, bocono, solochevrolet, chevropartes. */
+  key: string;
+  /** Nombre legible de la sede. */
+  sede: string;
+  /** Lista de talleres de la sede con sus KPIs. */
+  talleres: AdminTallerDetalleDto[];
 }
 
 export interface DashboardAdminDto extends DashboardBase {
@@ -76,6 +170,13 @@ export interface DashboardAdminDto extends DashboardBase {
   procesoPre?: number;
   finalizadasPre?: number;
   data_estado?: Array<{ estado: string }>;
+  /** Resumen de presupuesto vs total vendido por sede. */
+  sedes_presupuesto?: AdminSedePresupuestoDto[];
+  /**
+   * Detalle de talleres por sede (gasolina, diésel, colisión, mostrador).
+   * Inicialmente opcional; se puede ir poblando progresivamente.
+   */
+  sedes_talleres?: AdminSedeTalleresDto[];
 }
 
 /** Perfil 31: Agente Call Center — mismo contenido admin + data_estado para cambiar estado. */
@@ -134,12 +235,12 @@ export interface DashboardAsesorRepDto extends DashboardBase {
 /** Perfil 46: Informe solicitud mantenimiento — solo bloque MTO. */
 export interface DashboardInformeMtoDto extends DashboardBase {
   variant: 'informe_mto';
-  pendientes: number;
-  proceso: number;
-  finalizadas: number;
-  pendientesPre: number;
-  procesoPre: number;
-  finalizadasPre: number;
+  pendientes?: number;
+  proceso?: number;
+  finalizadas?: number;
+  pendientesPre?: number;
+  procesoPre?: number;
+  finalizadasPre?: number;
 }
 
 export type DashboardResponseDto =

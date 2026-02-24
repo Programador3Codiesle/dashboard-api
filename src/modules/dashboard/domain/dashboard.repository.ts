@@ -1,7 +1,3 @@
-/**
- * Port for dashboard data. Use-case and services depend on this; infra implements with Prisma/$queryRaw.
- */
-
 export interface DashboardCommonRow {
   fecha_actual?: string;
   dia_festivo?: number;
@@ -21,6 +17,23 @@ export interface VentasBodRow {
   MO: number;
   TOT: number;
   horas_facturadas: number;
+}
+
+/** Una fila de ventas por bodega/mes para gráfico (getVentasBodGraf). */
+export interface VentasBodGrafRow {
+  rptos: number;
+  MO: number;
+  TOT: number;
+  horas_facturadas: number;
+  mes_nom: string;
+}
+
+/** Una fila de NPS agregado por bodega/sede y mes para gráficos. */
+export interface NpsBodGrafRow {
+  enc0a6: number;
+  enc7a8: number;
+  enc9a10: number;
+  mes_nom: string;
 }
 
 export interface NpsSedesMesRow {
@@ -49,6 +62,12 @@ export interface VentasTecRow {
   rptos: number;
   MO: number;
   horas_facturadas: number;
+}
+
+export interface NpsTecnicoMesRow {
+  enc0a6: number;
+  enc7a8: number;
+  enc9a10: number;
 }
 
 export interface RankingRow {
@@ -112,105 +131,9 @@ export interface PostvPresupuestoPosventaRow {
   mostrador: number | null;
 }
 
-export abstract class IDashboardRepository {
-  abstract getFecha(): Promise<DashboardCommonRow | null>;
-  abstract diasFestivos(fecha: string): Promise<number>;
-  abstract getMesAnoActual(): Promise<{ mes: number; ano: number } | null>;
-  abstract getSedesUser(nitUsuario: number): Promise<SedesUserRow[]>;
-  abstract getVentasBod(
-    sedesIds: string,
-    mes: number,
-    ano: number,
-  ): Promise<VentasBodRow | null>;
-  abstract getVentasBodDetalle(
-    sedesIds: string,
-    mes: number,
-    ano: number,
-  ): Promise<VentasBodDetalleRow[]>;
-  abstract getDataNpsInternoSedesMes(sedesIds: string): Promise<NpsSedesMesRow[]>;
-  abstract getCalificacionSede(sede: string): Promise<NpsCalificacionRow[]>;
-  abstract getGrafSedes(): Promise<GrafSedesRow[]>;
-  abstract getPresupuestoMesSedesNew(
-    idsede: string,
-  ): Promise<{ presupuesto: number } | null>;
-  /** Tabla postv_presupuesto_posventa por bodega, año y mes. Retorna todas las columnas (puede haber varias filas). */
-  abstract getPresupuestoSede(
-    ano: number,
-    mes: number,
-    idsede: number,
-  ): Promise<PostvPresupuestoPosventaRow[]>;
-  abstract getPresupuestoDia(
-    centrosCosto: string,
-  ): Promise<{ total: number } | null>;
-  abstract getTotalDias(): Promise<{ ultimo_dia?: number } | null>;
-  abstract getDiasActual(): Promise<{ dia?: number } | null>;
-  abstract getCalificacionSedeGeneral(): Promise<
-    Array<{ Calificacion?: number }>
-  >;
-  abstract getInformeInventario(): Promise<InventarioRow[]>;
-  abstract getDataNpsInternoSedes(sedesIds: string): Promise<NpsSedesMesRow[]>;
-  abstract getEstadoAgente(
-    nitUsuario: number,
-  ): Promise<Array<{ estado: string }>>;
-  abstract getCantSolicitudesCompras(estados: string): Promise<{ n: number }>;
-  abstract sPendientes(sedesIds: string): Promise<{ pendientes: number }>;
-  abstract sProceso(sedesIds: string): Promise<{ proceso: number }>;
-  abstract sFinalizadas(sedesIds: string): Promise<{ finalizada: number }>;
-  abstract sPendientesPre(): Promise<{ pendientes: number }>;
-  abstract sProcesoPre(): Promise<{ proceso: number }>;
-  abstract sFinalizadasPre(): Promise<{ finalizada: number }>;
-  abstract getVentasTec(
-    nit: number,
-    mes: number,
-    ano: number,
-  ): Promise<VentasTecRow | null>;
-  abstract getNpsByTecBuscar(
-    nit: number,
-    mes: number,
-    ano: number,
-  ): Promise<NpsSedesMesRow[]>;
-  abstract getDataNpsByTec(nit: number): Promise<NpsSedesMesRow[]>;
-  abstract getRankingVentas(sedesIds: string): Promise<RankingRow[]>;
-  abstract getRankingNps(sedesIds: string): Promise<RankingRow[]>;
-  abstract getVentasTecRanking(
-    sedesIds: string,
-    mes: number,
-    ano: number,
-  ): Promise<VentasTecRankingRow[]>;
-  abstract getComisionRepMostrador(
-    nombre: string,
-    mes: number,
-    ano: number,
-  ): Promise<ComisionRepRow | null>;
-  abstract getComisionRepMostradorLuisE(
-    nombre: string,
-    mes: number,
-    ano: number,
-  ): Promise<ComisionRepRow | null>;
-  abstract getComisionRepTaller(
-    usuarioCode: string,
-    mes: number,
-    ano: number,
-  ): Promise<ComisionRepRow | null>;
-  abstract getComisionRepMostradorSinMayor(
-    nombre: string,
-    mes: number,
-    ano: number,
-  ): Promise<ComisionRepRow | null>;
-  abstract getComisionRepMostradosMayor(
-    nombre: string,
-    mes: number,
-    ano: number,
-  ): Promise<ComisionRepRow | null>;
-  abstract getComisionRepMostradosAceite(
-    nombre: string,
-    mes: number,
-    ano: number,
-  ): Promise<ComisionRepRow | null>;
-  abstract getVentaRepBySede(
-    idsede: number,
-    mes: number,
-    ano: number,
-    nombreVendedor: string,
-  ): Promise<ComisionRepRow | null>;
-}
+// Los contratos de acceso a datos se encuentran ahora
+// separados por contexto/perfil:
+// - IDashboardCommonRepository
+// - ITecnicoDashboardRepository
+// - IAsesorRepuestoDashboardRepository
+// - IDashboardOtrosPerfilesRepository

@@ -1,1 +1,9 @@
-export { DashboardPrismaRepository } from './dashboard.prisma.repository';
+export { DashboardTecnicoPrismaRepository } from './dashboard-tecnico.prisma.repository';
+export { DashboardAsesorRepPrismaRepository } from './dashboard-asesor-rep.prisma.repository';
+export { DashboardCommonPrismaRepository } from './dashboard-common.prisma.repository';
+export { DashboardJefeTallerPrismaRepository } from './dashboard-jefe-taller.prisma.repository';
+export { DashboardAdministracionPrismaRepository } from './dashboard-administracion.prisma.repository';
+export { DashboardAgenteCCPrismaRepository } from './dashboard-agente-cc.prisma.repository';
+export { DashboardComprasPrismaRepository } from './dashboard-compras.prisma.repository';
+export { DashboardMantenimientoPrismaRepository } from './dashboard-mantenimiento.prisma.repository';
+export { DashboardGerenciaPrismaRepository } from './dashboard-gerencia.prisma.repository';

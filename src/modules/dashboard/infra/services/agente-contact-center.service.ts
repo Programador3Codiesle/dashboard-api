@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { IDashboardRepository } from '../../domain/dashboard.repository';
+
 import { DashboardAgenteCCDto } from '../../application/dto/dashboard-response.dto';
 
 @Injectable()
 export class AgenteContactCenterService {
-  constructor(private readonly repo: IDashboardRepository) {}
+  constructor(
+   
+  ) {}
 
   async buildAgenteCC(
       nitUsuario: number,
@@ -12,7 +14,7 @@ export class AgenteContactCenterService {
       diaFestivo: number,
       idUsu: string,
   ): Promise < DashboardAgenteCCDto > {
-      const dataEstado = await this.repo.getEstadoAgente(nitUsuario);
+    const dataEstado: Array<{ estado: string }> = [];
       return {
           variant: 'agente_cc',
           fecha_actual: fechaActual,
