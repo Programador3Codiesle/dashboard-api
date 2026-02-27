@@ -68,6 +68,15 @@ export abstract class IDashboardCommonRepository {
     idsede: string,
   ): Promise<{ presupuesto: number } | null>;
 
+  /**
+   * Presupuestos (metas) del mes desde tabla legacy `presupuesto` por fecha_ini/fecha_fin.
+   * Misma lógica que Presupuesto::get_presupuesto_mes_all en PHP.
+   */
+  abstract getPresupuestoMesAll(
+    fechaIni: string,
+    fechaFin: string,
+  ): Promise<Array<{ sede: string; presupuesto: number }>>;
+
   abstract getPresupuestoSede(
     ano: number,
     mes: number,

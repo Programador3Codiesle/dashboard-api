@@ -127,6 +127,8 @@ export interface AdminSedePresupuestoDto {
 export interface AdminTallerDetalleDto {
   /** Nombre del taller, ej: Taller Diesel Girón. */
   nombre: string;
+  /** Meta (presupuesto) del taller para el mes. */
+  presupuesto: number;
   /** Total vendido del taller. */
   total: number;
   /** Porcentaje de cumplimiento frente al presupuesto del taller. */

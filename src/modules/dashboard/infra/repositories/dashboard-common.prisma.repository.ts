@@ -373,9 +373,31 @@ export class DashboardCommonPrismaRepository
         AND mes = MONTH(GETDATE())
     `;
     const r = rows[0];
-    return r && Number(r.presupuesto) > 0
-      ? { presupuesto: Number(r.presupuesto) }
-      : null;
+    if (!r) {
+      return null;
+    }
+    return { presupuesto: Number(r.presupuesto ?? 0) };
+  }
+
+  /**
+   * Presupuestos (metas) del mes desde tabla legacy `presupuesto` por fecha_ini/fecha_fin.
+   * Alineado con Presupuesto::get_presupuesto_mes_all en PHP; el legacy usa esta tabla para las metas.
+   */
+  async getPresupuestoMesAll(
+    fechaIni: string,
+    fechaFin: string,
+  ): Promise<Array<{ sede: string; presupuesto: number }>> {
+    const rows = await this.prisma.$queryRaw<any[]>`
+      SELECT sede, presupuesto
+      FROM presupuesto
+      WHERE CONVERT(DATE, fecha_ini) = CONVERT(DATE, ${fechaIni})
+        AND CONVERT(DATE, fecha_fin) = CONVERT(DATE, ${fechaFin})
+      ORDER BY id_presupuesto ASC
+    `;
+    return (rows ?? []).map((r) => ({
+      sede: String(r.sede ?? '').trim(),
+      presupuesto: Number(r.presupuesto ?? 0),
+    }));
   }
 
   async getPresupuestoSede(
@@ -456,7 +478,7 @@ export class DashboardCommonPrismaRepository
     // que calcula el inventario directamente desde referencias, v_referencias_cos y v_referencias_sto_hoy.
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT
-        Promedio = CONVERT(INT, v_r.Promedio),
+        Promedio = v_r.Promedio,
         stock
       FROM referencias r
       INNER JOIN v_referencias_cos v_r ON r.codigo = v_r.codigo
@@ -477,15 +499,21 @@ export class DashboardCommonPrismaRepository
   async getDataNpsInternoSedes(sedesIds: string): Promise<NpsSedesMesRow[]> {
     const ids = parseIds(sedesIds);
     if (ids.length === 0) return [];
+    // Alineado con legacy Informe::get_data_nps_interno_sedes,
+    // que usa postv_encuesta_satisfaccion_qr y filtra por mes/año actual y bodegas.
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT
         COUNT(CASE WHEN pes.pregunta1 BETWEEN 0 AND 6 THEN 1 END) AS enc0a6,
         COUNT(CASE WHEN pes.pregunta1 BETWEEN 7 AND 8 THEN 1 END) AS enc7a8,
         COUNT(CASE WHEN pes.pregunta1 BETWEEN 9 AND 10 THEN 1 END) AS enc9a10
-      FROM posv_encuesta_satisfaccion pes
-      INNER JOIN tall_encabeza_orden teo ON teo.numero = pes.n_orden
-      WHERE teo.bodega IN (${Prisma.join(ids)})
-        AND CONVERT(DATE, teo.fecha_hora_entrega_real) >= CONVERT(DATE, DATEADD(mm, DATEDIFF(mm, 0, GETDATE()), 0))
+      FROM postv_encuesta_satisfaccion_qr pes
+      INNER JOIN referencias_imp r ON pes.placa = r.placa
+      INNER JOIN v_ultima_entrada_taller_datos uet ON r.codigo = uet.uetd_serie
+      INNER JOIN tall_encabeza_orden te ON uet.uetd_numero = te.numero
+      INNER JOIN terceros t ON te.vendedor = t.nit
+      WHERE MONTH(CONVERT(DATE, pes.fecha)) = MONTH(DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0))
+        AND YEAR(CONVERT(DATE, pes.fecha)) = YEAR(GETDATE())
+        AND pes.bod IN (${Prisma.join(ids)})
     `;
     return (rows ?? []).map((r) => ({
       enc0a6: Number(r.enc0a6 ?? 0),

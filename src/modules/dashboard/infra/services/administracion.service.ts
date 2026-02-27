@@ -34,12 +34,78 @@ export class AdministracionService {
     const grafSedes = await this.commonRepo.getGrafSedes();
     base.graf_sedes = grafSedes.length > 0 ? grafSedes : undefined;
 
-    const presuGiron = await this.commonRepo.getPresupuestoMesSedesNew('1,11,9,21');
-    const presuBocono = await this.commonRepo.getPresupuestoMesSedesNew('8,14,16,22');
-    const presuRosita = await this.commonRepo.getPresupuestoMesSedesNew('7');
-    const presuBarranca = await this.commonRepo.getPresupuestoMesSedesNew('6,19');
-    const presuSoloc = await this.commonRepo.getPresupuestoMesSedesNew('23');
-    const presuChev = await this.commonRepo.getPresupuestoMesSedesNew('4');
+    // Metas: legacy usa tabla `presupuesto` (fecha_ini/fecha_fin); nueva app usaba postv_presupuesto_posventa (suele venir en 0).
+    const [y, m] = (fechaActual || '').split('-').map(Number);
+    const fechaIni = y && m ? `${y}-${String(m).padStart(2, '0')}-01` : '';
+    const lastDay = y && m ? new Date(y, m, 0).getDate() : 30;
+    const fechaFin = y && m ? `${y}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}` : '';
+    const presupuestoMesAll = fechaIni && fechaFin ? await this.commonRepo.getPresupuestoMesAll(fechaIni, fechaFin) : [];
+
+    const norm = (s: string) =>
+      (s || '')
+        .trim()
+        .toUpperCase()
+        .normalize('NFD')
+        .replace(/\p{Diacritic}/gu, '');
+    const legacySedeToKey: Record<string, string> = {
+      [norm('CODIESEL PRINCIPAL')]: 'giron',
+      [norm('CODIESEL LA ROSITA')]: 'rosita',
+      [norm('CODIESEL BARRANCABERMEJA')]: 'barranca',
+      [norm('CODIESEL VILLA DEL ROSARIO')]: 'bocono',
+      [norm('SOLOCHEVROLET MOSTRADOR')]: 'solochevrolet',
+      [norm('CHEVROPARTES MOSTRADOR')]: 'chevropartes',
+    };
+    const presupuestoByKey: Record<string, number> = {};
+    for (const row of presupuestoMesAll) {
+      const n = norm(row.sede);
+      const key = legacySedeToKey[n];
+      if (key) presupuestoByKey[key] = row.presupuesto;
+    }
+
+    // Metas por taller: el legacy no usa nombres sino posiciones del arreglo $pres_codiesel.
+    // Replicamos el mismo mapeo de índices -> taller.
+    const metaTallerByName: Record<string, number> = {};
+    const pres = presupuestoMesAll;
+    const setMeta = (nombre: string, index: number) => {
+      const row = pres[index];
+      if (!row) return;
+      metaTallerByName[norm(nombre)] = row.presupuesto;
+    };
+    // Girón
+    setMeta('Taller Diesel Girón', 8);
+    setMeta('Taller Gasolina Girón', 10);
+    setMeta('Taller Colisión Girón', 9);
+    setMeta('Mostrador Girón', 11);
+    // Rosita
+    setMeta('Taller Gasolina la Rosita', 12);
+    setMeta('Mostrador la Rosita', 13);
+    // Barrancabermeja (legacy usa B/meja)
+    setMeta('Taller Diesel B/meja', 5);
+    setMeta('Taller Gasolina B/meja', 6);
+    setMeta('Mostrador B/meja', 7);
+    // Boconó
+    setMeta('Taller Diesel Boconó', 14);
+    setMeta('Taller Gasolina Boconó', 15);
+    setMeta('Taller Colisión Boconó', 16);
+    setMeta('Mostrador Boconó', 17);
+    // Solochevrolet / Chevropartes: sólo sede en legacy, usamos misma meta para el único taller.
+    setMeta('Solochevrolet', 20);
+    setMeta('Chevropartes', 19);
+
+    const aliasTallerLookup: Record<string, string> = {
+      [norm('Taller Diesel Barrancabermeja')]: norm('Taller Diesel B/meja'),
+      [norm('Taller Gasolina Barrancabermeja')]: norm('Taller Gasolina B/meja'),
+      [norm('Mostrador Barrancabermeja')]: norm('Mostrador B/meja'),
+      [norm('Taller Gasolina La Rosita')]: norm('Taller Gasolina la Rosita'),
+      [norm('Mostrador La Rosita')]: norm('Mostrador la Rosita'),
+    };
+
+    const presuGiron = presupuestoByKey['giron'] != null ? { presupuesto: presupuestoByKey['giron'] } : await this.commonRepo.getPresupuestoMesSedesNew('1,11,9,21');
+    const presuBocono = presupuestoByKey['bocono'] != null ? { presupuesto: presupuestoByKey['bocono'] } : await this.commonRepo.getPresupuestoMesSedesNew('8,14,16,22');
+    const presuRosita = presupuestoByKey['rosita'] != null ? { presupuesto: presupuestoByKey['rosita'] } : await this.commonRepo.getPresupuestoMesSedesNew('7');
+    const presuBarranca = presupuestoByKey['barranca'] != null ? { presupuesto: presupuestoByKey['barranca'] } : await this.commonRepo.getPresupuestoMesSedesNew('6,19');
+    const presuSoloc = presupuestoByKey['solochevrolet'] != null ? { presupuesto: presupuestoByKey['solochevrolet'] } : await this.commonRepo.getPresupuestoMesSedesNew('23');
+    const presuChev = presupuestoByKey['chevropartes'] != null ? { presupuesto: presupuestoByKey['chevropartes'] } : await this.commonRepo.getPresupuestoMesSedesNew('4');
 
     const prin = await this.commonRepo.getPresupuestoDia(CENTROS_GIRON);
     const boc = await this.commonRepo.getPresupuestoDia(CENTROS_BOCONO);
@@ -143,9 +209,15 @@ export class AdministracionService {
       centros: string,
       nombre: string,
     ) => {
+      const n = norm(nombre);
+      const alias = aliasTallerLookup[n] ?? n;
+      const metaFromLegacy = metaTallerByName[alias];
+      const presupuestoPromise = metaFromLegacy != null
+        ? Promise.resolve({ presupuesto: metaFromLegacy })
+        : this.commonRepo.getPresupuestoMesSedesNew(centros);
       const [presupuestoRow, totalRow, moRow, totRow, repRow] =
         await Promise.all([
-          this.commonRepo.getPresupuestoMesSedesNew(centros),
+          presupuestoPromise,
           this.commonRepo.getTotalPresupuestoByCentros(centros),
           this.commonRepo.getPresupuestoMo(centros),
           this.commonRepo.getPresupuestoTot(centros),
@@ -157,6 +229,7 @@ export class AdministracionService {
         presupuesto > 0 ? Math.round((total / presupuesto) * 10000) / 100 : 0;
       return {
         nombre,
+        presupuesto,
         total,
         porcentaje,
         metaCumplida: porcentaje >= 100,
