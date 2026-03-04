@@ -12,6 +12,7 @@ import { UsuarioModule } from './modules/usuarios/infra/usuario.module';
 import { TicketsModule } from './modules/tickets/infra/tickets.module';
 import { AdministracionModule } from './modules/administracion/administracion.module';
 import { DashboardModule } from './modules/dashboard/infra/dashboard.module';
+import { CotizadorModule } from './modules/cotizador/infra/cotizador.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { DashboardModule } from './modules/dashboard/infra/dashboard.module';
     TicketsModule,
     AdministracionModule,
     DashboardModule,
+    CotizadorModule,
   ],
   controllers: [AppController],
   providers: [AppService],
