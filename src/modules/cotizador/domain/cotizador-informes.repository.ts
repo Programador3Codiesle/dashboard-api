@@ -18,5 +18,16 @@ export interface CotizacionResumen {
 export abstract class ICotizadorInformesRepository {
   abstract listarCotizacionesLivianos(dateStart: string, dateEnd: string): Promise<CotizacionResumen[]>;
   abstract listarCotizacionesPesados(dateStart: string, dateEnd: string): Promise<CotizacionResumen[]>;
+  abstract getCotizacionLivianosById(
+    idCotizacion: number,
+    placa: string,
+  ): Promise<{
+    id_cotizacion: number;
+    placa: string;
+    nombreCliente: string;
+    emailCliente: string | null;
+    correoAsesor: string | null;
+    bodega: number | null;
+  } | null>;
 }
 

@@ -83,6 +83,15 @@ import {
   TablaConfigEntry,
   TablaKeyEdicion,
 } from '../domain/cotizador-edicion-config.repository';
+import { EnviarEmailCotizacionLivianosUseCase } from './use-cases/enviar-email-cotizacion-livianos.usecase';
+import {
+  CrearPosibleRetornoDTO,
+  CrearPosibleRetornoUseCase,
+} from './use-cases/crear-posible-retorno.usecase';
+import {
+  GetAdicionalesLivianosModalUseCase,
+  GetAdicionalesLivianosModalParams,
+} from './use-cases/get-adicionales-livianos-modal.usecase';
 
 @Injectable()
 export class CotizadorFacade {
@@ -115,6 +124,9 @@ export class CotizadorFacade {
     private readonly getEdicionClasesUC: GetEdicionClasesUseCase,
     private readonly getEdicionFiltroOpcionesUC: GetEdicionFiltroOpcionesUseCase,
     private readonly aplicarEdicionConfigUC: AplicarEdicionConfigUseCase,
+    private readonly enviarEmailCotizacionLivianosUC: EnviarEmailCotizacionLivianosUseCase,
+    private readonly crearPosibleRetornoUC: CrearPosibleRetornoUseCase,
+    private readonly getAdicionalesLivianosModalUC: GetAdicionalesLivianosModalUseCase,
   ) {}
 
   // Punto de entrada único para orquestar los casos de uso del módulo Cotizador.
@@ -149,6 +161,18 @@ export class CotizadorFacade {
 
   async crearCotizacionLivianos(dto: CrearCotizacionLivianosDTO) {
     return this.crearCotizacionLivianosUC.execute(dto);
+  }
+
+  async enviarEmailCotizacionLivianos(idCotizacion: number, placa: string, estado: number) {
+    return this.enviarEmailCotizacionLivianosUC.execute({ idCotizacion, placa, estado });
+  }
+
+  async crearPosibleRetorno(dto: CrearPosibleRetornoDTO, idUsuario: number) {
+    return this.crearPosibleRetornoUC.execute(dto, idUsuario);
+  }
+
+  async getAdicionalesLivianosModal(params: GetAdicionalesLivianosModalParams) {
+    return this.getAdicionalesLivianosModalUC.execute(params);
   }
 
   // Pesados

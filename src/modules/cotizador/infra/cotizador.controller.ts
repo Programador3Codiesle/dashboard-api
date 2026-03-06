@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/infra/jwt-auth.guard';
 import { CotizadorFacade } from '../application/cotizador.facade';
 import { CrearCotizacionLivianosDTO } from '../application/use-cases/crear-cotizacion-livianos.usecase';
@@ -34,24 +34,68 @@ export class CotizadorController {
     return this.facade.getRevisionesLivianos(clase);
   }
 
+  @Get('livianos/adicionales-modal')
+  getAdicionalesLivianosModal(
+    @Query('clase') clase: string,
+    @Query('bodega') bodega: string,
+    @Query('adicional') adicional: string,
+    @Query('year') year: string,
+  ) {
+    return this.facade.getAdicionalesLivianosModal({
+      clase: clase ?? '',
+      bodega: Number(bodega),
+      adicional: Number(adicional),
+      year: Number(year),
+    });
+  }
+
   @Get('livianos/detalle')
   getRevisionDetalleLivianos(
     @Query('bodega') bodega: string,
     @Query('clase') clase: string,
     @Query('revision') revision: string,
+    @Query('yearModel') yearModel: string,
   ) {
     const bodegaNum = Number(bodega);
     const revisionNum = Number(revision);
+    const yearModelNum = Number(yearModel);
     return this.facade.getRevisionDetalleLivianos({
       bodega: bodegaNum,
       clase,
       revision: revisionNum,
+      yearModel: yearModelNum,
     });
   }
 
   @Post('livianos/cotizacion')
-  crearCotizacionLivianos(@Body() body: CrearCotizacionLivianosDTO) {
+  crearCotizacionLivianos(@Req() req: any, @Body() body: CrearCotizacionLivianosDTO) {
+    // postv_cotizacion_contact.usuario = id_usuario (sub), no nit (cédula)
+    const userId = req.user?.nit != null ? Number(req.user.nit) : null;
+    if (userId != null) {
+      body.general.usuario = userId;
+    }
     return this.facade.crearCotizacionLivianos(body);
+  }
+
+  @Post('livianos/posible-retorno')
+  crearPosibleRetorno(@Req() req: any, @Body() body: { placa: string; tipo_retorno: number; observacion: string; bodega: number | null }) {
+    const userId = req.user?.nit != null ? Number(req.user.nit) : null;
+    if (userId == null) {
+      throw new UnauthorizedException('Usuario no autenticado');
+    }
+    return this.facade.crearPosibleRetorno(body, userId);
+  }
+
+  @Post('livianos/cotizacion/email')
+  enviarEmailCotizacionLivianos(
+    @Body()
+    body: {
+      idCotizacion: number;
+      placa: string;
+      estado: number;
+    },
+  ) {
+    return this.facade.enviarEmailCotizacionLivianos(body.idCotizacion, body.placa, body.estado);
   }
 
   // Pesados

@@ -50,8 +50,13 @@ import { CotizadorAdicionalesLivianosPrismaRepository } from './repositories/cot
 import { CotizadorAdicionalesPesadosPrismaRepository } from './repositories/cotizador-adicionales-pesados.prisma.repository';
 import { CotizadorEdicionConfigPrismaRepository } from './repositories/cotizador-edicion-config.prisma.repository';
 import { PrismaService } from '../../../core/infra/prisma/prisma.service';
+import { EmailModule } from '../../../core/infra/email/email.module';
+import { EnviarEmailCotizacionLivianosUseCase } from '../application/use-cases/enviar-email-cotizacion-livianos.usecase';
+import { CrearPosibleRetornoUseCase } from '../application/use-cases/crear-posible-retorno.usecase';
+import { GetAdicionalesLivianosModalUseCase } from '../application/use-cases/get-adicionales-livianos-modal.usecase';
 
 @Module({
+  imports: [EmailModule],
   controllers: [CotizadorController],
   providers: [
     CotizadorFacade,
@@ -107,6 +112,9 @@ import { PrismaService } from '../../../core/infra/prisma/prisma.service';
     GetEdicionFiltroOpcionesUseCase,
     AplicarEdicionConfigUseCase,
     { provide: ICotizadorEdicionConfigRepository, useClass: CotizadorEdicionConfigPrismaRepository },
+    EnviarEmailCotizacionLivianosUseCase,
+    CrearPosibleRetornoUseCase,
+    GetAdicionalesLivianosModalUseCase,
     PrismaService,
   ],
   exports: [CotizadorFacade],

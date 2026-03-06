@@ -98,5 +98,49 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
       origen: 'pesados',
     }));
   }
+
+  async getCotizacionLivianosById(
+    idCotizacion: number,
+    placa: string,
+  ): Promise<{
+    id_cotizacion: number;
+    placa: string;
+    nombreCliente: string;
+    emailCliente: string | null;
+    correoAsesor: string | null;
+    bodega: number | null;
+  } | null> {
+    const rows = await this.prisma.$queryRaw<any[]>`
+      SELECT 
+        CT.id_cotizacion,
+        CT.placa,
+        CT.nombreCliente,
+        CT.emailCliente,
+        Crm.e_mail AS correoAsesor,
+        CT.bodega
+      FROM dbo.postv_cotizacion_contact CT
+      LEFT JOIN (
+        SELECT * 
+        FROM CRM_contactos
+        WHERE contacto = 1
+      ) Crm ON Crm.nit = CT.usuario
+      WHERE CT.id_cotizacion = ${idCotizacion}
+        AND CT.placa = ${placa}
+    `;
+
+    if (!rows || !rows.length) {
+      return null;
+    }
+
+    const r = rows[0];
+    return {
+      id_cotizacion: Number(r.id_cotizacion),
+      placa: r.placa,
+      nombreCliente: r.nombreCliente,
+      emailCliente: r.emailCliente ?? null,
+      correoAsesor: r.correoAsesor ?? null,
+      bodega: r.bodega != null ? Number(r.bodega) : null,
+    };
+  }
 }
 

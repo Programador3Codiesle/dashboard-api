@@ -14,6 +14,7 @@ export interface VehiculoCotizacionLivianos {
   km_estimado: number | null;
   n_carac: number;
   caract_10: string | null;
+  prepagado: string | null;
 }
 
 export interface ClaseDescripcion {
@@ -72,6 +73,7 @@ export interface NuevaCotizacionLivianos {
   fecha_creacion?: Date;
   estado: number;
   fecha_agenda?: Date | null;
+  tipoMantenimiento?: number | null;
 }
 
 export interface RepuestoCotizacionInput {
@@ -106,6 +108,7 @@ export abstract class ICotizadorLivianosRepository {
     bodega: number;
     clase: string;
     revision: number;
+    yearModel: number;
   }): Promise<CotizacionRevisionDetalle>;
   abstract crearCotizacion(data: NuevaCotizacionLivianos): Promise<number>;
   abstract agregarRepuestosCotizacion(
@@ -116,4 +119,24 @@ export abstract class ICotizadorLivianosRepository {
     idCotizacion: number,
     items: ManoObraCotizacionInput[],
   ): Promise<void>;
+  abstract getMttoPrepagado(placa: string): Promise<string | null>;
+  abstract crearPosibleRetorno(data: {
+    id_usuario: number;
+    placa: string;
+    observacion: string;
+    tipo_retorno: number;
+    bodega: number | null;
+  }): Promise<number>;
+  abstract getAdicionalOnlyMo(adicional: number): Promise<boolean>;
+  abstract getRepuestosAdicionales(
+    clase: string,
+    bodega: number,
+    adicional: number,
+    year: number,
+  ): Promise<RawSqlRow[]>;
+  abstract getManoObraAdicional(
+    clase: string,
+    adicional: number,
+    operacion?: string,
+  ): Promise<RawSqlRow[]>;
 }
