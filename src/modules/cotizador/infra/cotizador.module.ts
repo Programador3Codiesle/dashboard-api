@@ -52,8 +52,11 @@ import { CotizadorEdicionConfigPrismaRepository } from './repositories/cotizador
 import { PrismaService } from '../../../core/infra/prisma/prisma.service';
 import { EmailModule } from '../../../core/infra/email/email.module';
 import { EnviarEmailCotizacionLivianosUseCase } from '../application/use-cases/enviar-email-cotizacion-livianos.usecase';
+import { EnviarEmailCotizacionPesadosUseCase } from '../application/use-cases/enviar-email-cotizacion-pesados.usecase';
 import { CrearPosibleRetornoUseCase } from '../application/use-cases/crear-posible-retorno.usecase';
 import { GetAdicionalesLivianosModalUseCase } from '../application/use-cases/get-adicionales-livianos-modal.usecase';
+import { ActualizarEstadoCotizacionUseCase } from '../application/use-cases/actualizar-estado-cotizacion.usecase';
+import { GenerarCotizacionPdfUseCase } from '../application/use-cases/generar-cotizacion-pdf.usecase';
 
 @Module({
   imports: [EmailModule],
@@ -113,8 +116,11 @@ import { GetAdicionalesLivianosModalUseCase } from '../application/use-cases/get
     AplicarEdicionConfigUseCase,
     { provide: ICotizadorEdicionConfigRepository, useClass: CotizadorEdicionConfigPrismaRepository },
     EnviarEmailCotizacionLivianosUseCase,
+    EnviarEmailCotizacionPesadosUseCase,
     CrearPosibleRetornoUseCase,
     GetAdicionalesLivianosModalUseCase,
+    ActualizarEstadoCotizacionUseCase,
+    GenerarCotizacionPdfUseCase,
     PrismaService,
   ],
   exports: [CotizadorFacade],

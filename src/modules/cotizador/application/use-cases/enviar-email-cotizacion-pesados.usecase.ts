@@ -4,7 +4,7 @@ import { ICotizadorInformesRepository } from '../../domain/cotizador-informes.re
 import { GenerarCotizacionPdfUseCase } from './generar-cotizacion-pdf.usecase';
 
 @Injectable()
-export class EnviarEmailCotizacionLivianosUseCase {
+export class EnviarEmailCotizacionPesadosUseCase {
   constructor(
     private readonly emailService: EmailService,
     private readonly informesRepo: ICotizadorInformesRepository,
@@ -22,13 +22,12 @@ export class EnviarEmailCotizacionLivianosUseCase {
   }> {
     const { idCotizacion, placa, estado, idEmpresa } = params;
 
-    const general = await this.informesRepo.getCotizacionLivianosById(idCotizacion, placa);
+    const general = await this.informesRepo.getCotizacionPesadosById(idCotizacion, placa);
     if (!general) {
       return { ok: false, message: 'No se encontró la cotización para enviar correo.' };
     }
 
-    /*
-    // Destinatarios principales: cliente y asesor (como en el legacy)
+    // Destinatarios principales: cliente y asesor.
     const to: string[] = [];
     if (general.emailCliente) {
       to.push(general.emailCliente);
@@ -36,15 +35,12 @@ export class EnviarEmailCotizacionLivianosUseCase {
     if (general.correoAsesor && !to.includes(general.correoAsesor)) {
       to.push(general.correoAsesor);
     }
-*/
-    const to: string[] = ['programador3@codiesel.co'];
-    // Si por alguna razón no hay destinatarios configurados, usamos un buzón de pruebas.
+
     if (!to.length) {
       to.push('programador3@codiesel.co');
     }
 
-    // BCC de bodega cuando la cotización está agendada (estado = 1),
-    // replicando la lógica del switch($bodega) del legacy.
+    // BCC de bodega cuando la cotización está agendada (estado = 1).
     const bcc: string[] = [];
     if (estado === 1 && general.bodega != null) {
       let nitBodega: number | null = null;
@@ -74,7 +70,6 @@ export class EnviarEmailCotizacionLivianosUseCase {
       }
     }
 
-    // Construimos la URL pública al PDF para el enlace "Descargar cotización".
     const baseUrl =
       process.env.APP_PUBLIC_URL ??
       process.env.FRONTEND_URL ??
@@ -82,21 +77,20 @@ export class EnviarEmailCotizacionLivianosUseCase {
       '';
     const normalizedBaseUrl = baseUrl ? baseUrl.replace(/\/+$/, '') : '';
 
-    let pdfUrl = `${normalizedBaseUrl}/cotizador/informe-cotizaciones/pdf?origen=livianos&idCotizacion=${encodeURIComponent(
+    let pdfUrl = `${normalizedBaseUrl}/cotizador/informe-cotizaciones/pdf?origen=pesados&idCotizacion=${encodeURIComponent(
       String(idCotizacion),
     )}&placa=${encodeURIComponent(placa)}`;
     if (idEmpresa != null) pdfUrl += `&empresa=${idEmpresa}`;
 
-    const subject = `Cotizacion mantenimiento - #${idCotizacion}`;
+    const subject = `Cotizacion mantenimiento pesados - #${idCotizacion}`;
 
-    // Plantilla HTML basada en el cuerpo del legacy (tarjeta con header e invitación).
     const html = `<!DOCTYPE html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cotizacion para mantenimiento</title>
+    <title>Cotizacion para mantenimiento pesados</title>
   </head>
   <body>
     <div class="content" style="height: 100%; display: flex; align-items: center; justify-content: center;">
@@ -115,21 +109,30 @@ export class EnviarEmailCotizacionLivianosUseCase {
             style="font-size: 1rem; line-height: 1.5; word-wrap: break-word; padding:10px"
           >
             ¡Hola ${general.nombreCliente}!<br /><br />
-            ¡Gracias por darle a tu Chevrolet el servicio que merece!<br /><br />
+            ¡Gracias por darle a tu vehículo pesados el servicio que merece!<br /><br />
             En los talleres Codiesel contarás siempre con técnicos especializados,
             calidez en el servicio, transparencia en nuestros procesos y la garantía
             sobre el trabajo realizado.<br /><br />
             A continuación encontrarás la cotización de los servicios solicitados.
           </p>
         </div>
+        <div
+          class="card-footer bg-dark text-white"
+          style="padding: 10px; position: relative; top: 20px; background-color: #343a40; color: white; display: flex; flex-direction: row; justify-content: space-around;"
+        >
+          <p style="font-size: 1rem; line-height: 1.5; word-wrap: break-word;">
+            <a style="color:#ffffff;" href="${pdfUrl}">Descargar cotización</a>
+          </p>
+          <div class="contacto" style="display: flex; flex-direction: column; justify-content: space-evenly;">
+          </div>
+        </div>
       </div>
     </div>
   </body>
 </html>`;
 
-    // Generamos el PDF y lo adjuntamos al correo (con colores de empresa si se envía idEmpresa).
     const pdfBuffer = await this.generarCotizacionPdfUC.execute({
-      origen: 'livianos',
+      origen: 'pesados',
       idCotizacion,
       placa,
       idEmpresa,

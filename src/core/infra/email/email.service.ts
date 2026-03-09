@@ -7,6 +7,12 @@ export type SendEmailParams = {
   to: string[];
   subject: string;
   html: string;
+  bcc?: string[];
+  attachments?: Array<{
+    filename: string;
+    content: Buffer;
+    contentType: string;
+  }>;
 };
 
 @Injectable()
@@ -51,8 +57,10 @@ export class EmailService {
       await this.transporter.sendMail({
         from: this.from,
         to: params.to,
+        bcc: params.bcc,
         subject: params.subject,
         html: params.html,
+        attachments: params.attachments,
       });
       return { ok: true };
     } catch (e: any) {

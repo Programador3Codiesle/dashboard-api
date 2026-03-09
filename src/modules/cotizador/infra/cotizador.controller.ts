@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Req, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Req, StreamableFile, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/infra/jwt-auth.guard';
 import { CotizadorFacade } from '../application/cotizador.facade';
 import { CrearCotizacionLivianosDTO } from '../application/use-cases/crear-cotizacion-livianos.usecase';
@@ -144,6 +144,62 @@ export class CotizadorController {
     @Query('dateEnd') dateEnd: string,
   ) {
     return this.facade.listarCotizacionesPesados({ dateStart, dateEnd });
+  }
+
+  @Post('informe-cotizaciones/email')
+  enviarEmailInformeCotizacion(
+    @Body()
+    body: {
+      origen: 'livianos' | 'pesados';
+      idCotizacion: number;
+      placa: string;
+      estado?: number;
+      agenda?: boolean;
+      empresa?: number;
+    },
+  ) {
+    const estado = body.estado ?? 0;
+    const idEmpresa = body.empresa;
+    if (body.origen === 'livianos') {
+      return this.facade.enviarEmailCotizacionLivianos(body.idCotizacion, body.placa, estado, idEmpresa);
+    }
+    return this.facade.enviarEmailCotizacionPesados(body.idCotizacion, body.placa, estado, idEmpresa);
+  }
+
+  @Post('informe-cotizaciones/agenda')
+  actualizarEstadoInformeCotizacion(
+    @Body()
+    body: {
+      origen: 'livianos' | 'pesados';
+      idCotizacion: number;
+    },
+  ) {
+    return this.facade.actualizarEstadoCotizacion({
+      origen: body.origen === 'pesados' ? 'pesados' : 'livianos',
+      idCotizacion: body.idCotizacion,
+    });
+  }
+
+  @Get('informe-cotizaciones/pdf')
+  async getInformeCotizacionPdf(
+    @Query('origen') origen: 'livianos' | 'pesados',
+    @Query('idCotizacion') idCotizacion: string,
+    @Query('placa') placa: string,
+    @Query('empresa') empresa?: string,
+  ): Promise<StreamableFile> {
+    const idNum = Number(idCotizacion);
+    const idEmpresa = empresa != null && empresa !== '' ? Number(empresa) : undefined;
+    const buffer = await this.facade.generarCotizacionPdf({
+      origen: origen === 'pesados' ? 'pesados' : 'livianos',
+      idCotizacion: idNum,
+      placa,
+      idEmpresa,
+    });
+
+    return new StreamableFile(buffer, {
+      type: 'application/pdf',
+      disposition: `inline; filename="cotizacion-${idNum}.pdf"`,
+    });
   }
 
   @Get('informe-cotizaciones')

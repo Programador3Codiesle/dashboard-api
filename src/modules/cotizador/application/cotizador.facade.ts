@@ -84,6 +84,7 @@ import {
   TablaKeyEdicion,
 } from '../domain/cotizador-edicion-config.repository';
 import { EnviarEmailCotizacionLivianosUseCase } from './use-cases/enviar-email-cotizacion-livianos.usecase';
+import { EnviarEmailCotizacionPesadosUseCase } from './use-cases/enviar-email-cotizacion-pesados.usecase';
 import {
   CrearPosibleRetornoDTO,
   CrearPosibleRetornoUseCase,
@@ -92,6 +93,14 @@ import {
   GetAdicionalesLivianosModalUseCase,
   GetAdicionalesLivianosModalParams,
 } from './use-cases/get-adicionales-livianos-modal.usecase';
+import {
+  ActualizarEstadoCotizacionParams,
+  ActualizarEstadoCotizacionUseCase,
+} from './use-cases/actualizar-estado-cotizacion.usecase';
+import {
+  GenerarCotizacionPdfParams,
+  GenerarCotizacionPdfUseCase,
+} from './use-cases/generar-cotizacion-pdf.usecase';
 
 @Injectable()
 export class CotizadorFacade {
@@ -125,8 +134,11 @@ export class CotizadorFacade {
     private readonly getEdicionFiltroOpcionesUC: GetEdicionFiltroOpcionesUseCase,
     private readonly aplicarEdicionConfigUC: AplicarEdicionConfigUseCase,
     private readonly enviarEmailCotizacionLivianosUC: EnviarEmailCotizacionLivianosUseCase,
+    private readonly enviarEmailCotizacionPesadosUC: EnviarEmailCotizacionPesadosUseCase,
     private readonly crearPosibleRetornoUC: CrearPosibleRetornoUseCase,
     private readonly getAdicionalesLivianosModalUC: GetAdicionalesLivianosModalUseCase,
+    private readonly actualizarEstadoCotizacionUC: ActualizarEstadoCotizacionUseCase,
+    private readonly generarCotizacionPdfUC: GenerarCotizacionPdfUseCase,
   ) {}
 
   // Punto de entrada único para orquestar los casos de uso del módulo Cotizador.
@@ -163,8 +175,32 @@ export class CotizadorFacade {
     return this.crearCotizacionLivianosUC.execute(dto);
   }
 
-  async enviarEmailCotizacionLivianos(idCotizacion: number, placa: string, estado: number) {
-    return this.enviarEmailCotizacionLivianosUC.execute({ idCotizacion, placa, estado });
+  async enviarEmailCotizacionLivianos(
+    idCotizacion: number,
+    placa: string,
+    estado: number,
+    idEmpresa?: number,
+  ) {
+    return this.enviarEmailCotizacionLivianosUC.execute({
+      idCotizacion,
+      placa,
+      estado,
+      idEmpresa,
+    });
+  }
+
+  async enviarEmailCotizacionPesados(
+    idCotizacion: number,
+    placa: string,
+    estado: number,
+    idEmpresa?: number,
+  ) {
+    return this.enviarEmailCotizacionPesadosUC.execute({
+      idCotizacion,
+      placa,
+      estado,
+      idEmpresa,
+    });
   }
 
   async crearPosibleRetorno(dto: CrearPosibleRetornoDTO, idUsuario: number) {
@@ -201,6 +237,14 @@ export class CotizadorFacade {
 
   async listarCotizacionesPesados(params: ListarCotizacionesParams) {
     return this.listarCotizacionesPesadosUC.execute(params);
+  }
+
+  async actualizarEstadoCotizacion(params: ActualizarEstadoCotizacionParams) {
+    return this.actualizarEstadoCotizacionUC.execute(params);
+  }
+
+  async generarCotizacionPdf(params: GenerarCotizacionPdfParams) {
+    return this.generarCotizacionPdfUC.execute(params);
   }
 
   // Ejecución Cotizado vs Facturado
