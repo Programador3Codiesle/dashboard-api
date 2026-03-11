@@ -11,6 +11,7 @@ export interface CargarAdicionalLivianosDTO {
   clases: string[];
   repuestos: BulkRepuestoAdicionalLivianoInput[];
   manoObra: BulkManoObraAdicionalLivianoInput[];
+  userId: number;
 }
 
 @Injectable()
@@ -30,8 +31,15 @@ export class CargarAdicionalLivianosUseCase {
       throw new BadRequestException('Debe seleccionar al menos una clase.');
     }
 
+    if (!dto.userId) {
+      throw new BadRequestException(
+        'Usuario no autenticado para auditoría de adicionales.',
+      );
+    }
+
     return this.repo.bulkInsert(
       dto.adicionalId,
+      dto.userId,
       dto.clases,
       dto.repuestos ?? [],
       dto.manoObra ?? [],

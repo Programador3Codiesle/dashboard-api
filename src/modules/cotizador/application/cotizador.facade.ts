@@ -69,6 +69,12 @@ import {
   ListarAdicionalesLivianosResponse,
   ListarAdicionalesLivianosUseCase,
 } from './use-cases/listar-adicionales-livianos.usecase';
+import { UpdateAdicionalEstadoLivianosUseCase } from './use-cases/update-adicional-estado-livianos.usecase';
+import { ValidarCodigoRepuestoUseCase } from './use-cases/validar-codigo-repuesto.usecase';
+import { UpdateRepuestoAdicionalLivianosUseCase } from './use-cases/update-repuesto-adicional-livianos.usecase';
+import { UpdateManoObraAdicionalLivianosUseCase } from './use-cases/update-mano-obra-adicional-livianos.usecase';
+import { DeleteRepuestoAdicionalLivianosUseCase } from './use-cases/delete-repuesto-adicional-livianos.usecase';
+import { DeleteManoObraAdicionalLivianosUseCase } from './use-cases/delete-mano-obra-adicional-livianos.usecase';
 import { GetEdicionTablasUseCase } from './use-cases/get-edicion-tablas.usecase';
 import {
   EdicionClaseOption,
@@ -139,6 +145,12 @@ export class CotizadorFacade {
     private readonly getAdicionalesLivianosModalUC: GetAdicionalesLivianosModalUseCase,
     private readonly actualizarEstadoCotizacionUC: ActualizarEstadoCotizacionUseCase,
     private readonly generarCotizacionPdfUC: GenerarCotizacionPdfUseCase,
+    private readonly updateAdicionalEstadoLivianosUC: UpdateAdicionalEstadoLivianosUseCase,
+    private readonly validarCodigoRepuestoUC: ValidarCodigoRepuestoUseCase,
+    private readonly updateRepuestoAdicionalLivianosUC: UpdateRepuestoAdicionalLivianosUseCase,
+    private readonly updateManoObraAdicionalLivianosUC: UpdateManoObraAdicionalLivianosUseCase,
+    private readonly deleteRepuestoAdicionalLivianosUC: DeleteRepuestoAdicionalLivianosUseCase,
+    private readonly deleteManoObraAdicionalLivianosUC: DeleteManoObraAdicionalLivianosUseCase,
   ) {}
 
   // Punto de entrada único para orquestar los casos de uso del módulo Cotizador.
@@ -291,6 +303,59 @@ export class CotizadorFacade {
     filtros: FiltrosListaAdicionalesLivianos,
   ): Promise<ListarAdicionalesLivianosResponse> {
     return this.listarAdicionalesLivianosUC.execute(filtros);
+  }
+
+  async updateAdicionalEstadoLiviano(params: {
+    id: number;
+    estado: number;
+  }): Promise<void> {
+    return this.updateAdicionalEstadoLivianosUC.execute(params);
+  }
+
+  async validarCodigoRepuesto(codigo: string) {
+    return this.validarCodigoRepuestoUC.execute(codigo);
+  }
+
+  async updateRepuestoAdicionalLiviano(input: {
+    seq: number;
+    userId: number;
+    descripcion: string;
+    cantidad: number;
+    yearStart: number;
+    yearEnd: number;
+    descuento?: number | null;
+  }) {
+    return this.updateRepuestoAdicionalLivianosUC.execute(input);
+  }
+
+  async updateManoObraAdicionalLiviano(input: {
+    id: number;
+    userId: number;
+    operacion: string;
+    tiempo: number;
+    valorMenos5: number;
+    valorMas5: number;
+    descuento?: number | null;
+  }) {
+    return this.updateManoObraAdicionalLivianosUC.execute(input);
+  }
+
+  async deleteRepuestoAdicionalLiviano(params: {
+    seq: number;
+    codigo: string;
+    adicionalId: number;
+    userId: number;
+  }) {
+    return this.deleteRepuestoAdicionalLivianosUC.execute(params);
+  }
+
+  async deleteManoObraAdicionalLiviano(params: {
+    id: number;
+    operacion: string;
+    adicionalId: number;
+    userId: number;
+  }) {
+    return this.deleteManoObraAdicionalLivianosUC.execute(params);
   }
 
   // Adicionales pesados

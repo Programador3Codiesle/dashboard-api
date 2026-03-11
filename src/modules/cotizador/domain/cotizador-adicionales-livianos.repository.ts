@@ -65,6 +65,32 @@ export interface BulkResultAdicionalLiviano {
   mano_fail: number;
 }
 
+export interface CodigoRepuestoValidationResult {
+  response: 'success' | 'error';
+  codigo?: string;
+  alterno?: string | null;
+}
+
+export interface UpdateRepuestoAdicionalInput {
+  seq: number;
+  userId: number;
+  descripcion: string;
+  cantidad: number;
+  yearStart: number;
+  yearEnd: number;
+  descuento?: number | null;
+}
+
+export interface UpdateManoObraAdicionalInput {
+  id: number;
+  userId: number;
+  operacion: string;
+  tiempo: number;
+  valorMenos5: number;
+  valorMas5: number;
+  descuento?: number | null;
+}
+
 export abstract class ICotizadorAdicionalesLivianosRepository {
   abstract getClasesAdicionales(): Promise<ClaseAdicionalLiviano[]>;
 
@@ -84,9 +110,38 @@ export abstract class ICotizadorAdicionalesLivianosRepository {
 
   abstract bulkInsert(
     adicionalId: number,
+    userId: number,
     clases: string[],
     repuestos: BulkRepuestoAdicionalLivianoInput[],
     manoObra: BulkManoObraAdicionalLivianoInput[],
   ): Promise<BulkResultAdicionalLiviano>;
+
+  abstract updateAdicionalEstado(id: number, estado: number): Promise<void>;
+
+  abstract validateCodigoRepuesto(
+    codigo: string,
+  ): Promise<CodigoRepuestoValidationResult>;
+
+  abstract deleteRepuestoAdicional(
+    seq: number,
+    codigo: string,
+    adicionalId: number,
+    userId: number,
+  ): Promise<void>;
+
+  abstract deleteManoObraAdicional(
+    id: number,
+    operacion: string,
+    adicionalId: number,
+    userId: number,
+  ): Promise<void>;
+
+  abstract updateRepuestoAdicional(
+    input: UpdateRepuestoAdicionalInput,
+  ): Promise<void>;
+
+  abstract updateManoObraAdicional(
+    input: UpdateManoObraAdicionalInput,
+  ): Promise<void>;
 }
 

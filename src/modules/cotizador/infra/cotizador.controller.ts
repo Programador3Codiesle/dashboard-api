@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Query, Req, StreamableFile, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, Put, Query, Req, StreamableFile, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/infra/jwt-auth.guard';
 import { CotizadorFacade } from '../application/cotizador.facade';
 import { CrearCotizacionLivianosDTO } from '../application/use-cases/crear-cotizacion-livianos.usecase';
@@ -270,8 +270,19 @@ export class CotizadorController {
     return this.facade.crearAdicionalLiviano({ nombre: body.nombre });
   }
 
+  @Post('adicionales-livianos/adicional/estado')
+  updateAdicionalLivianoEstado(
+    @Body() body: { id: number; estado: number },
+  ) {
+    return this.facade.updateAdicionalEstadoLiviano({
+      id: body.id,
+      estado: body.estado,
+    });
+  }
+
   @Post('adicionales-livianos/items')
   cargarAdicionalLiviano(
+    @Req() req: any,
     @Body()
     body: {
       adicionalId: number;
@@ -293,7 +304,14 @@ export class CotizadorController {
       }[];
     },
   ) {
-    return this.facade.cargarAdicionalLiviano(body);
+    const userId = req.user?.nit != null ? Number(req.user.nit) : null;
+    if (userId == null) {
+      throw new UnauthorizedException('Usuario no autenticado');
+    }
+    return this.facade.cargarAdicionalLiviano({
+      ...body,
+      userId,
+    });
   }
 
   @Get('adicionales-livianos/items')
@@ -308,6 +326,81 @@ export class CotizadorController {
       adicionalId: adicionalId ? Number(adicionalId) : undefined,
       clases: clases.length ? clases : undefined,
     });
+  }
+
+  @Post('repuestos/validar-codigo')
+  validarCodigoRepuesto(@Body() body: { codigo: string }) {
+    return this.facade.validarCodigoRepuesto(body.codigo);
+  }
+
+  @Put('adicionales-livianos/items/repuesto')
+  updateRepuestoAdicionalLiviano(
+    @Req() req: any,
+    @Body()
+    body: {
+      seq: number;
+      descripcion: string;
+      cantidad: number;
+      yearStart: number;
+      yearEnd: number;
+      descuento?: number | null;
+    },
+  ) {
+    const userId = req.user?.nit != null ? Number(req.user.nit) : null;
+    if (userId == null) {
+      throw new UnauthorizedException('Usuario no autenticado');
+    }
+    return this.facade.updateRepuestoAdicionalLiviano({
+      ...body,
+      userId,
+    });
+  }
+
+  @Put('adicionales-livianos/items/mano-obra')
+  updateManoObraAdicionalLiviano(
+    @Req() req: any,
+    @Body()
+    body: {
+      id: number;
+      operacion: string;
+      tiempo: number;
+      valorMenos5: number;
+      valorMas5: number;
+      descuento?: number | null;
+    },
+  ) {
+    const userId = req.user?.nit != null ? Number(req.user.nit) : null;
+    if (userId == null) {
+      throw new UnauthorizedException('Usuario no autenticado');
+    }
+    return this.facade.updateManoObraAdicionalLiviano({
+      ...body,
+      userId,
+    });
+  }
+
+  @Delete('adicionales-livianos/items/repuesto')
+  deleteRepuestoAdicionalLiviano(
+    @Req() req: any,
+    @Body() body: { seq: number; codigo: string; adicionalId: number },
+  ) {
+    const userId = req.user?.nit != null ? Number(req.user.nit) : null;
+    if (userId == null) {
+      throw new UnauthorizedException('Usuario no autenticado');
+    }
+    return this.facade.deleteRepuestoAdicionalLiviano({ ...body, userId });
+  }
+
+  @Delete('adicionales-livianos/items/mano-obra')
+  deleteManoObraAdicionalLiviano(
+    @Req() req: any,
+    @Body() body: { id: number; operacion: string; adicionalId: number },
+  ) {
+    const userId = req.user?.nit != null ? Number(req.user.nit) : null;
+    if (userId == null) {
+      throw new UnauthorizedException('Usuario no autenticado');
+    }
+    return this.facade.deleteManoObraAdicionalLiviano({ ...body, userId });
   }
 
   @Get('adicionales-pesados')

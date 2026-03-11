@@ -23,6 +23,12 @@ import { GetAdicionalesLivianosInitUseCase } from '../application/use-cases/get-
 import { CrearAdicionalLivianosUseCase } from '../application/use-cases/crear-adicional-livianos.usecase';
 import { CargarAdicionalLivianosUseCase } from '../application/use-cases/cargar-adicional-livianos.usecase';
 import { ListarAdicionalesLivianosUseCase } from '../application/use-cases/listar-adicionales-livianos.usecase';
+import { UpdateAdicionalEstadoLivianosUseCase } from '../application/use-cases/update-adicional-estado-livianos.usecase';
+import { ValidarCodigoRepuestoUseCase } from '../application/use-cases/validar-codigo-repuesto.usecase';
+import { UpdateRepuestoAdicionalLivianosUseCase } from '../application/use-cases/update-repuesto-adicional-livianos.usecase';
+import { UpdateManoObraAdicionalLivianosUseCase } from '../application/use-cases/update-mano-obra-adicional-livianos.usecase';
+import { DeleteRepuestoAdicionalLivianosUseCase } from '../application/use-cases/delete-repuesto-adicional-livianos.usecase';
+import { DeleteManoObraAdicionalLivianosUseCase } from '../application/use-cases/delete-mano-obra-adicional-livianos.usecase';
 import { GetAdicionalesPesadosInitUseCase } from '../application/use-cases/get-adicionales-pesados-init.usecase';
 import { CrearAdicionalPesadosUseCase } from '../application/use-cases/crear-adicional-pesados.usecase';
 import { CargarAdicionalPesadosUseCase } from '../application/use-cases/cargar-adicional-pesados.usecase';
@@ -96,6 +102,12 @@ import { GenerarCotizacionPdfUseCase } from '../application/use-cases/generar-co
     CrearAdicionalLivianosUseCase,
     CargarAdicionalLivianosUseCase,
     ListarAdicionalesLivianosUseCase,
+    UpdateAdicionalEstadoLivianosUseCase,
+    ValidarCodigoRepuestoUseCase,
+    UpdateRepuestoAdicionalLivianosUseCase,
+    UpdateManoObraAdicionalLivianosUseCase,
+    DeleteRepuestoAdicionalLivianosUseCase,
+    DeleteManoObraAdicionalLivianosUseCase,
     {
       provide: ICotizadorAdicionalesLivianosRepository,
       useClass: CotizadorAdicionalesLivianosPrismaRepository,
