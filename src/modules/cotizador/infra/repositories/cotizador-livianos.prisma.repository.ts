@@ -23,6 +23,7 @@ export class CotizadorLivianosPrismaRepository implements ICotizadorLivianosRepo
   async getVehiculoPorPlaca(placa: string): Promise<VehiculoCotizacionLivianos | null> {
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT 
+        v.marca,
         v.nit_comprador as nit, 
         t.nombres as cliente, 
         t.mail, 
@@ -37,9 +38,11 @@ export class CotizadorLivianosPrismaRepository implements ICotizadorLivianosRepo
         kp.km_promedio,
         ((DATEDIFF(day, kp.uetd_entrada, CONVERT(date, GETDATE())) * kp.km_promedio) + v.kilometraje) as km_estimado,
         LEN(v.serie) as n_carac, 
-        SUBSTRING(v.serie, 10, 1) as caract_10						
+        SUBSTRING(v.serie, 10, 1) as caract_10,
+        ma.descripcion as marcaDescripcion
       from v_vh_vehiculos v 
       inner join referencias_cla c on v.clase = c.clase
+      left join vh_marcas ma on v.marca = ma.marca
       left join v_km_promedio_dias kp on v.codigo = kp.codigo
       inner join terceros t on v.nit_comprador = t.nit	
       where v.clase not in ('*','GENERICO')
@@ -51,6 +54,27 @@ export class CotizadorLivianosPrismaRepository implements ICotizadorLivianosRepo
     const row = rows[0];
 
     const prepagado = await this.getMttoPrepagado(placa);
+
+    // Mapping de marca a empresa lógica (1=Codiesel/Chevrolet, 2=Dieselco, 3=Mitsubishi, 4=BYD)
+    const marca: string | null = row.marca ?? null;
+    let empresaMarcaId: number | null = null;
+    switch (marca) {
+      case '010':
+        empresaMarcaId = 1;
+        break;
+      case '302':
+      case '304':
+        empresaMarcaId = 2;
+        break;
+      case '140':
+        empresaMarcaId = 3;
+        break;
+      case '303':
+        empresaMarcaId = 4;
+        break;
+      default:
+        empresaMarcaId = null;
+    }
 
     return {
       nit: row.nit,
@@ -69,6 +93,9 @@ export class CotizadorLivianosPrismaRepository implements ICotizadorLivianosRepo
       n_carac: Number(row.n_carac ?? 0),
       caract_10: row.caract_10 ?? null,
       prepagado,
+      marca,
+      marcaDescripcion: row.marcaDescripcion ?? null,
+      empresaMarcaId,
     };
   }
 

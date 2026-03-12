@@ -4,6 +4,7 @@ import { CotizacionResumen, ICotizadorInformesRepository } from '../../domain/co
 export interface ListarCotizacionesParams {
   dateStart: string;
   dateEnd: string;
+  empresaId?: number;
 }
 
 @Injectable()
@@ -11,8 +12,8 @@ export class ListarCotizacionesLivianosUseCase {
   constructor(private readonly repo: ICotizadorInformesRepository) {}
 
   async execute(params: ListarCotizacionesParams): Promise<CotizacionResumen[]> {
-    const { dateStart, dateEnd } = params;
-    return this.repo.listarCotizacionesLivianos(dateStart, dateEnd);
+    const { dateStart, dateEnd, empresaId } = params;
+    return this.repo.listarCotizacionesLivianos(dateStart, dateEnd, empresaId);
   }
 }
 

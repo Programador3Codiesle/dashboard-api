@@ -25,8 +25,12 @@ export class CotizadorController {
   }
 
   @Get('livianos/vehiculo')
-  getVehiculoPorPlaca(@Query('placa') placa: string) {
-    return this.facade.getVehiculoPorPlaca(placa);
+  getVehiculoPorPlaca(
+    @Query('placa') placa: string,
+    @Query('empresa') empresa?: string,
+  ) {
+    const empresaId = empresa != null && empresa !== '' ? Number(empresa) : undefined;
+    return this.facade.getVehiculoPorPlaca(placa, empresaId);
   }
 
   @Get('livianos/revisiones')
@@ -134,16 +138,20 @@ export class CotizadorController {
   getInformeCotizacionesLivianos(
     @Query('dateStart') dateStart: string,
     @Query('dateEnd') dateEnd: string,
+    @Query('empresa') empresa?: string,
   ) {
-    return this.facade.listarCotizacionesLivianos({ dateStart, dateEnd });
+    const empresaId = empresa != null && empresa !== '' ? Number(empresa) : undefined;
+    return this.facade.listarCotizacionesLivianos({ dateStart, dateEnd, empresaId });
   }
 
   @Get('informe-cotizaciones/pesados')
   getInformeCotizacionesPesados(
     @Query('dateStart') dateStart: string,
     @Query('dateEnd') dateEnd: string,
+    @Query('empresa') empresa?: string,
   ) {
-    return this.facade.listarCotizacionesPesados({ dateStart, dateEnd });
+    const empresaId = empresa != null && empresa !== '' ? Number(empresa) : undefined;
+    return this.facade.listarCotizacionesPesados({ dateStart, dateEnd, empresaId });
   }
 
   @Post('informe-cotizaciones/email')

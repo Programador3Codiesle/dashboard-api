@@ -171,8 +171,8 @@ export class CotizadorFacade {
     return this.getLivianosInitDataUC.execute();
   }
 
-  async getVehiculoPorPlaca(placa: string) {
-    return this.getVehiculoPorPlacaUC.execute(placa);
+  async getVehiculoPorPlaca(placa: string, empresaId?: number) {
+    return this.getVehiculoPorPlacaUC.execute(placa, empresaId);
   }
 
   async getRevisionesLivianos(clase: string) {

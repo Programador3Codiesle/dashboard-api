@@ -12,7 +12,11 @@ import {
 export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listarCotizacionesLivianos(dateStart: string, dateEnd: string): Promise<CotizacionResumen[]> {
+  async listarCotizacionesLivianos(
+    dateStart: string,
+    dateEnd: string,
+    empresaId?: number,
+  ): Promise<CotizacionResumen[]> {
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT 
         CT.id_cotizacion,
@@ -29,6 +33,7 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
         CT.fecha_creacion,
         (SELECT DATEADD(DAY,30,CONVERT(DATE,CT.fecha_creacion,23))) as caducidad
       FROM dbo.postv_cotizacion_contact CT
+      LEFT JOIN v_vh_vehiculos v ON v.placa = CT.placa
       LEFT JOIN bodegas b ON b.bodega = CT.bodega
       LEFT JOIN (
         SELECT * 
@@ -36,6 +41,15 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
         WHERE contacto = 1
       ) Crm ON Crm.nit = CT.usuario
       WHERE CONVERT(DATE, CT.fecha_creacion) BETWEEN ${dateStart} AND ${dateEnd}
+        AND (
+          ${empresaId ?? null} IS NULL
+          OR (
+            (${empresaId ?? null} = 1 AND v.marca = '010') OR
+            (${empresaId ?? null} = 2 AND v.marca IN ('302', '304')) OR
+            (${empresaId ?? null} = 3 AND v.marca = '140') OR
+            (${empresaId ?? null} = 4 AND v.marca = '303')
+          )
+        )
       ORDER BY CT.fecha_creacion DESC
     `;
 
@@ -57,7 +71,11 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
     }));
   }
 
-  async listarCotizacionesPesados(dateStart: string, dateEnd: string): Promise<CotizacionResumen[]> {
+  async listarCotizacionesPesados(
+    dateStart: string,
+    dateEnd: string,
+    empresaId?: number,
+  ): Promise<CotizacionResumen[]> {
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT 
         CT.id_cotizacion,
@@ -74,6 +92,7 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
         CT.fecha_creacion,
         (SELECT DATEADD(DAY,30,CONVERT(DATE,CT.fecha_creacion,23))) as caducidad
       FROM dbo.postv_cotizacion_contact_p CT
+      LEFT JOIN v_vh_vehiculos v ON v.placa = CT.placa
       LEFT JOIN bodegas b ON b.bodega = CT.bodega
       LEFT JOIN (
         SELECT * 
@@ -81,6 +100,15 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
         WHERE contacto = 1
       ) Crm ON Crm.nit = CT.usuario
       WHERE CONVERT(DATE, CT.fecha_creacion) BETWEEN ${dateStart} AND ${dateEnd}
+        AND (
+          ${empresaId ?? null} IS NULL
+          OR (
+            (${empresaId ?? null} = 1 AND v.marca = '010') OR
+            (${empresaId ?? null} = 2 AND v.marca IN ('302', '304')) OR
+            (${empresaId ?? null} = 3 AND v.marca = '140') OR
+            (${empresaId ?? null} = 4 AND v.marca = '303')
+          )
+        )
       ORDER BY CT.fecha_creacion DESC
     `;
 

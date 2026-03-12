@@ -7,8 +7,8 @@ export class ListarCotizacionesPesadosUseCase {
   constructor(private readonly repo: ICotizadorInformesRepository) {}
 
   async execute(params: ListarCotizacionesParams): Promise<CotizacionResumen[]> {
-    const { dateStart, dateEnd } = params;
-    return this.repo.listarCotizacionesPesados(dateStart, dateEnd);
+    const { dateStart, dateEnd, empresaId } = params;
+    return this.repo.listarCotizacionesPesados(dateStart, dateEnd, empresaId);
   }
 }
 

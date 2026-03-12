@@ -15,6 +15,20 @@ export interface VehiculoCotizacionLivianos {
   n_carac: number;
   caract_10: string | null;
   prepagado: string | null;
+  /**
+   * Código de marca interno (ej: '010', '303', etc.).
+   */
+  marca?: string | null;
+  /**
+   * Descripción de la marca (ej: 'CHEVROLET', 'BYD').
+   */
+  marcaDescripcion?: string | null;
+  /**
+   * Empresa lógica a la que pertenece la marca:
+   * 1=Codiesel (Chevrolet), 2=Dieselco, 3=Mitsubishi, 4=BYD.
+   * Puede ser null si la marca no está mapeada.
+   */
+  empresaMarcaId?: number | null;
 }
 
 export interface ClaseDescripcion {
