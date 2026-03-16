@@ -47,7 +47,7 @@ export class GenerarCotizacionPdfUseCase {
         ? await this.informesRepo.getMttoCotiLivianos(idCotizacion)
         : await this.informesRepo.getMttoCotiPesados(idCotizacion);
     
-    console.log(repuestos);
+    
 
     const pdfDoc = await PDFDocument.create();
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
