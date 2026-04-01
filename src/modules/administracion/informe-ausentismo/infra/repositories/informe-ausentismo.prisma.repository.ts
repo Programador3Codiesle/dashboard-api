@@ -26,7 +26,14 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
             }
             if (filtros?.empleado && String(filtros.empleado).trim()) {
                 const patron = `%${String(filtros.empleado).trim()}%`;
-                conditions.push(Prisma.sql`t.nombres LIKE ${patron}`);
+                conditions.push(
+                    Prisma.sql`(t.nombres LIKE ${patron} OR CAST(a.empleado AS VARCHAR(50)) LIKE ${patron} OR CAST(t.nit_real AS VARCHAR(50)) LIKE ${patron})`,
+                );
+            }
+
+            // Cuando se usa para "Ausentismo sin respuesta" se debe filtrar solo los pendientes
+            if (filtros?.solo_pendientes && Number(filtros.solo_pendientes) === 1) {
+                conditions.push(Prisma.sql`a.autorizacion = 0`);
             }
 
             const whereClause = Prisma.join(conditions, ' AND ');
@@ -38,21 +45,28 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
                 SELECT COUNT(*) as total
                 FROM postv_ausentismos a
                 LEFT JOIN terceros t ON t.nit_real = a.empleado
-                LEFT JOIN terceros j ON j.nit_real = a.nit_usuario_resp
                 WHERE ${whereClause}
             `;
             const total = Number(totalResult[0].total);
 
             const results = await this.prisma.$queryRaw<any[]>`
                 SELECT 
-                    a.id_ausen, a.sede, a.area, a.fecha_ini AS fecha_inicio,
-                    a.hora_ini AS hora_inicio, a.fecha_fin AS fecha_fin, 
-                    a.hora_fin, a.autorizacion AS estado, a.descripcion AS detalle,
-                    t.nombres AS colaborador,
-                    j.nombres AS gestionado_por
+                    a.id_ausen,
+                    a.empleado AS nit_empleado,
+                    a.motivo,
+                    a.sede,
+                    a.area,
+                    a.fecha_ini AS fecha_inicio,
+                    a.hora_ini AS hora_inicio,
+                    a.fecha_fin AS fecha_fin, 
+                    a.hora_fin,
+                    a.autorizacion AS estado,
+                    a.descripcion AS detalle,
+                    t.nombres AS colaborador
+                  
                 FROM postv_ausentismos a
                 LEFT JOIN terceros t ON t.nit_real = a.empleado
-                LEFT JOIN terceros j ON j.nit_real = a.nit_usuario_resp
+    
                 WHERE ${whereClause}
                 ORDER BY a.fecha_ini DESC
                 OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
@@ -62,6 +76,7 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
                 id_ausen: BigInt(r.id_ausen),
                 gestionado_por: r.gestionado_por,
                 colaborador: r.colaborador,
+                nit_empleado: r.nit_empleado ? String(r.nit_empleado) : null,
                 sede: r.sede,
                 area: r.area,
                 fecha_inicio: r.fecha_inicio ? new Date(r.fecha_inicio) : null,
@@ -69,7 +84,8 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
                 fecha_fin: r.fecha_fin ? new Date(r.fecha_fin) : null,
                 hora_fin: r.hora_fin,
                 estado: r.estado ? Number(r.estado) : null,
-                detalle: r.detalle
+                detalle: r.detalle,
+                motivo: r.motivo ?? null,
             }));
 
             return { items, total };
@@ -83,9 +99,17 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
         try {
             const result = await this.prisma.$queryRaw<any[]>`
                 SELECT 
-                    a.id_ausen, a.sede, a.area, a.fecha_ini AS fecha_inicio,
-                    a.hora_ini AS hora_inicio, a.fecha_fin AS fecha_fin, 
-                    a.hora_fin, a.autorizacion AS estado, a.descripcion AS detalle,
+                    a.id_ausen,
+                    a.empleado AS nit_empleado,
+                    a.motivo,
+                    a.sede,
+                    a.area,
+                    a.fecha_ini AS fecha_inicio,
+                    a.hora_ini AS hora_inicio,
+                    a.fecha_fin AS fecha_fin, 
+                    a.hora_fin,
+                    a.autorizacion AS estado,
+                    a.descripcion AS detalle,
                     t.nombres AS colaborador,
                     j.nombres AS gestionado_por
                 FROM postv_ausentismos a
@@ -101,6 +125,7 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
                 id_ausen: BigInt(r.id_ausen),
                 gestionado_por: r.gestionado_por,
                 colaborador: r.colaborador,
+                nit_empleado: r.nit_empleado ? String(r.nit_empleado) : null,
                 sede: r.sede,
                 area: r.area,
                 fecha_inicio: r.fecha_inicio ? new Date(r.fecha_inicio) : null,
@@ -108,7 +133,8 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
                 fecha_fin: r.fecha_fin ? new Date(r.fecha_fin) : null,
                 hora_fin: r.hora_fin,
                 estado: r.estado ? Number(r.estado) : null,
-                detalle: r.detalle
+                detalle: r.detalle,
+                motivo: r.motivo ?? null,
             });
         } catch (error) {
             console.error('Error obteniendo detalle:', error);
