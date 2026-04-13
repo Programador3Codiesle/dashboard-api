@@ -12,4 +12,3 @@ export class ListarChecklistMotoUseCase {
     return this.repo.listar(filtros);
   }
 }
-

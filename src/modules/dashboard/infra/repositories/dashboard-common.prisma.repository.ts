@@ -22,9 +22,7 @@ import { parseIds } from './shared.utils';
  * reutilizadas por varios perfiles (admin, gerencia, técnicos, etc.).
  */
 @Injectable()
-export class DashboardCommonPrismaRepository
-  implements IDashboardCommonRepository
-{
+export class DashboardCommonPrismaRepository implements IDashboardCommonRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getFecha(): Promise<DashboardCommonRow | null> {
@@ -160,8 +158,19 @@ export class DashboardCommonPrismaRepository
   }
 
   private static readonly MESES_NOM = [
-    '', 'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+    '',
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre',
   ];
 
   /**
@@ -236,9 +245,7 @@ export class DashboardCommonPrismaRepository
    * NPS Interno mes actual por sedes (resumen). Alineado con legacy Informe::get_data_nps_interno_sedes_mes:
    * tabla posv_encuesta_satisfaccion, join por n_orden.
    */
-  async getDataNpsInternoSedesMes(
-    sedesIds: string,
-  ): Promise<NpsSedesMesRow[]> {
+  async getDataNpsInternoSedesMes(sedesIds: string): Promise<NpsSedesMesRow[]> {
     const ids = parseIds(sedesIds);
     if (ids.length === 0) return [];
     const rows = await this.prisma.$queryRaw<any[]>`
@@ -468,8 +475,7 @@ export class DashboardCommonPrismaRepository
         AND Sede = 'general'
     `;
     return (rows ?? []).map((r) => ({
-      Calificacion:
-        r.Calificacion != null ? Number(r.Calificacion) : undefined,
+      Calificacion: r.Calificacion != null ? Number(r.Calificacion) : undefined,
     }));
   }
 
@@ -618,4 +624,3 @@ export class DashboardCommonPrismaRepository
     return r ? { total: Number(r.total ?? 0) } : null;
   }
 }
-

@@ -12,7 +12,10 @@ export interface CrearPosibleRetornoDTO {
 export class CrearPosibleRetornoUseCase {
   constructor(private readonly repo: ICotizadorLivianosRepository) {}
 
-  async execute(dto: CrearPosibleRetornoDTO, idUsuario: number): Promise<{ idRetorno: number }> {
+  async execute(
+    dto: CrearPosibleRetornoDTO,
+    idUsuario: number,
+  ): Promise<{ idRetorno: number }> {
     const idRetorno = await this.repo.crearPosibleRetorno({
       id_usuario: idUsuario,
       placa: dto.placa,

@@ -21,4 +21,3 @@ export class InformeControlVehicularEntity {
     Object.assign(this, partial);
   }
 }
-

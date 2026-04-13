@@ -17,4 +17,3 @@ export class InformeMttoPreventivoFacade {
     return this.historialUC.execute(placa);
   }
 }
-

@@ -8,9 +8,7 @@ import {
 import { InformeControlVehicularEntity } from '../../domain/informe-control-vehicular.entity';
 
 @Injectable()
-export class InformeControlVehicularPrismaRepository
-  implements IInformeControlVehicularRepository
-{
+export class InformeControlVehicularPrismaRepository implements IInformeControlVehicularRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   private buildWhere(filtros: FiltrosControlVehicular): Prisma.Sql {
@@ -53,7 +51,10 @@ export class InformeControlVehicularPrismaRepository
       id: Number(row.id),
       fecha_salida: row.fecha_salida ?? null,
       hora_salida: row.hora_salida ?? null,
-      km_salida: row.km_salida !== null && row.km_salida !== undefined ? Number(row.km_salida) : null,
+      km_salida:
+        row.km_salida !== null && row.km_salida !== undefined
+          ? Number(row.km_salida)
+          : null,
       porteria: row.porteria ?? null,
       placa: row.placa ?? null,
       tipo_vehiculo: row.tipo_vehiculo ?? null,
@@ -64,16 +65,21 @@ export class InformeControlVehicularPrismaRepository
       fecha_llegada: row.fecha_llegada ?? null,
       hora_llegada: row.hora_llegada ?? null,
       km_llegada:
-        row.km_llegada !== null && row.km_llegada !== undefined ? Number(row.km_llegada) : null,
+        row.km_llegada !== null && row.km_llegada !== undefined
+          ? Number(row.km_llegada)
+          : null,
       taller: row.taller ?? null,
       observacion: row.observacion ?? null,
       placa_vh_remolcado: row.placa_vh_remolcado ?? null,
     });
   }
 
-  async listar(
-    filtros: FiltrosControlVehicular,
-  ): Promise<{ items: InformeControlVehicularEntity[]; total: number; page: number; limit: number }> {
+  async listar(filtros: FiltrosControlVehicular): Promise<{
+    items: InformeControlVehicularEntity[];
+    total: number;
+    page: number;
+    limit: number;
+  }> {
     const page = filtros.page > 0 ? filtros.page : 1;
     const limit = filtros.limit > 0 ? filtros.limit : 10;
     const offset = (page - 1) * limit;
@@ -160,7 +166,9 @@ export class InformeControlVehicularPrismaRepository
     return this.mapRow(rows[0]);
   }
 
-  async listarParaExcel(filtros: FiltrosControlVehicular): Promise<InformeControlVehicularEntity[]> {
+  async listarParaExcel(
+    filtros: FiltrosControlVehicular,
+  ): Promise<InformeControlVehicularEntity[]> {
     // Para el Excel usamos misma lógica de filtros pero sin paginación
     const where = this.buildWhere(filtros);
 
@@ -196,4 +204,3 @@ export class InformeControlVehicularPrismaRepository
     return rows.map((r) => this.mapRow(r));
   }
 }
-

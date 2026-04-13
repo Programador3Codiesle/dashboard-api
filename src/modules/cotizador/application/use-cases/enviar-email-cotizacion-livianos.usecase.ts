@@ -22,9 +22,15 @@ export class EnviarEmailCotizacionLivianosUseCase {
   }> {
     const { idCotizacion, placa, estado, idEmpresa } = params;
 
-    const general = await this.informesRepo.getCotizacionLivianosById(idCotizacion, placa);
+    const general = await this.informesRepo.getCotizacionLivianosById(
+      idCotizacion,
+      placa,
+    );
     if (!general) {
-      return { ok: false, message: 'No se encontró la cotización para enviar correo.' };
+      return {
+        ok: false,
+        message: 'No se encontró la cotización para enviar correo.',
+      };
     }
 
     /*
@@ -67,7 +73,8 @@ export class EnviarEmailCotizacionLivianosUseCase {
       }
 
       if (nitBodega) {
-        const correoBodega = await this.informesRepo.getEmailBodegaByNit(nitBodega);
+        const correoBodega =
+          await this.informesRepo.getEmailBodegaByNit(nitBodega);
         if (correoBodega) {
           bcc.push(correoBodega);
         }
@@ -157,4 +164,3 @@ export class EnviarEmailCotizacionLivianosUseCase {
     };
   }
 }
-

@@ -19,4 +19,3 @@ import { InformeHorarioPrismaRepository } from './repositories/informe-horario.p
   ],
 })
 export class InformeHorarioModule {}
-

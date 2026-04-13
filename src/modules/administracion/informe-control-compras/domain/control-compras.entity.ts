@@ -20,4 +20,3 @@ export class ControlComprasEntity {
     Object.assign(this, partial);
   }
 }
-

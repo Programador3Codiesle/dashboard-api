@@ -1,10 +1,10 @@
 export class FormatoNominaEntity {
-    id: number;
-    nombre: string;
-    descripcion: string;
-    ruta_archivo: string;
+  id: number;
+  nombre: string;
+  descripcion: string;
+  ruta_archivo: string;
 
-    constructor(partial: Partial<FormatoNominaEntity>) {
-        Object.assign(this, partial);
-    }
+  constructor(partial: Partial<FormatoNominaEntity>) {
+    Object.assign(this, partial);
+  }
 }

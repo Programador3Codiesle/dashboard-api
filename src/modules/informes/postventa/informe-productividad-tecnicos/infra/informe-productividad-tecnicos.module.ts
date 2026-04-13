@@ -19,4 +19,3 @@ import { ProductividadTecnicosFacade } from '../application/productividad-tecnic
   ],
 })
 export class InformeProductividadTecnicosModule {}
-

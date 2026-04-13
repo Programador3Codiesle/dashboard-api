@@ -19,4 +19,3 @@ import { KpiFacade } from '../application/kpi.facade';
   ],
 })
 export class InformeKpiModule {}
-

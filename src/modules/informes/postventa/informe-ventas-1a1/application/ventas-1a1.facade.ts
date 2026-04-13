@@ -18,4 +18,3 @@ export class Ventas1a1Facade {
     return this.obtenerInformeUseCase.execute(filtros);
   }
 }
-

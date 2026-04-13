@@ -19,4 +19,3 @@ import { PacFacade } from '../application/pac.facade';
   ],
 })
 export class InformePacModule {}
-

@@ -55,4 +55,3 @@ export abstract class ICotizadorEjecucionRepository {
     bodegas: number[],
   ): Promise<FilaFacturadoToCotizacion[]>;
 }
-

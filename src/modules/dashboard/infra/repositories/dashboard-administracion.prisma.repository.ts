@@ -7,13 +7,10 @@ import { GrafSedesRow } from '../../domain/dashboard.repository';
  * Por ahora solo expone el acceso al gráfico de sedes.
  */
 @Injectable()
-export class DashboardAdministracionPrismaRepository
-  implements IAdministracionDashboardRepository
-{
+export class DashboardAdministracionPrismaRepository implements IAdministracionDashboardRepository {
   constructor() {}
 
   getGrafSedes(): Promise<GrafSedesRow[]> {
     return Promise.resolve([]);
   }
 }
-

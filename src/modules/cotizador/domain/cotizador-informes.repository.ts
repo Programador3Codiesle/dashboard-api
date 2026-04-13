@@ -31,13 +31,13 @@ export abstract class ICotizadorInformesRepository {
     idCotizacion: number,
     placa: string,
   ): Promise<{
-      id_cotizacion: number;
-      placa: string;
-      nombreCliente: string;
-      emailCliente: string | null;
-      correoAsesor: string | null;
-      bodega: number | null;
-    } | null>;
+    id_cotizacion: number;
+    placa: string;
+    nombreCliente: string;
+    emailCliente: string | null;
+    correoAsesor: string | null;
+    bodega: number | null;
+  } | null>;
 
   /**
    * Obtiene los datos generales de una cotización de pesados por id y placa.
@@ -47,23 +47,27 @@ export abstract class ICotizadorInformesRepository {
     idCotizacion: number,
     placa: string,
   ): Promise<{
-      id_cotizacion: number;
-      placa: string;
-      nombreCliente: string;
-      emailCliente: string | null;
-      correoAsesor: string | null;
-      bodega: number | null;
-    } | null>;
+    id_cotizacion: number;
+    placa: string;
+    nombreCliente: string;
+    emailCliente: string | null;
+    correoAsesor: string | null;
+    bodega: number | null;
+  } | null>;
 
   /**
    * Marca una cotización de livianos como agendada (estado = 1).
    */
-  abstract actualizarEstadoCotizacionLivianos(idCotizacion: number): Promise<void>;
+  abstract actualizarEstadoCotizacionLivianos(
+    idCotizacion: number,
+  ): Promise<void>;
 
   /**
    * Marca una cotización de pesados como agendada (estado = 1).
    */
-  abstract actualizarEstadoCotizacionPesados(idCotizacion: number): Promise<void>;
+  abstract actualizarEstadoCotizacionPesados(
+    idCotizacion: number,
+  ): Promise<void>;
 
   /**
    * Obtiene el correo electrónico principal asociado a una bodega a partir del NIT
@@ -78,10 +82,14 @@ export abstract class ICotizadorInformesRepository {
   ): Promise<CotizacionPdfGeneral | null>;
 
   /** Repuestos de una cotización livianos (postv_cotizacion_repuestos). */
-  abstract getRepuestosCotiLivianos(idCotizacion: number): Promise<CotizacionRepuestoRow[]>;
+  abstract getRepuestosCotiLivianos(
+    idCotizacion: number,
+  ): Promise<CotizacionRepuestoRow[]>;
 
   /** Mano de obra/mtto de una cotización livianos (postv_cotizacion_mtto). */
-  abstract getMttoCotiLivianos(idCotizacion: number): Promise<CotizacionMttoRow[]>;
+  abstract getMttoCotiLivianos(
+    idCotizacion: number,
+  ): Promise<CotizacionMttoRow[]>;
 
   /** Datos completos de cotización pesados para PDF. */
   abstract getCotizacionPesadosPdf(
@@ -90,10 +98,14 @@ export abstract class ICotizadorInformesRepository {
   ): Promise<CotizacionPdfGeneral | null>;
 
   /** Repuestos cotización pesados (postv_cotizacion_repuestos_p). */
-  abstract getRepuestosCotiPesados(idCotizacion: number): Promise<CotizacionRepuestoRow[]>;
+  abstract getRepuestosCotiPesados(
+    idCotizacion: number,
+  ): Promise<CotizacionRepuestoRow[]>;
 
   /** Mtto cotización pesados (postv_cotizacion_mtto_p). */
-  abstract getMttoCotiPesados(idCotizacion: number): Promise<CotizacionMttoRow[]>;
+  abstract getMttoCotiPesados(
+    idCotizacion: number,
+  ): Promise<CotizacionMttoRow[]>;
 }
 
 export interface CotizacionPdfGeneral {
@@ -127,4 +139,3 @@ export interface CotizacionMttoRow {
   valor: number;
   cant_horas: number;
 }
-

@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ObtenerInventarioObsoletosUseCase } from './use-cases/obtener-inventario-obsoletos.usecase';
-import { FiltrosInventarioObsoletos } from '../domain/inventario-obsoletos.repository';
+import { TipoInventarioObsoleto } from '../domain/inventario-obsoletos.entity';
 
 @Injectable()
 export class InventarioObsoletosFacade {
@@ -8,8 +8,11 @@ export class InventarioObsoletosFacade {
     private readonly obtenerUseCase: ObtenerInventarioObsoletosUseCase,
   ) {}
 
-  obtener(filtros: FiltrosInventarioObsoletos) {
-    return this.obtenerUseCase.execute(filtros);
+  obtenerResumen() {
+    return this.obtenerUseCase.executeResumen();
+  }
+
+  obtenerDetalle(tipo: TipoInventarioObsoleto) {
+    return this.obtenerUseCase.executeDetalle(tipo);
   }
 }
-

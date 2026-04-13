@@ -9,4 +9,3 @@ export class InformePausasActivasEntity {
     Object.assign(this, partial);
   }
 }
-

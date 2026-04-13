@@ -6,9 +6,7 @@ import {
 
 @Injectable()
 export class UpdateManoObraAdicionalLivianosUseCase {
-  constructor(
-    private readonly repo: ICotizadorAdicionalesLivianosRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorAdicionalesLivianosRepository) {}
 
   async execute(input: UpdateManoObraAdicionalInput): Promise<void> {
     if (!input.id) {
@@ -45,4 +43,3 @@ export class UpdateManoObraAdicionalLivianosUseCase {
     await this.repo.updateManoObraAdicional(input);
   }
 }
-

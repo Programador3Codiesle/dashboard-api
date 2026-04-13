@@ -13,9 +13,7 @@ import { DashboardAdminDto } from '../../application/dto/dashboard-response.dto'
 
 @Injectable()
 export class AdministracionService {
-  constructor(
-    private readonly commonRepo: IDashboardCommonRepository
-  ) { }
+  constructor(private readonly commonRepo: IDashboardCommonRepository) {}
 
   async buildAdmin(
     nitUsuario: number,
@@ -38,8 +36,14 @@ export class AdministracionService {
     const [y, m] = (fechaActual || '').split('-').map(Number);
     const fechaIni = y && m ? `${y}-${String(m).padStart(2, '0')}-01` : '';
     const lastDay = y && m ? new Date(y, m, 0).getDate() : 30;
-    const fechaFin = y && m ? `${y}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}` : '';
-    const presupuestoMesAll = fechaIni && fechaFin ? await this.commonRepo.getPresupuestoMesAll(fechaIni, fechaFin) : [];
+    const fechaFin =
+      y && m
+        ? `${y}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
+        : '';
+    const presupuestoMesAll =
+      fechaIni && fechaFin
+        ? await this.commonRepo.getPresupuestoMesAll(fechaIni, fechaFin)
+        : [];
 
     const norm = (s: string) =>
       (s || '')
@@ -100,12 +104,30 @@ export class AdministracionService {
       [norm('Mostrador La Rosita')]: norm('Mostrador la Rosita'),
     };
 
-    const presuGiron = presupuestoByKey['giron'] != null ? { presupuesto: presupuestoByKey['giron'] } : await this.commonRepo.getPresupuestoMesSedesNew('1,11,9,21');
-    const presuBocono = presupuestoByKey['bocono'] != null ? { presupuesto: presupuestoByKey['bocono'] } : await this.commonRepo.getPresupuestoMesSedesNew('8,14,16,22');
-    const presuRosita = presupuestoByKey['rosita'] != null ? { presupuesto: presupuestoByKey['rosita'] } : await this.commonRepo.getPresupuestoMesSedesNew('7');
-    const presuBarranca = presupuestoByKey['barranca'] != null ? { presupuesto: presupuestoByKey['barranca'] } : await this.commonRepo.getPresupuestoMesSedesNew('6,19');
-    const presuSoloc = presupuestoByKey['solochevrolet'] != null ? { presupuesto: presupuestoByKey['solochevrolet'] } : await this.commonRepo.getPresupuestoMesSedesNew('23');
-    const presuChev = presupuestoByKey['chevropartes'] != null ? { presupuesto: presupuestoByKey['chevropartes'] } : await this.commonRepo.getPresupuestoMesSedesNew('4');
+    const presuGiron =
+      presupuestoByKey['giron'] != null
+        ? { presupuesto: presupuestoByKey['giron'] }
+        : await this.commonRepo.getPresupuestoMesSedesNew('1,11,9,21');
+    const presuBocono =
+      presupuestoByKey['bocono'] != null
+        ? { presupuesto: presupuestoByKey['bocono'] }
+        : await this.commonRepo.getPresupuestoMesSedesNew('8,14,16,22');
+    const presuRosita =
+      presupuestoByKey['rosita'] != null
+        ? { presupuesto: presupuestoByKey['rosita'] }
+        : await this.commonRepo.getPresupuestoMesSedesNew('7');
+    const presuBarranca =
+      presupuestoByKey['barranca'] != null
+        ? { presupuesto: presupuestoByKey['barranca'] }
+        : await this.commonRepo.getPresupuestoMesSedesNew('6,19');
+    const presuSoloc =
+      presupuestoByKey['solochevrolet'] != null
+        ? { presupuesto: presupuestoByKey['solochevrolet'] }
+        : await this.commonRepo.getPresupuestoMesSedesNew('23');
+    const presuChev =
+      presupuestoByKey['chevropartes'] != null
+        ? { presupuesto: presupuestoByKey['chevropartes'] }
+        : await this.commonRepo.getPresupuestoMesSedesNew('4');
 
     const prin = await this.commonRepo.getPresupuestoDia(CENTROS_GIRON);
     const boc = await this.commonRepo.getPresupuestoDia(CENTROS_BOCONO);
@@ -122,12 +144,24 @@ export class AdministracionService {
     const pct = (total: number, presupuesto: number): number =>
       presupuesto > 0 ? Math.round((total / presupuesto) * 10000) / 100 : 0;
 
-    base.porcen_giron = presuGiron ? pct(prin?.total ?? 0, presuGiron.presupuesto) : undefined;
-    base.porcen_rosita = presuRosita ? pct(ros?.total ?? 0, presuRosita.presupuesto) : undefined;
-    base.porcen_barranca = presuBarranca ? pct(barran?.total ?? 0, presuBarranca.presupuesto) : undefined;
-    base.porcen_bocono = presuBocono ? pct(boc?.total ?? 0, presuBocono.presupuesto) : undefined;
-    base.porcen_soloc = presuSoloc ? pct(solochevr?.total ?? 0, presuSoloc.presupuesto) : undefined;
-    base.porcen_chev = presuChev ? pct(chevrp?.total ?? 0, presuChev.presupuesto) : undefined;
+    base.porcen_giron = presuGiron
+      ? pct(prin?.total ?? 0, presuGiron.presupuesto)
+      : undefined;
+    base.porcen_rosita = presuRosita
+      ? pct(ros?.total ?? 0, presuRosita.presupuesto)
+      : undefined;
+    base.porcen_barranca = presuBarranca
+      ? pct(barran?.total ?? 0, presuBarranca.presupuesto)
+      : undefined;
+    base.porcen_bocono = presuBocono
+      ? pct(boc?.total ?? 0, presuBocono.presupuesto)
+      : undefined;
+    base.porcen_soloc = presuSoloc
+      ? pct(solochevr?.total ?? 0, presuSoloc.presupuesto)
+      : undefined;
+    base.porcen_chev = presuChev
+      ? pct(chevrp?.total ?? 0, presuChev.presupuesto)
+      : undefined;
 
     const toPosvRow = await this.commonRepo.getPresupuestoDia(CENTROS_TODOS);
     base.to_posv = toPosvRow?.total ?? undefined;
@@ -178,8 +212,8 @@ export class AdministracionService {
         porcentaje != null
           ? porcentaje
           : presupuesto > 0
-          ? Math.round((total / presupuesto) * 10000) / 100
-          : 0;
+            ? Math.round((total / presupuesto) * 10000) / 100
+            : 0;
       sedesPresu.push({
         key,
         sede: label,
@@ -192,7 +226,12 @@ export class AdministracionService {
 
     pushSede('giron', 'Girón', presuGiron, base.porcen_giron);
     pushSede('rosita', 'La Rosita', presuRosita, base.porcen_rosita);
-    pushSede('barranca', 'Barrancabermeja', presuBarranca, base.porcen_barranca);
+    pushSede(
+      'barranca',
+      'Barrancabermeja',
+      presuBarranca,
+      base.porcen_barranca,
+    );
     pushSede('bocono', 'Cúcuta Boconó', presuBocono, base.porcen_bocono);
     pushSede('solochevrolet', 'Solochevrolet', presuSoloc, base.porcen_soloc);
     pushSede('chevropartes', 'Chevropartes', presuChev, base.porcen_chev);
@@ -205,16 +244,14 @@ export class AdministracionService {
     // Detalle por sede/taller (vista jerárquica similar al legacy, pero en estructura moderna).
     const sedesTalleres: NonNullable<DashboardAdminDto['sedes_talleres']> = [];
 
-    const buildTaller = async (
-      centros: string,
-      nombre: string,
-    ) => {
+    const buildTaller = async (centros: string, nombre: string) => {
       const n = norm(nombre);
       const alias = aliasTallerLookup[n] ?? n;
       const metaFromLegacy = metaTallerByName[alias];
-      const presupuestoPromise = metaFromLegacy != null
-        ? Promise.resolve({ presupuesto: metaFromLegacy })
-        : this.commonRepo.getPresupuestoMesSedesNew(centros);
+      const presupuestoPromise =
+        metaFromLegacy != null
+          ? Promise.resolve({ presupuesto: metaFromLegacy })
+          : this.commonRepo.getPresupuestoMesSedesNew(centros);
       const [presupuestoRow, totalRow, moRow, totRow, repRow] =
         await Promise.all([
           presupuestoPromise,
@@ -289,18 +326,14 @@ export class AdministracionService {
     });
 
     // Solochevrolet y Chevropartes: solo mostrador general por ahora.
-    const talleresSolochevrolet = [
-      await buildTaller('60', 'Solochevrolet'),
-    ];
+    const talleresSolochevrolet = [await buildTaller('60', 'Solochevrolet')];
     sedesTalleres.push({
       key: 'solochevrolet',
       sede: 'Solochevrolet',
       talleres: talleresSolochevrolet,
     });
 
-    const talleresChevropartes = [
-      await buildTaller('15', 'Chevropartes'),
-    ];
+    const talleresChevropartes = [await buildTaller('15', 'Chevropartes')];
     sedesTalleres.push({
       key: 'chevropartes',
       sede: 'Chevropartes',
@@ -312,4 +345,3 @@ export class AdministracionService {
     return base;
   }
 }
-

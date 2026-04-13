@@ -12,9 +12,7 @@ export interface RepuestosNoDisponiblesParams {
 
 @Injectable()
 export class GetRepuestosNoDisponiblesUseCase {
-  constructor(
-    private readonly repo: ICotizadorRepuestosNoDispRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorRepuestosNoDispRepository) {}
 
   async execute(
     params: RepuestosNoDisponiblesParams,

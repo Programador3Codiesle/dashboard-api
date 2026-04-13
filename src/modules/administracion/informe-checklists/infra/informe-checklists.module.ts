@@ -19,4 +19,3 @@ import { ChecklistEquipoPrismaRepository } from './repositories/checklist-equipo
   ],
 })
 export class InformeChecklistsModule {}
-

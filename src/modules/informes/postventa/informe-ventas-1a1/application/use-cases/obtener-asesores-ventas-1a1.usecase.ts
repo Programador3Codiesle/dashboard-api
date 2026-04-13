@@ -10,4 +10,3 @@ export class ObtenerAsesoresVentas1a1UseCase {
     return this.ventas1a1Repository.obtenerAsesores();
   }
 }
-

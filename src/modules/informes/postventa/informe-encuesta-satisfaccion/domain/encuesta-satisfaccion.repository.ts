@@ -15,4 +15,3 @@ export abstract class IEncuestaSatisfaccionRepository {
     filtros: FiltrosEncuestaSatisfaccion,
   ): Promise<EncuestaSatisfaccionResumenEntity[]>;
 }
-

@@ -12,9 +12,7 @@ import { GetMantenimientoPesadosUseCase } from '../application/use-cases/get-man
 import { CrearCotizacionPesadosUseCase } from '../application/use-cases/crear-cotizacion-pesados.usecase';
 import { ListarCotizacionesLivianosUseCase } from '../application/use-cases/listar-cotizaciones-livianos.usecase';
 import { ListarCotizacionesPesadosUseCase } from '../application/use-cases/listar-cotizaciones-pesados.usecase';
-import {
-  GetEjecucionResumenUseCase,
-} from '../application/use-cases/get-ejecucion-resumen.usecase';
+import { GetEjecucionResumenUseCase } from '../application/use-cases/get-ejecucion-resumen.usecase';
 import { GetEjecucionCotizacionToFacturadoUseCase } from '../application/use-cases/get-ejecucion-cotizacion-to-facturado.usecase';
 import { GetEjecucionFacturadoToCotizacionUseCase } from '../application/use-cases/get-ejecucion-facturado-to-cotizacion.usecase';
 import { GetRepuestosNoDisponiblesUseCase } from '../application/use-cases/get-repuestos-no-disponibles.usecase';
@@ -75,28 +73,46 @@ import { GenerarCotizacionPdfUseCase } from '../application/use-cases/generar-co
     GetRevisionesLivianosUseCase,
     GetRevisionDetalleLivianosUseCase,
     CrearCotizacionLivianosUseCase,
-    { provide: ICotizadorLivianosRepository, useClass: CotizadorLivianosPrismaRepository },
+    {
+      provide: ICotizadorLivianosRepository,
+      useClass: CotizadorLivianosPrismaRepository,
+    },
     // Pesados
     GetPesadosInitDataUseCase,
     GetPesadosInfoClientUseCase,
     GetMantenimientoPesadosUseCase,
     CrearCotizacionPesadosUseCase,
-    { provide: ICotizadorPesadosRepository, useClass: CotizadorPesadosPrismaRepository },
+    {
+      provide: ICotizadorPesadosRepository,
+      useClass: CotizadorPesadosPrismaRepository,
+    },
     // Informes
     ListarCotizacionesLivianosUseCase,
     ListarCotizacionesPesadosUseCase,
-    { provide: ICotizadorInformesRepository, useClass: CotizadorInformesPrismaRepository },
+    {
+      provide: ICotizadorInformesRepository,
+      useClass: CotizadorInformesPrismaRepository,
+    },
     // Ejecución Cotizado vs Facturado
     GetEjecucionResumenUseCase,
     GetEjecucionCotizacionToFacturadoUseCase,
     GetEjecucionFacturadoToCotizacionUseCase,
-    { provide: ICotizadorEjecucionRepository, useClass: CotizadorEjecucionPrismaRepository },
+    {
+      provide: ICotizadorEjecucionRepository,
+      useClass: CotizadorEjecucionPrismaRepository,
+    },
     // Repuestos no disponibles
     GetRepuestosNoDisponiblesUseCase,
-    { provide: ICotizadorRepuestosNoDispRepository, useClass: CotizadorRepuestosNoDispPrismaRepository },
+    {
+      provide: ICotizadorRepuestosNoDispRepository,
+      useClass: CotizadorRepuestosNoDispPrismaRepository,
+    },
     // Control repuestos
     GetControlRepuestosUseCase,
-    { provide: ICotizadorControlRepository, useClass: CotizadorControlPrismaRepository },
+    {
+      provide: ICotizadorControlRepository,
+      useClass: CotizadorControlPrismaRepository,
+    },
     // Adicionales livianos
     GetAdicionalesLivianosInitUseCase,
     CrearAdicionalLivianosUseCase,
@@ -126,7 +142,10 @@ import { GenerarCotizacionPdfUseCase } from '../application/use-cases/generar-co
     GetEdicionClasesUseCase,
     GetEdicionFiltroOpcionesUseCase,
     AplicarEdicionConfigUseCase,
-    { provide: ICotizadorEdicionConfigRepository, useClass: CotizadorEdicionConfigPrismaRepository },
+    {
+      provide: ICotizadorEdicionConfigRepository,
+      useClass: CotizadorEdicionConfigPrismaRepository,
+    },
     EnviarEmailCotizacionLivianosUseCase,
     EnviarEmailCotizacionPesadosUseCase,
     CrearPosibleRetornoUseCase,
@@ -138,7 +157,3 @@ import { GenerarCotizacionPdfUseCase } from '../application/use-cases/generar-co
   exports: [CotizadorFacade],
 })
 export class CotizadorModule {}
-
-
-
-

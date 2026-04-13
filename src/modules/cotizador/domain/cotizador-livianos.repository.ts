@@ -112,7 +112,9 @@ export interface ManoObraCotizacionInput {
 export type RawSqlRow = Record<string, any>;
 
 export abstract class ICotizadorLivianosRepository {
-  abstract getVehiculoPorPlaca(placa: string): Promise<VehiculoCotizacionLivianos | null>;
+  abstract getVehiculoPorPlaca(
+    placa: string,
+  ): Promise<VehiculoCotizacionLivianos | null>;
   abstract getClasesForm(): Promise<ClaseDescripcion[]>;
   abstract getBodegas(): Promise<BodegaOption[]>;
   abstract getNameAdicionales(): Promise<RawSqlRow[]>;

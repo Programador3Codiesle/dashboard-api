@@ -1,17 +1,23 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
-import { UsuarioMapper } from "../../presentation/mappers/usuario.mapper";
-import { CreateUsuarioDto } from "../../application/dto/create-usuario.dto";
-import { UpdateUsuarioDto } from "../../application/dto/update-usuario.dto";
-import { AssignHorarioDto } from "../../application/dto/assign-horario.dto";
-import { JefesEntity, SedesEntity, PerfilesEntity, HorarioEntity, UsuarioEntity } from "../../domain/usuario.entity";
-import { AssignEmpresaDto } from "../../application/dto/assign-empresa.dto";
-import { CreateJefeDto } from "../../application/dto/assign-jefe.dto";
+import { UsuarioMapper } from '../../presentation/mappers/usuario.mapper';
+import { CreateUsuarioDto } from '../../application/dto/create-usuario.dto';
+import { UpdateUsuarioDto } from '../../application/dto/update-usuario.dto';
+import { AssignHorarioDto } from '../../application/dto/assign-horario.dto';
+import {
+  JefesEntity,
+  SedesEntity,
+  PerfilesEntity,
+  HorarioEntity,
+  UsuarioEntity,
+} from '../../domain/usuario.entity';
+import { AssignEmpresaDto } from '../../application/dto/assign-empresa.dto';
+import { CreateJefeDto } from '../../application/dto/assign-jefe.dto';
 
 @Injectable()
 export class UsuarioRepository {
-  constructor(private readonly prisma: PrismaService) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async findAll(page: number = 1, limit: number = 100) {
     // Optimizado: Query con paginación usando OFFSET FETCH (SQL Server)
@@ -61,15 +67,15 @@ export class UsuarioRepository {
     return results.map(UsuarioMapper.mapUsuariosBD);
   }
 
-
   async updateUsuario(idUsuario: number, dto: any): Promise<PerfilesEntity> {
-
     const usuario = await this.prisma.w_sist_usuarios.update({
       where: { id_usuario: idUsuario },
       data: dto,
     });
 
-    const usuarioData = await this.prisma.$queryRaw<Array<{ id_perfil: number, nom_perfil: string }>>`
+    const usuarioData = await this.prisma.$queryRaw<
+      Array<{ id_perfil: number; nom_perfil: string }>
+    >`
       SELECT * FROM postv_perfiles where id_perfil=${dto.perfil_postventa};
     `;
 
@@ -77,14 +83,15 @@ export class UsuarioRepository {
       id: usuarioData[0].id_perfil.toString(),
       nombre: usuarioData[0].nom_perfil,
     });
-
   }
 
   async delete(id: number) {
     await this.prisma.w_sist_usuarios.delete({ where: { id_usuario: id } });
   }
 
-  async findEmpresasByUsuario(cedula: string): Promise<{ id_empresa: number }[]> {
+  async findEmpresasByUsuario(
+    cedula: string,
+  ): Promise<{ id_empresa: number }[]> {
     return this.prisma.$queryRaw`
       SELECT idEmpresa 
       FROM sw_empresa_usuario
@@ -94,7 +101,10 @@ export class UsuarioRepository {
     `;
   }
 
-  async addEmpresasSafe(cedula: string, empresasIds: string[]): Promise<string[]> {
+  async addEmpresasSafe(
+    cedula: string,
+    empresasIds: string[],
+  ): Promise<string[]> {
     const agregadas: string[] = [];
 
     if (empresasIds.length === 0) return agregadas;
@@ -107,14 +117,16 @@ export class UsuarioRepository {
           SELECT idEmpresa
           FROM sw_empresa_usuario
           WHERE idUsuario = CAST(${cedula} AS DECIMAL(18,0))
-            AND idEmpresa IN (${Prisma.join(empresasIds.map(id => parseInt(id)))})
+            AND idEmpresa IN (${Prisma.join(empresasIds.map((id) => parseInt(id)))})
             AND estado = 1
         `;
 
-        const existentesSet = new Set(existentes.map(e => e.idEmpresa));
+        const existentesSet = new Set(existentes.map((e) => e.idEmpresa));
 
         // 2. Filtrar solo las que no existen
-        const nuevasEmpresas = empresasIds.filter(id => !existentesSet.has(parseInt(id)));
+        const nuevasEmpresas = empresasIds.filter(
+          (id) => !existentesSet.has(parseInt(id)),
+        );
 
         // 3. Insertar todas las nuevas en batch
         for (const empresaId of nuevasEmpresas) {
@@ -153,22 +165,26 @@ export class UsuarioRepository {
     return this.prisma.$transaction(fn);
   }
 
-  async eliminarEmpresa(idUsuario: number, dto: AssignEmpresaDto): Promise<{ success: boolean; message: string }> {
- 
+  async eliminarEmpresa(
+    idUsuario: number,
+    dto: AssignEmpresaDto,
+  ): Promise<{ success: boolean; message: string }> {
     try {
       if (!dto.empresas || dto.empresas.length === 0) {
         return {
           success: true,
-          message: 'No se enviaron empresas para eliminar.'
+          message: 'No se enviaron empresas para eliminar.',
         };
       }
 
-      const empresasIds = dto.empresas.map(e => Number(e)).filter(n => !isNaN(n));
+      const empresasIds = dto.empresas
+        .map((e) => Number(e))
+        .filter((n) => !isNaN(n));
 
       if (empresasIds.length === 0) {
         return {
           success: false,
-          message: 'Los IDs de empresas proporcionados no son válidos.'
+          message: 'Los IDs de empresas proporcionados no son válidos.',
         };
       }
 
@@ -180,19 +196,17 @@ export class UsuarioRepository {
 
       return {
         success: true,
-        message: 'Empresas eliminadas correctamente'
+        message: 'Empresas eliminadas correctamente',
       };
     } catch (error: any) {
       return {
         success: false,
-        message: 'Error al eliminar la empresa: ' + error.message
+        message: 'Error al eliminar la empresa: ' + error.message,
       };
     }
   }
 
-
   async assignJefe(id: number, jefeId: number): Promise<JefesEntity> {
-
     // Insertar la relación jefe-empleado
     await this.prisma.$executeRaw`
       INSERT INTO postv_empleado_jefe (jefe, empleado)
@@ -200,7 +214,9 @@ export class UsuarioRepository {
     `;
 
     // Obtener los datos del jefe para retornarlos
-    const jefeData = await this.prisma.$queryRaw<Array<{ id_jefe: number, nombres: string }>>`
+    const jefeData = await this.prisma.$queryRaw<
+      Array<{ id_jefe: number; nombres: string }>
+    >`
       SELECT j.id_jefe, t.nombres
       FROM postv_jefes j
       LEFT JOIN terceros t ON j.nit_jefe = t.nit
@@ -213,7 +229,6 @@ export class UsuarioRepository {
     });
   }
 
-
   async verJefes(id: number): Promise<JefesEntity[]> {
     // Optimizado: Usar $queryRaw con parámetro seguro
     const results = await this.prisma.$queryRaw<any[]>`
@@ -224,10 +239,13 @@ export class UsuarioRepository {
       WHERE empleado = ${id}
     `;
 
-    return results.map((item) => new JefesEntity({
-      id: item.jefe.toString(),
-      nombre: item.nombres,
-    }));
+    return results.map(
+      (item) =>
+        new JefesEntity({
+          id: item.jefe.toString(),
+          nombre: item.nombres,
+        }),
+    );
   }
 
   async verJefesAll(): Promise<JefesEntity[]> {
@@ -238,10 +256,13 @@ export class UsuarioRepository {
       LEFT JOIN terceros t ON j.nit_jefe = t.nit
     `;
 
-    return results.map((item) => new JefesEntity({
-      id: item.id_jefe.toString(),
-      nombre: item.nombres,
-    }));
+    return results.map(
+      (item) =>
+        new JefesEntity({
+          id: item.id_jefe.toString(),
+          nombre: item.nombres,
+        }),
+    );
   }
 
   async eliminarJefe(id: number, jefeId: number): Promise<JefesEntity> {
@@ -252,7 +273,9 @@ export class UsuarioRepository {
     `;
 
     // Obtener los datos del jefe para retornarlos
-    const jefeData = await this.prisma.$queryRaw<Array<{ id_jefe: number, nombres: string }>>`
+    const jefeData = await this.prisma.$queryRaw<
+      Array<{ id_jefe: number; nombres: string }>
+    >`
       SELECT j.id_jefe, t.nombres
       FROM postv_jefes j
       LEFT JOIN terceros t ON j.nit_jefe = t.nit
@@ -273,10 +296,13 @@ export class UsuarioRepository {
       ORDER BY bodega
     `;
 
-    return results.map((item) => new SedesEntity({
-      id: item.bodega.toString(),
-      nombre: item.descripcion,
-    }));
+    return results.map(
+      (item) =>
+        new SedesEntity({
+          id: item.bodega.toString(),
+          nombre: item.descripcion,
+        }),
+    );
   }
 
   async verSedeUsuario(id: number): Promise<SedesEntity[]> {
@@ -287,9 +313,12 @@ export class UsuarioRepository {
       WHERE idusuario = ${id} AND idsede IS NOT NULL
     `;
 
-    return results.map((item) => new SedesEntity({
-      id: item.idsede?.toString() || ''
-    }));
+    return results.map(
+      (item) =>
+        new SedesEntity({
+          id: item.idsede?.toString() || '',
+        }),
+    );
   }
 
   async asignarSede(idUsuario: number, idSede: number): Promise<SedesEntity> {
@@ -300,7 +329,9 @@ export class UsuarioRepository {
     `;
 
     // Obtener los datos de la sede directamente desde bodegas
-    const sedeData = await this.prisma.$queryRaw<Array<{ bodega: number, descripcion: string }>>`
+    const sedeData = await this.prisma.$queryRaw<
+      Array<{ bodega: number; descripcion: string }>
+    >`
       SELECT bodega, descripcion
       FROM bodegas
       WHERE id = ${idSede}
@@ -325,7 +356,9 @@ export class UsuarioRepository {
     `;
 
     // Obtener los datos de la sede directamente desde bodegas
-    const sedeData = await this.prisma.$queryRaw<Array<{ bodega: number, descripcion: string }>>`
+    const sedeData = await this.prisma.$queryRaw<
+      Array<{ bodega: number; descripcion: string }>
+    >`
       SELECT bodega, descripcion
       FROM bodegas
       WHERE id = ${idSede}
@@ -343,7 +376,6 @@ export class UsuarioRepository {
   }
 
   async verHorario(idUsuario: number): Promise<HorarioEntity> {
-
     const results = await this.prisma.$queryRaw<any[]>`
       SELECT *
       FROM postv_horarios_empleados 
@@ -352,7 +384,9 @@ export class UsuarioRepository {
 
     // Validate that we found a result
     if (!results || results.length === 0) {
-      throw new NotFoundException(`Horario no encontrado para el usuario con ID ${idUsuario}`);
+      throw new NotFoundException(
+        `Horario no encontrado para el usuario con ID ${idUsuario}`,
+      );
     }
 
     const item = results[0];
@@ -366,7 +400,7 @@ export class UsuarioRepository {
       hora_sal_sem_pm: item.hora_sal_sem_pm,
       hora_ent_am_viernes: item.hora_ent_am_viernes,
       hora_sal_am_viernes: item.hora_sal_am_viernes,
-      hora_ent_pm_viernes: '', 
+      hora_ent_pm_viernes: '',
       hora_sal_pm_viernes: '',
       hora_ent_viernes_pm: item.hora_ent_viernes_pm || '',
       hora_sal_viernes: item.hora_sal_viernes || '',
@@ -375,9 +409,10 @@ export class UsuarioRepository {
     });
   }
 
-
-  async assignHorario(idUsuario: number, dto: AssignHorarioDto): Promise<HorarioEntity> {
-
+  async assignHorario(
+    idUsuario: number,
+    dto: AssignHorarioDto,
+  ): Promise<HorarioEntity> {
     // Insertar la relación usuario-horario
     await this.prisma.$executeRaw`
       INSERT INTO postv_horarios_empleados (nit_empleado, sede, hora_ent_sem_am, hora_sal_sem_am, hora_ent_sem_pm, hora_sal_sem_pm, hora_ent_am_viernes, hora_sal_am_viernes, hora_ent_viernes_pm, hora_sal_viernes, hora_ent_fds, hora_sal_fds)
@@ -385,7 +420,22 @@ export class UsuarioRepository {
     `;
 
     // Obtener los datos del horario para retornarlos
-    const horarioData = await this.prisma.$queryRaw<Array<{ nit_empleado: number, sede: string, hora_ent_sem_am: string, hora_sal_sem_am: string, hora_ent_sem_pm: string, hora_sal_sem_pm: string, hora_ent_am_viernes: string, hora_sal_am_viernes: string, hora_ent_viernes_pm: string, hora_sal_viernes: string, hora_ent_fds: string, hora_sal_fds: string }>>`
+    const horarioData = await this.prisma.$queryRaw<
+      Array<{
+        nit_empleado: number;
+        sede: string;
+        hora_ent_sem_am: string;
+        hora_sal_sem_am: string;
+        hora_ent_sem_pm: string;
+        hora_sal_sem_pm: string;
+        hora_ent_am_viernes: string;
+        hora_sal_am_viernes: string;
+        hora_ent_viernes_pm: string;
+        hora_sal_viernes: string;
+        hora_ent_fds: string;
+        hora_sal_fds: string;
+      }>
+    >`
       SELECT nit_empleado, sede, hora_ent_sem_am, hora_sal_sem_am, hora_ent_sem_pm, hora_sal_sem_pm, hora_ent_am_viernes, hora_sal_am_viernes, hora_ent_viernes_pm, hora_sal_viernes, hora_ent_fds, hora_sal_fds
       FROM postv_horarios_empleados
       WHERE nit_empleado = ${idUsuario}
@@ -409,9 +459,10 @@ export class UsuarioRepository {
     });
   }
 
-
-  async updateHorario(idUsuario: number, dto: AssignHorarioDto): Promise<HorarioEntity> {
-
+  async updateHorario(
+    idUsuario: number,
+    dto: AssignHorarioDto,
+  ): Promise<HorarioEntity> {
     // Insertar la relación usuario-horario
     await this.prisma.$executeRaw`
       UPDATE postv_horarios_empleados
@@ -423,7 +474,22 @@ export class UsuarioRepository {
     `;
 
     // Obtener los datos del horario para retornarlos
-    const horarioData = await this.prisma.$queryRaw<Array<{ nit_empleado: number, sede: string, hora_ent_sem_am: string, hora_sal_sem_am: string, hora_ent_sem_pm: string, hora_sal_sem_pm: string, hora_ent_am_viernes: string, hora_sal_am_viernes: string, hora_ent_viernes_pm: string, hora_sal_viernes: string, hora_ent_fds: string, hora_sal_fds: string }>>`
+    const horarioData = await this.prisma.$queryRaw<
+      Array<{
+        nit_empleado: number;
+        sede: string;
+        hora_ent_sem_am: string;
+        hora_sal_sem_am: string;
+        hora_ent_sem_pm: string;
+        hora_sal_sem_pm: string;
+        hora_ent_am_viernes: string;
+        hora_sal_am_viernes: string;
+        hora_ent_viernes_pm: string;
+        hora_sal_viernes: string;
+        hora_ent_fds: string;
+        hora_sal_fds: string;
+      }>
+    >`
       SELECT nit_empleado, sede, hora_ent_sem_am, hora_sal_sem_am, hora_ent_sem_pm, hora_sal_sem_pm, hora_ent_am_viernes, hora_sal_am_viernes, hora_ent_viernes_pm, hora_sal_viernes, hora_ent_fds, hora_sal_fds
       FROM postv_horarios_empleados
       WHERE nit_empleado = ${idUsuario}
@@ -448,16 +514,25 @@ export class UsuarioRepository {
   }
 
   async listarPerfiles(): Promise<PerfilesEntity[]> {
-    const perfilesData = await this.prisma.$queryRaw<Array<{ id_perfil: number, nom_perfil: string }>>`
+    const perfilesData = await this.prisma.$queryRaw<
+      Array<{ id_perfil: number; nom_perfil: string }>
+    >`
       SELECT id_perfil , nom_perfil
       FROM postv_perfiles
     `;
-    return perfilesData.map((item) => new PerfilesEntity({ id: item.id_perfil.toString(), nombre: item.nom_perfil }));
+    return perfilesData.map(
+      (item) =>
+        new PerfilesEntity({
+          id: item.id_perfil.toString(),
+          nombre: item.nom_perfil,
+        }),
+    );
   }
 
-
   async listarPerfilUsuario(id: number): Promise<PerfilesEntity[]> {
-    const perfilData = await this.prisma.$queryRaw<Array<{ id_perfil: bigint, nom_perfil: string }>>`
+    const perfilData = await this.prisma.$queryRaw<
+      Array<{ id_perfil: bigint; nom_perfil: string }>
+    >`
       SELECT 
         w.perfil_postventa AS id_perfil,  -- ✅ CORRECCIÓN 1: Usar alias 'id_perfil'
         pv.nom_perfil 
@@ -466,60 +541,64 @@ export class UsuarioRepository {
       WHERE w.nit_usuario = ${id}
     `;
 
-
-
     return perfilData.map((item) => {
-      const perfilId = typeof item.id_perfil === 'bigint'
-        ? item.id_perfil.toString()
-        : item.id_perfil; 
+      const perfilId =
+        typeof item.id_perfil === 'bigint'
+          ? item.id_perfil.toString()
+          : item.id_perfil;
 
       return new PerfilesEntity({
         id: perfilId,
-        nombre: item.nom_perfil
+        nombre: item.nom_perfil,
       });
     });
   }
 
-  async resetPassword(id: number, encryptedPassword: string): Promise<{ success: boolean; message: string }> {
+  async resetPassword(
+    id: number,
+    encryptedPassword: string,
+  ): Promise<{ success: boolean; message: string }> {
     try {
       await this.prisma.w_sist_usuarios.update({
         where: { id_usuario: id },
         data: {
           pass: encryptedPassword,
           num_intentos: 0,
-          estado_usuario: 1
-        }
+          estado_usuario: 1,
+        },
       });
       return {
         success: true,
-        message: 'Contraseña actualizada correctamente'
+        message: 'Contraseña actualizada correctamente',
       };
     } catch (error: any) {
       console.error('Error resetting password:', error);
       return {
         success: false,
-        message: 'Error al actualizar la contraseña: ' + error.message
+        message: 'Error al actualizar la contraseña: ' + error.message,
       };
     }
   }
 
-  async deshabilitar(id: number): Promise<{ success: boolean; message: string }> {
+  async deshabilitar(
+    id: number,
+  ): Promise<{ success: boolean; message: string }> {
     try {
       await this.prisma.w_sist_usuarios.update({
         where: { id_usuario: id },
         data: {
-          estado: 0
-        }
+          estado: 0,
+        },
       });
       return {
         success: true,
-        message: 'Usuario deshabilitado correctamente'
+        message: 'Usuario deshabilitado correctamente',
       };
     } catch (error: any) {
       console.error('Error deshabilitando usuario:', error);
       return {
         success: false,
-        message: 'Error al deshabilitar el usuario: ' + error.message
+        message: 'Error al deshabilitar el usuario: ' + error.message,
       };
     }
   }
@@ -529,22 +608,21 @@ export class UsuarioRepository {
       await this.prisma.w_sist_usuarios.update({
         where: { id_usuario: id },
         data: {
-          estado: 1
-        }
+          estado: 1,
+        },
       });
       return {
         success: true,
-        message: 'Usuario habilitado correctamente'
+        message: 'Usuario habilitado correctamente',
       };
     } catch (error: any) {
       console.error('Error habilitando usuario:', error);
       return {
         success: false,
-        message: 'Error al habilitar el usuario: ' + error.message
+        message: 'Error al habilitar el usuario: ' + error.message,
       };
     }
   }
-
 
   async verUsuariosJefes(): Promise<UsuarioEntity[]> {
     // Optimizado: Usar $queryRaw (seguro contra SQL injection)
@@ -556,12 +634,14 @@ export class UsuarioRepository {
       WHERE u.estado = 1
     `;
 
-    return rawData.map((row) => new UsuarioEntity({
-      id: row.nit.toString(),
-      nombre: row.nombres
-    }));
+    return rawData.map(
+      (row) =>
+        new UsuarioEntity({
+          id: row.nit.toString(),
+          nombre: row.nombres,
+        }),
+    );
   }
-
 
   async verJefesAllGeneral(): Promise<JefesEntity[]> {
     // Optimizado: Usar $queryRaw (seguro contra SQL injection)
@@ -572,15 +652,20 @@ export class UsuarioRepository {
       ORDER BY id_jefe DESC
     `;
 
-    return rawData.map((row) => new JefesEntity({
-      id: row.id_jefe.toString(),
-      nit: row.nit_jefe.toString(),
-      nombre: row.nombres,
-      email: row.correo
-    }));
+    return rawData.map(
+      (row) =>
+        new JefesEntity({
+          id: row.id_jefe.toString(),
+          nit: row.nit_jefe.toString(),
+          nombre: row.nombres,
+          email: row.correo,
+        }),
+    );
   }
 
-  async crearJefe(dto: CreateJefeDto): Promise<{ success: boolean; message: string }> {
+  async crearJefe(
+    dto: CreateJefeDto,
+  ): Promise<{ success: boolean; message: string }> {
     try {
       await this.prisma.$executeRaw`
         INSERT INTO postv_jefes (nit_jefe, correo) VALUES (${dto.nit}, ${dto.email})
@@ -588,17 +673,16 @@ export class UsuarioRepository {
 
       return {
         success: true,
-        message: 'Jefe creado correctamente'
+        message: 'Jefe creado correctamente',
       };
     } catch (error: any) {
       console.error('Error creando jefe:', error);
       return {
         success: false,
-        message: 'Error al crear el jefe: ' + error.message
+        message: 'Error al crear el jefe: ' + error.message,
       };
     }
   }
-
 
   async verUsuarioPorNit(nit: string): Promise<boolean> {
     const usuarioData = await this.prisma.$queryRaw<{ nit_usuario: string }[]>`
@@ -618,10 +702,9 @@ export class UsuarioRepository {
     return terceroData.length > 0;
   }
 
-
-  async crearUsuario(data: any): Promise<{ success: boolean; message: string }> {
-  
-    
+  async crearUsuario(
+    data: any,
+  ): Promise<{ success: boolean; message: string }> {
     try {
       await this.prisma.$executeRaw`
         INSERT INTO w_sist_usuarios (nit_usuario,estado,pass,num_intentos,perfil_postventa,clave,tipo_tercero,fid_perfil)
@@ -630,18 +713,14 @@ export class UsuarioRepository {
 
       return {
         success: true,
-        message: 'Usuario creado correctamente'
+        message: 'Usuario creado correctamente',
       };
     } catch (error: any) {
       console.error('Error creando usuario:', error);
       return {
         success: false,
-        message: 'Error al crear el usuario: ' + error.message
+        message: 'Error al crear el usuario: ' + error.message,
       };
     }
   }
-
-
-
-
 }

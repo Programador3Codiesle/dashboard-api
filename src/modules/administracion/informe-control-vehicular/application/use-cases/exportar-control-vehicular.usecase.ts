@@ -12,4 +12,3 @@ export class ExportarControlVehicularUseCase {
     return this.repo.listarParaExcel(filtros);
   }
 }
-

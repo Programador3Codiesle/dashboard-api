@@ -15,4 +15,3 @@ export class ListarDesempenoEmpleadoUseCase {
     return this.repo.listar(filtros);
   }
 }
-

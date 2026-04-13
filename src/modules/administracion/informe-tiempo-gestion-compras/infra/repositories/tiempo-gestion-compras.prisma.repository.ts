@@ -8,9 +8,7 @@ import {
 import { TiempoGestionComprasEntity } from '../../domain/tiempo-gestion-compras.entity';
 
 @Injectable()
-export class TiempoGestionComprasPrismaRepository
-  implements ITiempoGestionComprasRepository
-{
+export class TiempoGestionComprasPrismaRepository implements ITiempoGestionComprasRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async listar(
@@ -36,7 +34,6 @@ export class TiempoGestionComprasPrismaRepository
        FROM v_tiempos_gestion_compras ${whereClause}`,
     ] as unknown as TemplateStringsArray);
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows = await this.prisma.$queryRaw<any[]>(sql);
 
     return rows.map(
@@ -55,4 +52,3 @@ export class TiempoGestionComprasPrismaRepository
     );
   }
 }
-

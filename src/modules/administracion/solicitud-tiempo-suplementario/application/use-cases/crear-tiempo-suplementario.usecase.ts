@@ -7,45 +7,52 @@ import { TokenRespuestaService } from '../../../../../core/infra/token-respuesta
 
 @Injectable()
 export class CrearTiempoSuplementarioUseCase {
-    constructor(
-        private readonly repo: ITiempoSuplementarioRepository,
-        private readonly emailService: EmailService,
-        private readonly tokenRespuesta: TokenRespuestaService,
-        private readonly config: ConfigService,
-    ) {}
+  constructor(
+    private readonly repo: ITiempoSuplementarioRepository,
+    private readonly emailService: EmailService,
+    private readonly tokenRespuesta: TokenRespuestaService,
+    private readonly config: ConfigService,
+  ) {}
 
-    async execute(dto: CreateTiempoSuplementarioDto, userId: number) {
-        const [y, m, d] = dto.fecha_ini.split('-').map(Number);
-        const fechaIni = new Date(y, m - 1, d);
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0);
-        if (fechaIni < hoy) {
-            throw new BadRequestException('No se puede crear una solicitud para fechas pasadas');
-        }
-        const nit_empleado = dto.empleado ?? userId;
-        const result = await this.repo.create({
-            nit_jefe: userId,
-            nit_empleado,
-            fecha_ini: fechaIni,
-            hora_ini: dto.hora_ini,
-            hora_fin: dto.hora_fin,
-            fecha_solicitud: new Date(),
-            area: dto.area,
-            cargo: dto.cargo_emp,
-            sede: dto.sede,
-            descripcion: dto.descripcion,
-            autorizacion: 0,
-            autorizacionporteria: null,
-            id_empresa: dto.id_empresa,
-        });
+  async execute(dto: CreateTiempoSuplementarioDto, userId: number) {
+    const [y, m, d] = dto.fecha_ini.split('-').map(Number);
+    const fechaIni = new Date(y, m - 1, d);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    if (fechaIni < hoy) {
+      throw new BadRequestException(
+        'No se puede crear una solicitud para fechas pasadas',
+      );
+    }
+    const nit_empleado = dto.empleado ?? userId;
+    const result = await this.repo.create({
+      nit_jefe: userId,
+      nit_empleado,
+      fecha_ini: fechaIni,
+      hora_ini: dto.hora_ini,
+      hora_fin: dto.hora_fin,
+      fecha_solicitud: new Date(),
+      area: dto.area,
+      cargo: dto.cargo_emp,
+      sede: dto.sede,
+      descripcion: dto.descripcion,
+      autorizacion: 0,
+      autorizacionporteria: null,
+      id_empresa: dto.id_empresa,
+    });
 
-        if (result.status && result.data?.id != null) {
-            try {
-                const token = this.tokenRespuesta.generarToken(result.data.id, 'tiempo-suplementario');
-                const urlAutorizar = this.tokenRespuesta.urlResponder(token, 'aprobar');
-                const urlRechazar = this.tokenRespuesta.urlResponder(token, 'rechazar');
-                const fechaStr = result.data.fecha_ini ? new Date(result.data.fecha_ini).toISOString().split('T')[0] : dto.fecha_ini;
-                const html = `
+    if (result.status && result.data?.id != null) {
+      try {
+        const token = this.tokenRespuesta.generarToken(
+          result.data.id,
+          'tiempo-suplementario',
+        );
+        const urlAutorizar = this.tokenRespuesta.urlResponder(token, 'aprobar');
+        const urlRechazar = this.tokenRespuesta.urlResponder(token, 'rechazar');
+        const fechaStr = result.data.fecha_ini
+          ? new Date(result.data.fecha_ini).toISOString().split('T')[0]
+          : dto.fecha_ini;
+        const html = `
           <div style="font-family: Arial, sans-serif; padding: 16px; background:#f8f9fa;">
             <div style="max-width: 800px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
               <div style="padding: 16px 20px; background:#111827; color:#ffffff;">
@@ -67,19 +74,27 @@ export class CrearTiempoSuplementarioUseCase {
             </div>
           </div>
         `;
-                const toStr = this.config.get<string>('EMAIL_AUTORIZACION_TIEMPO_SUPLEMENTARIO') ?? 'programador3@codiesel.co';
-                const toEmails = toStr.split(',').map((e) => e.trim()).filter(Boolean);
-                if (toEmails.length === 0) toEmails.push('programador3@codiesel.co');
-                await this.emailService.sendEmail({
-                    to: toEmails,
-                    subject: 'Solicitud de Tiempo Suplementario - Autorización',
-                    html,
-                });
-            } catch (e) {
-                console.error('Error enviando correo de tiempo suplementario (best-effort):', e);
-            }
-        }
-
-        return result;
+        const toStr =
+          this.config.get<string>('EMAIL_AUTORIZACION_TIEMPO_SUPLEMENTARIO') ??
+          'programador3@codiesel.co';
+        const toEmails = toStr
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean);
+        if (toEmails.length === 0) toEmails.push('programador3@codiesel.co');
+        await this.emailService.sendEmail({
+          to: toEmails,
+          subject: 'Solicitud de Tiempo Suplementario - Autorización',
+          html,
+        });
+      } catch (e) {
+        console.error(
+          'Error enviando correo de tiempo suplementario (best-effort):',
+          e,
+        );
+      }
     }
+
+    return result;
+  }
 }

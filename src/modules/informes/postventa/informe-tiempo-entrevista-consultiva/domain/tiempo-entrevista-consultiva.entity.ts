@@ -28,4 +28,3 @@ export class TiempoEntrevistaConsultivaDetalleRowEntity {
     Object.assign(this, props);
   }
 }
-

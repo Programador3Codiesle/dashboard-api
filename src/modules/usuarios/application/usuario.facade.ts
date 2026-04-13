@@ -31,7 +31,7 @@ export class UsuarioFacade {
     private readonly assignHorarioUC: AssignHorarioUseCase,
     private readonly assignEmpresaUC: AssignEmpresaUseCase,
     private readonly getUsuariosUC: GetUsuariosUseCase,
-  ) { }
+  ) {}
 
   /** Listar usuarios (paginación: page, limit) */
   async listar(page?: number, limit?: number) {
@@ -66,7 +66,6 @@ export class UsuarioFacade {
     return this.assignSedeUC.verSedeUsuario(_id);
   }
 
-
   /** Ver sedes */
   async verSedes() {
     return this.assignSedeUC.verSedes();
@@ -92,7 +91,8 @@ export class UsuarioFacade {
 
   /** Ver jefes del usuario autenticado (por NIT) */
   async verMisJefes(nitEmpleado: number | string) {
-    const _nit = typeof nitEmpleado === 'string' ? Number(nitEmpleado) : nitEmpleado;
+    const _nit =
+      typeof nitEmpleado === 'string' ? Number(nitEmpleado) : nitEmpleado;
     return this.assignJefeUC.verJefesPorNit(_nit);
   }
 
@@ -113,7 +113,6 @@ export class UsuarioFacade {
     return this.assignJefeUC.eliminarJefe(_id, dto);
   }
 
-
   // usuario.service.ts
   async asignarEmpresa(id: string, dto: AssignEmpresaDto) {
     const _id = typeof id === 'string' ? String(id) : id;
@@ -132,16 +131,13 @@ export class UsuarioFacade {
     return this.assignEmpresaUC.eliminarEmpresa(_id, dto);
   }
 
-
-
   /** Ver horario del usuario */
   async verHorario(id: number | string) {
     const _id = typeof id === 'string' ? Number(id) : id;
     return this.assignHorarioUC.verHorario(_id);
   }
 
-
-    /** Asignar horario al usuario */
+  /** Asignar horario al usuario */
   async asignarHorario(id: number | string, dto: AssignHorarioDto) {
     const _id = typeof id === 'string' ? Number(id) : id;
     return this.assignHorarioUC.asignarHorario(_id, dto);
@@ -150,7 +146,7 @@ export class UsuarioFacade {
   /** Reset contraseña */
   async resetPassword(id: number | string, dto: UpdateUsuarioDto) {
     const _id = typeof id === 'string' ? Number(id) : id;
-    return this.updateUsuarioUC.resetPassword(_id,dto);
+    return this.updateUsuarioUC.resetPassword(_id, dto);
   }
 
   /** Deshabilitar usuario */
@@ -165,8 +161,6 @@ export class UsuarioFacade {
     return this.updateUsuarioUC.habilitar(_id);
   }
 
-
-
   /** Ver jefes general */
   async verJefesAllGeneral() {
     return this.assignJefeUC.verJefesAllGeneral();
@@ -177,9 +171,8 @@ export class UsuarioFacade {
     return this.assignJefeUC.verUsuariosJefes();
   }
 
-    /** Crear jefe */
+  /** Crear jefe */
   async crearJefe(dto: CreateJefeDto) {
     return this.assignJefeUC.crearJefe(dto);
   }
-
 }

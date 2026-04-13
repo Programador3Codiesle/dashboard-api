@@ -8,9 +8,7 @@ import {
 import { InformeEntradaVhResumenEntity } from '../../domain/entrada-vh.entity';
 
 @Injectable()
-export class InformeEntradaVhPrismaRepository
-  implements IInformeEntradaVhRepository
-{
+export class InformeEntradaVhPrismaRepository implements IInformeEntradaVhRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async obtenerResumen(
@@ -122,4 +120,3 @@ export class InformeEntradaVhPrismaRepository
     });
   }
 }
-

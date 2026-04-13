@@ -1,9 +1,9 @@
 /**
  * Re-exportación de contratos de repositorios especializados
- * 
+ *
  * Este archivo mantiene compatibilidad hacia atrás.
  * Se recomienda importar directamente desde ./repositories/
- * 
+ *
  * @see ./repositories/index.ts para los contratos especializados
  */
 

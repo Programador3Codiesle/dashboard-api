@@ -11,4 +11,3 @@ export class InformeKpiController {
     return data;
   }
 }
-

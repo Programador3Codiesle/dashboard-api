@@ -2,11 +2,11 @@
  * Repositorio de Usuario - Gestión de Empresas
  * Implementa IUsuarioEmpresaRepository siguiendo Clean Architecture
  */
-import { Injectable } from "@nestjs/common";
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
-import { AssignEmpresaDto } from "../../application/dto/assign-empresa.dto";
-import { IUsuarioEmpresaRepository } from "../../domain/repositories/usuario-empresa.repository";
+import { AssignEmpresaDto } from '../../application/dto/assign-empresa.dto';
+import { IUsuarioEmpresaRepository } from '../../domain/repositories/usuario-empresa.repository';
 
 @Injectable()
 export class UsuarioEmpresaRepository implements IUsuarioEmpresaRepository {
@@ -15,7 +15,9 @@ export class UsuarioEmpresaRepository implements IUsuarioEmpresaRepository {
   /**
    * Obtener las empresas asignadas a un usuario
    */
-  async findEmpresasByUsuario(cedula: string): Promise<{ id_empresa: number }[]> {
+  async findEmpresasByUsuario(
+    cedula: string,
+  ): Promise<{ id_empresa: number }[]> {
     return this.prisma.$queryRaw`
       SELECT idEmpresa 
       FROM sw_empresa_usuario
@@ -28,7 +30,10 @@ export class UsuarioEmpresaRepository implements IUsuarioEmpresaRepository {
   /**
    * Agregar empresas a un usuario de forma segura (batch)
    */
-  async addEmpresasSafe(cedula: string, empresasIds: string[]): Promise<string[]> {
+  async addEmpresasSafe(
+    cedula: string,
+    empresasIds: string[],
+  ): Promise<string[]> {
     const agregadas: string[] = [];
 
     if (empresasIds.length === 0) return agregadas;
@@ -40,14 +45,16 @@ export class UsuarioEmpresaRepository implements IUsuarioEmpresaRepository {
           SELECT idEmpresa
           FROM sw_empresa_usuario
           WHERE idUsuario = CAST(${cedula} AS DECIMAL(18,0))
-            AND idEmpresa IN (${Prisma.join(empresasIds.map(id => parseInt(id)))})
+            AND idEmpresa IN (${Prisma.join(empresasIds.map((id) => parseInt(id)))})
             AND estado = 1
         `;
 
-        const existentesSet = new Set(existentes.map(e => e.idEmpresa));
+        const existentesSet = new Set(existentes.map((e) => e.idEmpresa));
 
         // Filtrar solo las que no existen
-        const nuevasEmpresas = empresasIds.filter(id => !existentesSet.has(parseInt(id)));
+        const nuevasEmpresas = empresasIds.filter(
+          (id) => !existentesSet.has(parseInt(id)),
+        );
 
         // Insertar todas las nuevas en batch
         for (const empresaId of nuevasEmpresas) {
@@ -88,21 +95,26 @@ export class UsuarioEmpresaRepository implements IUsuarioEmpresaRepository {
   /**
    * Eliminar empresas de un usuario
    */
-  async eliminarEmpresa(idUsuario: number, dto: AssignEmpresaDto): Promise<{ success: boolean; message: string }> {
+  async eliminarEmpresa(
+    idUsuario: number,
+    dto: AssignEmpresaDto,
+  ): Promise<{ success: boolean; message: string }> {
     try {
       if (!dto.empresas || dto.empresas.length === 0) {
         return {
           success: true,
-          message: 'No se enviaron empresas para eliminar.'
+          message: 'No se enviaron empresas para eliminar.',
         };
       }
 
-      const empresasIds = dto.empresas.map(e => Number(e)).filter(n => !isNaN(n));
+      const empresasIds = dto.empresas
+        .map((e) => Number(e))
+        .filter((n) => !isNaN(n));
 
       if (empresasIds.length === 0) {
         return {
           success: false,
-          message: 'Los IDs de empresas proporcionados no son válidos.'
+          message: 'Los IDs de empresas proporcionados no son válidos.',
         };
       }
 
@@ -114,12 +126,12 @@ export class UsuarioEmpresaRepository implements IUsuarioEmpresaRepository {
 
       return {
         success: true,
-        message: 'Empresas eliminadas correctamente'
+        message: 'Empresas eliminadas correctamente',
       };
     } catch (error: any) {
       return {
         success: false,
-        message: 'Error al eliminar la empresa: ' + error.message
+        message: 'Error al eliminar la empresa: ' + error.message,
       };
     }
   }

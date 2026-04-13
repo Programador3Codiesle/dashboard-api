@@ -1,7 +1,10 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import { ICotizadorInformesRepository } from '../../domain/cotizador-informes.repository';
-import { getBrandPdfConfig, type BrandPdfConfig } from '../config/brand-pdf.config';
+import {
+  getBrandPdfConfig,
+  type BrandPdfConfig,
+} from '../config/brand-pdf.config';
 import type { OrigenCotizacion } from './actualizar-estado-cotizacion.usecase';
 
 export interface GenerarCotizacionPdfParams {
@@ -34,7 +37,9 @@ export class GenerarCotizacionPdfUseCase {
         : await this.informesRepo.getCotizacionPesadosPdf(idCotizacion, placa);
 
     if (!general) {
-      throw new NotFoundException('No se encontró la cotización para generar el PDF.');
+      throw new NotFoundException(
+        'No se encontró la cotización para generar el PDF.',
+      );
     }
 
     const repuestos =
@@ -46,8 +51,6 @@ export class GenerarCotizacionPdfUseCase {
       origen === 'livianos'
         ? await this.informesRepo.getMttoCotiLivianos(idCotizacion)
         : await this.informesRepo.getMttoCotiPesados(idCotizacion);
-    
-    
 
     const pdfDoc = await PDFDocument.create();
     const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -101,23 +104,43 @@ export class GenerarCotizacionPdfUseCase {
     const idCotizacionStr = String(general.id_cotizacion).padStart(4, '0');
     const fechaStr =
       general.fecha_creacion instanceof Date
-        ? general.fecha_creacion.toLocaleString('es-CO', { dateStyle: 'short', timeStyle: 'short' })
+        ? general.fecha_creacion.toLocaleString('es-CO', {
+            dateStyle: 'short',
+            timeStyle: 'short',
+          })
         : String(general.fecha_creacion);
 
     // Bloque bodega (izq) y número/fecha (der)
-    drawText({ page, font }, general.NomBodega ?? '', MARGIN, 200, { size: 12 });
+    drawText({ page, font }, general.NomBodega ?? '', MARGIN, 200, {
+      size: 12,
+    });
     y -= ROW_HEIGHT;
-    drawText({ page, font }, `Dirección: ${general.direccion ?? ''}`, MARGIN, 250);
+    drawText(
+      { page, font },
+      `Dirección: ${general.direccion ?? ''}`,
+      MARGIN,
+      250,
+    );
     y -= ROW_HEIGHT;
-    drawText({ page, font }, `Telf: 607 ${general.telefono ?? ''}`, MARGIN, 150);
+    drawText(
+      { page, font },
+      `Telf: 607 ${general.telefono ?? ''}`,
+      MARGIN,
+      150,
+    );
     y -= ROW_HEIGHT;
 
     const rightX = PAGE_WIDTH - MARGIN - 220;
-    let saveY = y;
+    const saveY = y;
     // Alinear el bloque derecho (número/fecha) en la misma banda vertical
     // que el bloque izquierdo de bodega, respetando el margen superior extra.
     y = PAGE_HEIGHT - HEADER_BAR_HEIGHT - 40;
-    drawText({ page, font }, `Número cotización: ${idCotizacionStr}`, rightX, 220);
+    drawText(
+      { page, font },
+      `Número cotización: ${idCotizacionStr}`,
+      rightX,
+      220,
+    );
     y -= ROW_HEIGHT;
     drawText({ page, font }, `Fecha cotización: ${fechaStr}`, rightX, 220);
     // Recuperar y para seguir dibujando justo debajo del bloque izquierdo
@@ -135,7 +158,8 @@ export class GenerarCotizacionPdfUseCase {
     );
 
     // Tabla Vehículo / Cliente
-    const revisionStr = general.revision != null ? String(general.revision) : '--';
+    const revisionStr =
+      general.revision != null ? String(general.revision) : '--';
     const nombreClienteCorto = this.getShortName(general.nombreCliente);
     y = this.drawTable(
       { page, font: font as any, fontBold: fontBold as any },
@@ -156,7 +180,9 @@ export class GenerarCotizacionPdfUseCase {
     );
 
     // Tabla Repuestos
-    const repuestosHeaders = [['Codigo', 'Descripcion', 'Categoria', 'Estado', 'Valor']];
+    const repuestosHeaders = [
+      ['Codigo', 'Descripcion', 'Categoria', 'Estado', 'Valor'],
+    ];
     // Subtotales repuestos
     const sumaR = repuestos.reduce(
       (acc, r) => (r.estado === 1 ? acc + r.valor : acc),
@@ -255,13 +281,16 @@ export class GenerarCotizacionPdfUseCase {
       height: ROW_HEIGHT * 2,
       color: rgb(c.primary.r, c.primary.g, c.primary.b),
     });
-    page.drawText(`Tiempo estimado en el taller: ${sumTiempo.toFixed(1)} horas`, {
-      x: MARGIN + 8,
-      y: totalY - ROW_HEIGHT + 4,
-      size: FONT_SIZE,
-      font,
-      color: rgb(c.primaryText.r, c.primaryText.g, c.primaryText.b),
-    });
+    page.drawText(
+      `Tiempo estimado en el taller: ${sumTiempo.toFixed(1)} horas`,
+      {
+        x: MARGIN + 8,
+        y: totalY - ROW_HEIGHT + 4,
+        size: FONT_SIZE,
+        font,
+        color: rgb(c.primaryText.r, c.primaryText.g, c.primaryText.b),
+      },
+    );
     page.drawText(`$${Number(sumaM + sumaR).toLocaleString('es-CO')}`, {
       x: PAGE_WIDTH - MARGIN - 80,
       y: totalY - ROW_HEIGHT + 4,
@@ -296,7 +325,12 @@ export class GenerarCotizacionPdfUseCase {
       });
       y -= ROW_HEIGHT;
       const maxLineWidth = PAGE_WIDTH - 2 * MARGIN;
-      const obsLines = this.wrapByWidth(general.observaciones, font, FONT_SIZE, maxLineWidth);
+      const obsLines = this.wrapByWidth(
+        general.observaciones,
+        font,
+        FONT_SIZE,
+        maxLineWidth,
+      );
       for (const line of obsLines) {
         if (y < MARGIN + 80) {
           page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);

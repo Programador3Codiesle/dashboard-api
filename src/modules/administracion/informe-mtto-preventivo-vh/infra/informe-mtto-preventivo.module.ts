@@ -21,4 +21,3 @@ import { InformeMttoPreventivoPrismaRepository } from './repositories/informe-mt
   ],
 })
 export class InformeMttoPreventivoVhModule {}
-

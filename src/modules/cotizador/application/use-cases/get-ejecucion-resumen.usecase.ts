@@ -31,7 +31,9 @@ export class GetEjecucionResumenUseCase {
     return dateStr.replace(/-/g, '');
   }
 
-  async execute(params: EjecucionFiltroParams): Promise<EjecucionResumenResponse> {
+  async execute(
+    params: EjecucionFiltroParams,
+  ): Promise<EjecucionResumenResponse> {
     const bodegas = this.getBodegasArray(params.bodega ?? null);
     const desde = this.toYmd(params.dateStart);
     const hasta = this.toYmd(params.dateEnd);
@@ -57,4 +59,3 @@ export class GetEjecucionResumenUseCase {
     };
   }
 }
-

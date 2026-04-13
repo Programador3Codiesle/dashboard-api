@@ -12,4 +12,3 @@ export class ListarInformeHorarioUseCase {
     return this.repo.listar(filtros);
   }
 }
-

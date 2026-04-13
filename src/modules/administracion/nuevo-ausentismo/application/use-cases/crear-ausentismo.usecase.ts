@@ -7,57 +7,67 @@ import { TokenRespuestaService } from '../../../../../core/infra/token-respuesta
 
 @Injectable()
 export class CrearAusentismoUseCase {
-    constructor(
-        private readonly repo: INuevoAusentismoRepository,
-        private readonly emailService: EmailService,
-        private readonly tokenRespuesta: TokenRespuestaService,
-        private readonly config: ConfigService,
-    ) {}
+  constructor(
+    private readonly repo: INuevoAusentismoRepository,
+    private readonly emailService: EmailService,
+    private readonly tokenRespuesta: TokenRespuestaService,
+    private readonly config: ConfigService,
+  ) {}
 
-    async execute(dto: CreateAusentismoDto, userId: number) {
+  async execute(dto: CreateAusentismoDto, userId: number) {
+    // Parsear 'YYYY-MM-DD' como fecha local (evita que UTC reste un día en zonas UTC-)
+    const [y, m, d] = dto.fecha_ini.split('-').map(Number);
+    const fechaIni = new Date(y, m - 1, d);
+    const fechaFin = new Date(y, m - 1, d); // Mismo día, máximo un día
 
-        // Parsear 'YYYY-MM-DD' como fecha local (evita que UTC reste un día en zonas UTC-)
-        const [y, m, d] = dto.fecha_ini.split('-').map(Number);
-        const fechaIni = new Date(y, m - 1, d);
-        const fechaFin = new Date(y, m - 1, d); // Mismo día, máximo un día
+    // Validar que no sea fecha pasada
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
 
-        // Validar que no sea fecha pasada
-        const hoy = new Date();
-        hoy.setHours(0, 0, 0, 0);
-        
-        if (fechaIni < hoy) {
-            throw new BadRequestException('No se puede crear un ausentismo para fechas pasadas');
-        }
+    if (fechaIni < hoy) {
+      throw new BadRequestException(
+        'No se puede crear un ausentismo para fechas pasadas',
+      );
+    }
 
-        // Validar que sea solo un día
-        const diferenciaDias = Math.floor((fechaFin.getTime() - fechaIni.getTime()) / (1000 * 60 * 60 * 24));
-        if (diferenciaDias > 0) {
-            throw new BadRequestException('Los ausentismos solo se pueden deligenciar máximo por un día');
-        }
+    // Validar que sea solo un día
+    const diferenciaDias = Math.floor(
+      (fechaFin.getTime() - fechaIni.getTime()) / (1000 * 60 * 60 * 24),
+    );
+    if (diferenciaDias > 0) {
+      throw new BadRequestException(
+        'Los ausentismos solo se pueden deligenciar máximo por un día',
+      );
+    }
 
-        const result = await this.repo.create({
-            empleado: userId,
-            area: dto.area,
-            cargo_emp: dto.cargo_emp,
-            sede: dto.sede,
-            fecha_ini: fechaIni,
-            hora_ini: dto.hora_ini,
-            fecha_fin: fechaFin,
-            hora_fin: dto.hora_fin,
-            descripcion: dto.descripcion,
-            motivo: dto.motivo,
-            autorizacion: 0, // Pendiente
-            titulo: dto.motivo,
-            id_empresa: dto.id_empresa
-        });
+    const result = await this.repo.create({
+      empleado: userId,
+      area: dto.area,
+      cargo_emp: dto.cargo_emp,
+      sede: dto.sede,
+      fecha_ini: fechaIni,
+      hora_ini: dto.hora_ini,
+      fecha_fin: fechaFin,
+      hora_fin: dto.hora_fin,
+      descripcion: dto.descripcion,
+      motivo: dto.motivo,
+      autorizacion: 0, // Pendiente
+      titulo: dto.motivo,
+      id_empresa: dto.id_empresa,
+    });
 
-        if (result.status && result.data?.id_ausen) {
-            try {
-                const token = this.tokenRespuesta.generarToken(result.data.id_ausen, 'nuevo-ausentismo');
-                const urlAutorizar = this.tokenRespuesta.urlResponder(token, 'aprobar');
-                const urlRechazar = this.tokenRespuesta.urlResponder(token, 'rechazar');
-                const fechaStr = result.data.fecha_ini ? new Date(result.data.fecha_ini).toISOString().split('T')[0] : dto.fecha_ini;
-                const html = `
+    if (result.status && result.data?.id_ausen) {
+      try {
+        const token = this.tokenRespuesta.generarToken(
+          result.data.id_ausen,
+          'nuevo-ausentismo',
+        );
+        const urlAutorizar = this.tokenRespuesta.urlResponder(token, 'aprobar');
+        const urlRechazar = this.tokenRespuesta.urlResponder(token, 'rechazar');
+        const fechaStr = result.data.fecha_ini
+          ? new Date(result.data.fecha_ini).toISOString().split('T')[0]
+          : dto.fecha_ini;
+        const html = `
           <div style="font-family: Arial, sans-serif; padding: 16px; background:#f8f9fa;">
             <div style="max-width: 800px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
               <div style="padding: 16px 20px; background:#111827; color:#ffffff;">
@@ -79,19 +89,24 @@ export class CrearAusentismoUseCase {
             </div>
           </div>
         `;
-                const toStr = this.config.get<string>('EMAIL_AUTORIZACION_AUSENTISMO') ?? 'programador3@codiesel.co';
-                const toEmails = toStr.split(',').map((e) => e.trim()).filter(Boolean);
-                if (toEmails.length === 0) toEmails.push('programador3@codiesel.co');
-                await this.emailService.sendEmail({
-                    to: toEmails,
-                    subject: 'Nuevo Ausentismo - Solicitud de autorización',
-                    html,
-                });
-            } catch (e) {
-                console.error('Error enviando correo de ausentismo (best-effort):', e);
-            }
-        }
-
-        return result;
+        const toStr =
+          this.config.get<string>('EMAIL_AUTORIZACION_AUSENTISMO') ??
+          'programador3@codiesel.co';
+        const toEmails = toStr
+          .split(',')
+          .map((e) => e.trim())
+          .filter(Boolean);
+        if (toEmails.length === 0) toEmails.push('programador3@codiesel.co');
+        await this.emailService.sendEmail({
+          to: toEmails,
+          subject: 'Nuevo Ausentismo - Solicitud de autorización',
+          html,
+        });
+      } catch (e) {
+        console.error('Error enviando correo de ausentismo (best-effort):', e);
+      }
     }
+
+    return result;
+  }
 }

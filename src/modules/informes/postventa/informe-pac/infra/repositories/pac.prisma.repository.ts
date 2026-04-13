@@ -28,9 +28,10 @@ export class PacPrismaRepository implements IPacRepository {
           'SIR','IT','BC','SIK','IK','SIQ','SIL','IL','SIT','SIW','WI','DIT','DIK','DIW','DIL'
         )
     `;
-    const [presDiaRow] = await this.prisma.$queryRaw<
-      { total: number | null }[]
-    >(presupuestoDiaSql);
+    const [presDiaRow] =
+      await this.prisma.$queryRaw<{ total: number | null }[]>(
+        presupuestoDiaSql,
+      );
     const toDia = presDiaRow?.total ?? 0;
 
     // 2) Presupuesto del mes (to_t) usando get_presupuesto_mes sobre sede CODIESEL
@@ -48,12 +49,10 @@ export class PacPrismaRepository implements IPacRepository {
         23
       ) AS fecha
     `;
-    const [primerDiaRow] = await this.prisma.$queryRaw<{ fecha: Date }[]>(
-      primerDiaSql,
-    );
-    const [ultimoDiaRow] = await this.prisma.$queryRaw<{ fecha: Date }[]>(
-      ultimoDiaSql,
-    );
+    const [primerDiaRow] =
+      await this.prisma.$queryRaw<{ fecha: Date }[]>(primerDiaSql);
+    const [ultimoDiaRow] =
+      await this.prisma.$queryRaw<{ fecha: Date }[]>(ultimoDiaSql);
     const fechaIniMes = primerDiaRow?.fecha;
     const fechaFinMes = ultimoDiaRow?.fecha;
 
@@ -64,13 +63,14 @@ export class PacPrismaRepository implements IPacRepository {
         AND CONVERT(DATE, fecha_fin) = CONVERT(DATE, ${fechaFinMes})
         AND sede = 'CODIESEL'
     `;
-    const presMesRows = await this.prisma.$queryRaw<{ presupuesto: number }[]>(
-      presupuestoMesSql,
-    );
+    const presMesRows =
+      await this.prisma.$queryRaw<{ presupuesto: number }[]>(presupuestoMesSql);
     const toMes = presMesRows?.[0]?.presupuesto ?? 0;
 
     // 3) Días del mes y día actual (get_total_dias / get_dias_actual)
-    const [totalDiasRow] = await this.prisma.$queryRaw<{ ultimo_dia: number }[]>`
+    const [totalDiasRow] = await this.prisma.$queryRaw<
+      { ultimo_dia: number }[]
+    >`
       SELECT DAY(DATEADD(s,-1,DATEADD(mm, DATEDIFF(m,0,GETDATE())+1,0))) AS ultimo_dia
     `;
     const [diaActualRow] = await this.prisma.$queryRaw<{ dia: number }[]>`
@@ -79,11 +79,11 @@ export class PacPrismaRepository implements IPacRepository {
     const totalDiasMes = totalDiasRow?.ultimo_dia ?? 1;
     const diaActual = diaActualRow?.dia ?? 1;
 
-    const toObjetivo = totalDiasMes > 0 ? (toMes / totalDiasMes) * diaActual : 0;
+    const toObjetivo =
+      totalDiasMes > 0 ? (toMes / totalDiasMes) * diaActual : 0;
 
     // 4) Porcentajes (mismas fórmulas del legacy)
-    const porcenHoy =
-      toObjetivo > 0 ? (toDia / toObjetivo) * 100 : 0; // porcentaje_a_hoy
+    const porcenHoy = toObjetivo > 0 ? (toDia / toObjetivo) * 100 : 0; // porcentaje_a_hoy
     let porcenHoyRes = 100 - porcenHoy;
     if (porcenHoyRes < 0) porcenHoyRes = 0;
 
@@ -105,9 +105,10 @@ export class PacPrismaRepository implements IPacRepository {
         AND r.clase IN ('RES','REP')
         AND r.contable IN (100,105,110)
     `;
-    const inventarioRows = await this.prisma.$queryRaw<
-      { Promedio: number; stock: number; calificacion_abc: string | null }[]
-    >(inventarioSql);
+    const inventarioRows =
+      await this.prisma.$queryRaw<
+        { Promedio: number; stock: number; calificacion_abc: string | null }[]
+      >(inventarioSql);
 
     let valTotalInventario = 0;
     for (const row of inventarioRows) {
@@ -164,7 +165,11 @@ export class PacPrismaRepository implements IPacRepository {
       WHERE pes.bod IN (${Prisma.raw(bodInterno)})
     `;
     const [npsIntRow] = await this.prisma.$queryRaw<
-      { enc0a6: number | null; enc7a8: number | null; enc9a10: number | null }[]
+      {
+        enc0a6: number | null;
+        enc7a8: number | null;
+        enc9a10: number | null;
+      }[]
     >(npsInternoSql);
 
     let npsCompany = 0;
@@ -197,4 +202,3 @@ export class PacPrismaRepository implements IPacRepository {
     });
   }
 }
-

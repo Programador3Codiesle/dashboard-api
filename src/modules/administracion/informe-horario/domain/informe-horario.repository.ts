@@ -8,6 +8,7 @@ export interface FiltrosInformeHorario {
 }
 
 export abstract class IInformeHorarioRepository {
-  abstract listar(params: FiltrosInformeHorario): Promise<InformeHorarioEntity[]>;
+  abstract listar(
+    params: FiltrosInformeHorario,
+  ): Promise<InformeHorarioEntity[]>;
 }
-

@@ -4,4 +4,3 @@
 export abstract class IMantenimientoDashboardRepository {
   abstract sPendientes(sedesIds: string): Promise<{ pendientes: number }>;
 }
-

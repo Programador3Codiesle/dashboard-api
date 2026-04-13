@@ -21,4 +21,3 @@ export class InformeEntradaVhResumenEntity {
     Object.assign(this, props);
   }
 }
-

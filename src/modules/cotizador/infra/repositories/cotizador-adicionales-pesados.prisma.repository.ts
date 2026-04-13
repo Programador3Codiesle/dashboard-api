@@ -14,9 +14,7 @@ import {
 } from '../../domain/cotizador-adicionales-pesados.repository';
 
 @Injectable()
-export class CotizadorAdicionalesPesadosPrismaRepository
-  implements ICotizadorAdicionalesPesadosRepository
-{
+export class CotizadorAdicionalesPesadosPrismaRepository implements ICotizadorAdicionalesPesadosRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getClasesPesados(): Promise<ClaseAdicionalPesado[]> {
@@ -73,9 +71,7 @@ export class CotizadorAdicionalesPesadosPrismaRepository
       whereParts.push(Prisma.sql`r.adicional = ${filtros.adicionalId}`);
     }
     if (filtros.clases && filtros.clases.length > 0) {
-      whereParts.push(
-        Prisma.sql`r.clase IN (${Prisma.join(filtros.clases)})`,
-      );
+      whereParts.push(Prisma.sql`r.clase IN (${Prisma.join(filtros.clases)})`);
     }
 
     const whereSql =
@@ -126,9 +122,7 @@ export class CotizadorAdicionalesPesadosPrismaRepository
       whereParts.push(Prisma.sql`r.adicional = ${filtros.adicionalId}`);
     }
     if (filtros.clases && filtros.clases.length > 0) {
-      whereParts.push(
-        Prisma.sql`r.clase IN (${Prisma.join(filtros.clases)})`,
-      );
+      whereParts.push(Prisma.sql`r.clase IN (${Prisma.join(filtros.clases)})`);
     }
 
     const whereSql =
@@ -238,4 +232,3 @@ export class CotizadorAdicionalesPesadosPrismaRepository
     return { repuestos_add, repuestos_fail, mano_add, mano_fail };
   }
 }
-

@@ -7,4 +7,3 @@ import type { GrafSedesRow } from './dashboard.repository';
 export abstract class IGerenciaDashboardRepository {
   abstract getGrafSedes(): Promise<GrafSedesRow[]>;
 }
-

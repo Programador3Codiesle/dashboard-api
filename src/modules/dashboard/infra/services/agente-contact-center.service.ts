@@ -4,23 +4,21 @@ import { DashboardAgenteCCDto } from '../../application/dto/dashboard-response.d
 
 @Injectable()
 export class AgenteContactCenterService {
-  constructor(
-   
-  ) {}
+  constructor() {}
 
   async buildAgenteCC(
-      nitUsuario: number,
-      fechaActual: string,
-      diaFestivo: number,
-      idUsu: string,
-  ): Promise < DashboardAgenteCCDto > {
+    nitUsuario: number,
+    fechaActual: string,
+    diaFestivo: number,
+    idUsu: string,
+  ): Promise<DashboardAgenteCCDto> {
     const dataEstado: Array<{ estado: string }> = [];
-      return {
-          variant: 'agente_cc',
-          fecha_actual: fechaActual,
-          dia_festivo: diaFestivo,
-          id_usu: idUsu,
-          data_estado: dataEstado.length > 0 ? dataEstado : undefined,
-      };
-    }
+    return {
+      variant: 'agente_cc',
+      fecha_actual: fechaActual,
+      dia_festivo: diaFestivo,
+      id_usu: idUsu,
+      data_estado: dataEstado.length > 0 ? dataEstado : undefined,
+    };
+  }
 }

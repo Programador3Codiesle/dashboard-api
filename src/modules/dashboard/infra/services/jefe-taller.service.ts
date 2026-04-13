@@ -31,53 +31,55 @@ export class JefeTallerService {
   constructor(private readonly commonRepo: IDashboardCommonRepository) {}
 
   async buildJefeTaller(
-     nitUsuario: number,
-     fechaActual: string,
-     diaFestivo: number,
-     idUsu: string,
- ): Promise < DashboardJefeTallerDto > {
-     const date = await this.commonRepo.getMesAnoActual();
-     const mes = date?.mes ?? new Date().getMonth() + 1;
-     const ano = date?.ano ?? new Date().getFullYear();
+    nitUsuario: number,
+    fechaActual: string,
+    diaFestivo: number,
+    idUsu: string,
+  ): Promise<DashboardJefeTallerDto> {
+    const date = await this.commonRepo.getMesAnoActual();
+    const mes = date?.mes ?? new Date().getMonth() + 1;
+    const ano = date?.ano ?? new Date().getFullYear();
 
-     const sedesRows = await this.commonRepo.getSedesUser(nitUsuario);
-     const sedesIds = sedesRows.map((r) => r.idsede).join(', ');
-     const sedesUsu = sedesIds.trim() ? sedesIds.replace(/,\s*$/, '') : '';
+    const sedesRows = await this.commonRepo.getSedesUser(nitUsuario);
+    const sedesIds = sedesRows.map((r) => r.idsede).join(', ');
+    const sedesUsu = sedesIds.trim() ? sedesIds.replace(/,\s*$/, '') : '';
 
-     let toRep = 0,
-     toMo = 0,
-     toTot = 0,
-     totalV = 0,
-     totalHoras = 0;
-     const ventasBod = await this.commonRepo.getVentasBod(sedesUsu, mes, ano);
-     if(ventasBod) {
-         toMo = ventasBod.MO;
-         toRep = ventasBod.rptos;
-         toTot = ventasBod.TOT;
-         totalV = ventasBod.rptos + ventasBod.MO + ventasBod.TOT;
-         totalHoras = ventasBod.horas_facturadas;
-     }
+    let toRep = 0,
+      toMo = 0,
+      toTot = 0,
+      totalV = 0,
+      totalHoras = 0;
+    const ventasBod = await this.commonRepo.getVentasBod(sedesUsu, mes, ano);
+    if (ventasBod) {
+      toMo = ventasBod.MO;
+      toRep = ventasBod.rptos;
+      toTot = ventasBod.TOT;
+      totalV = ventasBod.rptos + ventasBod.MO + ventasBod.TOT;
+      totalHoras = ventasBod.horas_facturadas;
+    }
 
     let npsInt = 0;
-     const npsRows = await this.commonRepo.getDataNpsInternoSedesMes(sedesUsu);
-     for(const key of npsRows) {
-         const toEnc = (key.enc9a10 ?? 0) + (key.enc0a6 ?? 0) + (key.enc7a8 ?? 0);
-         if (toEnc > 0) {
-             npsInt = (((key.enc9a10 ?? 0) - (key.enc0a6 ?? 0)) / toEnc) * 100;
-         }
-     }
+    const npsRows = await this.commonRepo.getDataNpsInternoSedesMes(sedesUsu);
+    for (const key of npsRows) {
+      const toEnc = (key.enc9a10 ?? 0) + (key.enc0a6 ?? 0) + (key.enc7a8 ?? 0);
+      if (toEnc > 0) {
+        npsInt = (((key.enc9a10 ?? 0) - (key.enc0a6 ?? 0)) / toEnc) * 100;
+      }
+    }
 
     const sedeName = mapSedesToSedeName(sedesUsu);
-     let nps = 0;
-     if(sedeName) {
-         const npsSedeRows = await this.commonRepo.getCalificacionSede(sedeName);
-         for (const key of npsSedeRows) {
-             const totalEncu = (key.Enc_0_a_6 ?? 0) + (key.Enc_7_a_8 ?? 0) + (key.Enc_9_a_10 ?? 0);
-             if (totalEncu > 0) {
-                 nps = (((key.Enc_9_a_10 ?? 0) - (key.Enc_0_a_6 ?? 0)) / totalEncu) * 100;
-             }
-         }
-     }
+    let nps = 0;
+    if (sedeName) {
+      const npsSedeRows = await this.commonRepo.getCalificacionSede(sedeName);
+      for (const key of npsSedeRows) {
+        const totalEncu =
+          (key.Enc_0_a_6 ?? 0) + (key.Enc_7_a_8 ?? 0) + (key.Enc_9_a_10 ?? 0);
+        if (totalEncu > 0) {
+          nps =
+            (((key.Enc_9_a_10 ?? 0) - (key.Enc_0_a_6 ?? 0)) / totalEncu) * 100;
+        }
+      }
+    }
 
     /*
     const dataBodegas = await this.commonRepo.getVentasBodDetalle(

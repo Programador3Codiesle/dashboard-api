@@ -12,4 +12,3 @@ export class ListarControlVehicularUseCase {
     return this.repo.listar(filtros);
   }
 }
-

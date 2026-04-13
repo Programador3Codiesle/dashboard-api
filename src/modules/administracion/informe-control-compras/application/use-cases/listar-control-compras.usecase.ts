@@ -9,4 +9,3 @@ export class ListarControlComprasUseCase {
     return this.repo.listarPorOrden(orden, pagina, limite);
   }
 }
-

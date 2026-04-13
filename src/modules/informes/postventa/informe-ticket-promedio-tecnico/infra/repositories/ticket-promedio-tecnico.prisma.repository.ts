@@ -8,9 +8,7 @@ import {
 import { TicketPromedioTecnicoRowEntity } from '../../domain/ticket-promedio-tecnico.entity';
 
 @Injectable()
-export class TicketPromedioTecnicoPrismaRepository
-  implements ITicketPromedioTecnicoRepository
-{
+export class TicketPromedioTecnicoPrismaRepository implements ITicketPromedioTecnicoRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async obtenerDatos(
@@ -121,4 +119,3 @@ export class TicketPromedioTecnicoPrismaRepository
     });
   }
 }
-

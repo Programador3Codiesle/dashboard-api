@@ -18,4 +18,3 @@ export abstract class IPanelNpsRepository {
     mes: number;
   }): Promise<PanelNpsDetalleEntity | null>;
 }
-

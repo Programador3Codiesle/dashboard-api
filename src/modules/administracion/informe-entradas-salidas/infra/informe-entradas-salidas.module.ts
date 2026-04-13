@@ -19,4 +19,3 @@ import { InformeEntradasSalidasPrismaRepository } from './repositories/informe-e
   ],
 })
 export class InformeEntradasSalidasModule {}
-

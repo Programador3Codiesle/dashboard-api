@@ -4,17 +4,15 @@ import { EvaluacionDesempenoMapper } from '../../presentation/mappers/evaluacion
 
 @Injectable()
 export class ListarEmpleadosPendientesUseCase {
-    constructor(private readonly repo: IEvaluacionDesempenoRepository) {}
+  constructor(private readonly repo: IEvaluacionDesempenoRepository) {}
 
+  async obtenerIdJefe(nit_usuario: number) {
+    const jefe = await this.repo.obtenerIdJefe(nit_usuario);
+    return { jefe };
+  }
 
-    async obtenerIdJefe(nit_usuario: number) {
-        const jefe = await this.repo.obtenerIdJefe(nit_usuario);
-        return { jefe };
-    }
-
-    async execute(jefeId: number) {
-        const empleados = await this.repo.listarEmpleadosPendientes(jefeId);
-        return EvaluacionDesempenoMapper.toEmpleadosPendientesResponse(empleados);
-    }
+  async execute(jefeId: number) {
+    const empleados = await this.repo.listarEmpleadosPendientes(jefeId);
+    return EvaluacionDesempenoMapper.toEmpleadosPendientesResponse(empleados);
+  }
 }
-

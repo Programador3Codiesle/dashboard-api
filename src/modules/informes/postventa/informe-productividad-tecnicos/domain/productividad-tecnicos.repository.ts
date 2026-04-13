@@ -11,4 +11,3 @@ export abstract class IProductividadTecnicosRepository {
     filtros: FiltrosProductividadTecnicos,
   ): Promise<ProductividadTecnicosResponseEntity>;
 }
-

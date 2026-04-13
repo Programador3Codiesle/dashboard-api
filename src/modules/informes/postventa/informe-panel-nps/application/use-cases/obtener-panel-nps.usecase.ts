@@ -10,4 +10,3 @@ export class ObtenerPanelNpsUseCase {
     return this.repository.obtenerPanel();
   }
 }
-

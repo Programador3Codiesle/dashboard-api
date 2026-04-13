@@ -17,4 +17,3 @@ export class InformeMttoPreventivoController {
     return this.facade.obtenerHistorial(placa);
   }
 }
-

@@ -15,4 +15,3 @@ export class ProductividadTecnicosFacade {
     return this.obtenerProductividadUseCase.execute(filtros);
   }
 }
-

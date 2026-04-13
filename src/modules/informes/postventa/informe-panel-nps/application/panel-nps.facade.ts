@@ -44,4 +44,3 @@ export class PanelNpsFacade {
     return this.obtenerDetalleGeneralUseCase.execute(params);
   }
 }
-

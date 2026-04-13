@@ -8,14 +8,17 @@ import { InformeAusentismoPrismaRepository } from './repositories/informe-ausent
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
-    controllers: [InformeAusentismoController],
-    providers: [
-        InformeAusentismoFacade,
-        ListarAusentismosUseCase,
-        ObtenerDetalleAusentismoUseCase,
-        { provide: IAusentismoRepository, useClass: InformeAusentismoPrismaRepository },
-        PrismaService
-    ],
-    exports: [InformeAusentismoFacade]
+  controllers: [InformeAusentismoController],
+  providers: [
+    InformeAusentismoFacade,
+    ListarAusentismosUseCase,
+    ObtenerDetalleAusentismoUseCase,
+    {
+      provide: IAusentismoRepository,
+      useClass: InformeAusentismoPrismaRepository,
+    },
+    PrismaService,
+  ],
+  exports: [InformeAusentismoFacade],
 })
-export class InformeAusentismoModule { }
+export class InformeAusentismoModule {}

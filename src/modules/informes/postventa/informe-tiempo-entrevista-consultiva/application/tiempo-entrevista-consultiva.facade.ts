@@ -18,4 +18,3 @@ export class TiempoEntrevistaConsultivaFacade {
     return this.obtenerDetalleUseCase.execute(bodega, filtros);
   }
 }
-

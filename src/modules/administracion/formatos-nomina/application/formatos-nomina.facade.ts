@@ -4,16 +4,16 @@ import { IFormatoNominaRepository } from '../domain/formato-nomina.repository';
 
 @Injectable()
 export class FormatosNominaFacade {
-    constructor(
-        private readonly obtenerFormatosUC: ObtenerFormatosUseCase,
-        private readonly repo: IFormatoNominaRepository
-    ) {}
+  constructor(
+    private readonly obtenerFormatosUC: ObtenerFormatosUseCase,
+    private readonly repo: IFormatoNominaRepository,
+  ) {}
 
-    obtenerFormatos() {
-        return this.obtenerFormatosUC.execute();
-    }
+  obtenerFormatos() {
+    return this.obtenerFormatosUC.execute();
+  }
 
-    async obtenerRutaArchivo(id: number) {
-        return this.repo.obtenerRutaArchivo(id);
-    }
+  async obtenerRutaArchivo(id: number) {
+    return this.repo.obtenerRutaArchivo(id);
+  }
 }

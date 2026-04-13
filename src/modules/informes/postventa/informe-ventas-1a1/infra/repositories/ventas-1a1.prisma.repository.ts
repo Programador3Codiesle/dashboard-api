@@ -179,14 +179,15 @@ export class Ventas1a1PrismaRepository implements IVentas1a1Repository {
     >();
 
     for (const row of dataPorcentaje) {
-      porcentajePorVendedor.set(row.vendedor, {
+      const vendedorKey = String(row.vendedor ?? '').trim();
+      porcentajePorVendedor.set(vendedorKey, {
         ventas: Number(row.ventas ?? 0),
         entradas: Number(row.entradas ?? 0),
       });
     }
 
     return dataInforme.map((row) => {
-      const key = row.nit_asesor;
+      const key = String(row.nit_asesor ?? '').trim();
       const porcData = porcentajePorVendedor.get(key);
       let porcentajeConversion: number | null = null;
 
@@ -210,4 +211,3 @@ export class Ventas1a1PrismaRepository implements IVentas1a1Repository {
     });
   }
 }
-

@@ -7,45 +7,54 @@ import { TokenRespuestaService } from '../../../../../core/infra/token-respuesta
 
 @Injectable()
 export class EnviarAutorizacionCompraUseCase {
-    constructor(
-        private readonly repo: IGestionCompraRepository,
-        private readonly emailService: EmailService,
-        private readonly tokenRespuesta: TokenRespuestaService,
-        private readonly config: ConfigService,
-    ) {}
+  constructor(
+    private readonly repo: IGestionCompraRepository,
+    private readonly emailService: EmailService,
+    private readonly tokenRespuesta: TokenRespuestaService,
+    private readonly config: ConfigService,
+  ) {}
 
-    private baseUrl(): string {
-        const url = this.config.get<string>('APP_URL') ?? 'http://localhost:3000';
-        return url.endsWith('/') ? url.slice(0, -1) : url;
+  private baseUrl(): string {
+    const url = this.config.get<string>('APP_URL') ?? 'http://localhost:3000';
+    return url.endsWith('/') ? url.slice(0, -1) : url;
+  }
+
+  async execute(solicitudId: bigint, dto: EnviarAutorizacionCompraDto) {
+    const archivos = dto.archivos || [];
+    const success = await this.repo.enviarAutorizacion(
+      solicitudId,
+      dto.comentarios,
+      archivos,
+    );
+    if (!success) {
+      return {
+        status: false,
+        message: 'No se pudo enviar la autorización',
+      };
     }
 
-    async execute(solicitudId: bigint, dto: EnviarAutorizacionCompraDto) {
-        const archivos = dto.archivos || [];
-        const success = await this.repo.enviarAutorizacion(solicitudId, dto.comentarios, archivos);
-        if (!success) {
-            return {
-                status: false,
-                message: 'No se pudo enviar la autorización',
-            };
-        }
+    // Enviar correo (best-effort; no rompe el flujo si falla SMTP)
+    const compra = await this.repo.findById(solicitudId);
+    const subject = 'Nueva Solicitud de Compra';
 
-        // Enviar correo (best-effort; no rompe el flujo si falla SMTP)
-        const compra = await this.repo.findById(solicitudId);
-        const subject = 'Nueva Solicitud de Compra';
+    const token = this.tokenRespuesta.generarToken(
+      solicitudId,
+      'gestion-compra',
+    );
+    const urlAutorizar = this.tokenRespuesta.urlResponder(token, 'aprobar');
+    const urlRechazar = this.tokenRespuesta.urlResponder(token, 'rechazar');
 
-        const token = this.tokenRespuesta.generarToken(solicitudId, 'gestion-compra');
-        const urlAutorizar = this.tokenRespuesta.urlResponder(token, 'aprobar');
-        const urlRechazar = this.tokenRespuesta.urlResponder(token, 'rechazar');
+    const base = this.baseUrl();
+    const links = (archivos || [])
+      .map((u) => {
+        const urlCompleta = u.startsWith('http')
+          ? u
+          : `${base}${u.startsWith('/') ? u : '/' + u}`;
+        return `<li><a href="${urlCompleta}" target="_blank" rel="noreferrer">${u}</a></li>`;
+      })
+      .join('');
 
-        const base = this.baseUrl();
-        const links = (archivos || [])
-            .map((u) => {
-                const urlCompleta = u.startsWith('http') ? u : `${base}${u.startsWith('/') ? u : '/' + u}`;
-                return `<li><a href="${urlCompleta}" target="_blank" rel="noreferrer">${u}</a></li>`;
-            })
-            .join('');
-
-        const html = `
+    const html = `
           <div style="font-family: Arial, sans-serif; padding: 16px; background:#f8f9fa;">
             <div style="max-width: 800px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
               <div style="padding: 16px 20px; background:#111827; color:#ffffff;">
@@ -59,9 +68,9 @@ export class EnviarAutorizacionCompraUseCase {
                 <p style="margin:0 0 8px 0;"><strong>Notas:</strong></p>
                 <p style="margin:0 0 14px 0; white-space: pre-wrap;">${dto.comentarios ?? ''}</p>
                 ${
-                    links
-                        ? `<p style="margin:0 0 8px 0;"><strong>Cotizaciones:</strong></p><ul style="margin:0; padding-left: 18px;">${links}</ul>`
-                        : `<p style="margin:0; color:#6b7280;">Sin cotizaciones adjuntas.</p>`
+                  links
+                    ? `<p style="margin:0 0 8px 0;"><strong>Cotizaciones:</strong></p><ul style="margin:0; padding-left: 18px;">${links}</ul>`
+                    : `<p style="margin:0; color:#6b7280;">Sin cotizaciones adjuntas.</p>`
                 }
                 <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 18px 0;" />
                 <p style="margin:0 0 10px 0;"><strong>Responder:</strong></p>
@@ -74,28 +83,35 @@ export class EnviarAutorizacionCompraUseCase {
           </div>
         `;
 
-        const toEmails: string[] = [];
-        const envTo = this.config.get<string>('EMAIL_AUTORIZACION_COMPRAS');
-        if (envTo) {
-            envTo.split(',').map((e) => e.trim()).filter(Boolean).forEach((e) => toEmails.push(e));
-        }
-        if (compra?.gerente_autoriza) {
-            const emailGerente = await this.repo.getEmailByNit(compra.gerente_autoriza);
-            if (emailGerente && !toEmails.includes(emailGerente)) toEmails.push(emailGerente);
-        }
-        if (toEmails.length === 0) toEmails.push('programador3@codiesel.co');
-
-        const mailResult = await this.emailService.sendEmail({
-            to: toEmails,
-            subject,
-            html,
-        });
-
-        return {
-            status: true,
-            message: mailResult.ok
-                ? 'Autorización enviada correctamente'
-                : `Autorización enviada. Aviso: no se pudo enviar correo (${mailResult.error})`,
-        };
+    const toEmails: string[] = [];
+    const envTo = this.config.get<string>('EMAIL_AUTORIZACION_COMPRAS');
+    if (envTo) {
+      envTo
+        .split(',')
+        .map((e) => e.trim())
+        .filter(Boolean)
+        .forEach((e) => toEmails.push(e));
     }
+    if (compra?.gerente_autoriza) {
+      const emailGerente = await this.repo.getEmailByNit(
+        compra.gerente_autoriza,
+      );
+      if (emailGerente && !toEmails.includes(emailGerente))
+        toEmails.push(emailGerente);
+    }
+    if (toEmails.length === 0) toEmails.push('programador3@codiesel.co');
+
+    const mailResult = await this.emailService.sendEmail({
+      to: toEmails,
+      subject,
+      html,
+    });
+
+    return {
+      status: true,
+      message: mailResult.ok
+        ? 'Autorización enviada correctamente'
+        : `Autorización enviada. Aviso: no se pudo enviar correo (${mailResult.error})`,
+    };
+  }
 }

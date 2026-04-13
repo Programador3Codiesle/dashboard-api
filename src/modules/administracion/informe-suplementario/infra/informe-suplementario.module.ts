@@ -8,14 +8,17 @@ import { InformeTiempoSuplementarioPrismaRepository } from './repositories/infor
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
-    controllers: [InformeSuplementarioController],
-    providers: [
-        InformeSuplementarioFacade,
-        ListarTiempoSuplementarioUseCase,
-        ExportarTiempoSuplementarioExcelUseCase,
-        { provide: IInformeTiempoSuplementarioRepository, useClass: InformeTiempoSuplementarioPrismaRepository },
-        PrismaService
-    ],
-    exports: [InformeSuplementarioFacade]
+  controllers: [InformeSuplementarioController],
+  providers: [
+    InformeSuplementarioFacade,
+    ListarTiempoSuplementarioUseCase,
+    ExportarTiempoSuplementarioExcelUseCase,
+    {
+      provide: IInformeTiempoSuplementarioRepository,
+      useClass: InformeTiempoSuplementarioPrismaRepository,
+    },
+    PrismaService,
+  ],
+  exports: [InformeSuplementarioFacade],
 })
-export class InformeTiempoSuplementarioModule { }
+export class InformeTiempoSuplementarioModule {}

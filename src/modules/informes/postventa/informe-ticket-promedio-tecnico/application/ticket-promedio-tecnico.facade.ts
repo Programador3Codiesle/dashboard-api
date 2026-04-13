@@ -12,4 +12,3 @@ export class TicketPromedioTecnicoFacade {
     return this.obtenerTicketPromedioTecnicoUseCase.execute(filtros);
   }
 }
-

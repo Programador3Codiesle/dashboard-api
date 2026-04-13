@@ -13,7 +13,10 @@ export class SedeSerieNpsEntity {
   }
 }
 
+export type PanelNpsTablaRowTipo = 'sede' | 'tecnico';
+
 export class PanelNpsTablaRowEntity {
+  tipo: PanelNpsTablaRowTipo;
   sede: string;
   enc0a6: number;
   enc7a8: number;
@@ -21,8 +24,11 @@ export class PanelNpsTablaRowEntity {
   to: number;
   nps: number;
   meta: number;
+  nitTecnico?: string;
+  nombreTecnico?: string;
 
   constructor(props: {
+    tipo?: PanelNpsTablaRowTipo;
     sede: string;
     enc0a6: number;
     enc7a8: number;
@@ -30,7 +36,10 @@ export class PanelNpsTablaRowEntity {
     to: number;
     nps: number;
     meta?: number;
+    nitTecnico?: string;
+    nombreTecnico?: string;
   }) {
+    this.tipo = props.tipo ?? 'sede';
     this.sede = props.sede;
     this.enc0a6 = props.enc0a6;
     this.enc7a8 = props.enc7a8;
@@ -38,19 +47,53 @@ export class PanelNpsTablaRowEntity {
     this.to = props.to;
     this.nps = props.nps;
     this.meta = props.meta ?? 80;
+    this.nitTecnico = props.nitTecnico;
+    this.nombreTecnico = props.nombreTecnico;
+  }
+}
+
+/** Punto mensual en la matriz técnico × mes (null = sin celda, como legacy “-”). */
+export interface PanelNpsPuntoTecnico {
+  mes: number;
+  nps: number | null;
+}
+
+export class TecnicoNpsPorSedeEntity {
+  sede: string;
+  nit: string;
+  nombre: string;
+  puntos: PanelNpsPuntoTecnico[];
+
+  constructor(props: {
+    sede: string;
+    nit: string;
+    nombre: string;
+    puntos: PanelNpsPuntoTecnico[];
+  }) {
+    this.sede = props.sede;
+    this.nit = props.nit;
+    this.nombre = props.nombre;
+    this.puntos = props.puntos;
   }
 }
 
 export class PanelNpsResumenEntity {
+  /** Meses calendario (1–12) de la ventana de 6 meses, de más antiguo a más reciente (alinea series y matriz). */
+  mesesVentana: number[];
   series: SedeSerieNpsEntity[];
   tabla: PanelNpsTablaRowEntity[];
+  tecnicosPorSede: TecnicoNpsPorSedeEntity[];
 
   constructor(props: {
+    mesesVentana: number[];
     series: SedeSerieNpsEntity[];
     tabla: PanelNpsTablaRowEntity[];
+    tecnicosPorSede: TecnicoNpsPorSedeEntity[];
   }) {
+    this.mesesVentana = props.mesesVentana;
     this.series = props.series;
     this.tabla = props.tabla;
+    this.tecnicosPorSede = props.tecnicosPorSede;
   }
 }
 
@@ -84,5 +127,3 @@ export class PanelNpsDetalleEntity {
     this.enc9a10 = props.enc9a10;
   }
 }
-
-

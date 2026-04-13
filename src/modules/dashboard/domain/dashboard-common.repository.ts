@@ -97,9 +97,7 @@ export abstract class IDashboardCommonRepository {
 
   abstract getInformeInventario(): Promise<InventarioRow[]>;
 
-  abstract getDataNpsInternoSedes(
-    sedesIds: string,
-  ): Promise<NpsSedesMesRow[]>;
+  abstract getDataNpsInternoSedes(sedesIds: string): Promise<NpsSedesMesRow[]>;
 
   /**
    * Total vendido por grupo de centros de costo (taller/mostrador),
@@ -125,4 +123,3 @@ export abstract class IDashboardCommonRepository {
     centrosCosto: string,
   ): Promise<{ total: number } | null>;
 }
-

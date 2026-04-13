@@ -1,4 +1,5 @@
 export class PqrNpsItemEntity {
+  pqrNpsId!: number | null;
   fuente!: string;
   id!: number;
   sede!: string;
@@ -10,11 +11,11 @@ export class PqrNpsItemEntity {
   orden!: string;
   mail!: string;
   telefono!: string;
-  servicio!: number | null;
-  satisfaccionConcesionario!: number | null;
-  satisfaccionTrabajo!: number | null;
-  vhReparadoOk!: number | null;
-  recomendacionMarca!: number | null;
+  servicio!: string | null;
+  satisfaccionConcesionario!: string | null;
+  satisfaccionTrabajo!: string | null;
+  vhReparadoOk!: string | null;
+  recomendacionMarca!: string | null;
   comentarios!: string | null;
   tecnico!: string;
   tipificacionEncuesta!: string | null;
@@ -28,3 +29,48 @@ export class PqrNpsItemEntity {
   }
 }
 
+export class PqrNpsGestionEntity {
+  id!: number;
+  postVenta!: number;
+  fuente!: string;
+  estadoCaso!: string;
+  tipificacionEncuesta!: string;
+  tipificacionCierre!: string;
+  comentariosFinalCaso!: string;
+
+  constructor(partial: Partial<PqrNpsGestionEntity>) {
+    Object.assign(this, partial);
+  }
+}
+
+export class PqrNpsVerbalizacionEntity {
+  contacto!: string;
+  verbalizacion!: string;
+  fechaContacto!: string;
+
+  constructor(partial: Partial<PqrNpsVerbalizacionEntity>) {
+    Object.assign(this, partial);
+  }
+}
+
+export class PqrNpsVehiculoInfoEntity {
+  serie!: string;
+  modelo!: string;
+  nombres!: string;
+  nit!: string;
+  mail!: string;
+  celular!: string;
+
+  constructor(partial: Partial<PqrNpsVehiculoInfoEntity>) {
+    Object.assign(this, partial);
+  }
+}
+
+export class PqrNpsTecnicoEntity {
+  documento!: string;
+  nombre!: string;
+
+  constructor(partial: Partial<PqrNpsTecnicoEntity>) {
+    Object.assign(this, partial);
+  }
+}

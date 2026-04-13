@@ -80,9 +80,7 @@ const TABLA_CONFIG: TablaConfigEntry[] = [
 ];
 
 @Injectable()
-export class CotizadorEdicionConfigPrismaRepository
-  implements ICotizadorEdicionConfigRepository
-{
+export class CotizadorEdicionConfigPrismaRepository implements ICotizadorEdicionConfigRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   getTablaConfig(): TablaConfigEntry[] {
@@ -199,4 +197,3 @@ export class CotizadorEdicionConfigPrismaRepository
     return { affectedRows: result ?? 0 };
   }
 }
-

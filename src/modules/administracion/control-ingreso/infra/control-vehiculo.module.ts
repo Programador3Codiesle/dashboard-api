@@ -11,17 +11,20 @@ import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import { ControlVehiculoMapper } from '../presentation/mappers/control-vehiculo.mapper';
 
 @Module({
-    controllers: [ControlVehiculoController],
-    providers: [
-        ControlVehiculoFacade,
-        RegistrarSalidaUseCase,
-        RegistrarLlegadaUseCase,
-        ListarVehiculosUseCase,
-        VehiculosModelosUseCase,
-        { provide: IControlVehiculoRepository, useClass: ControlVehiculoPrismaRepository },
-        PrismaService,
-        ControlVehiculoMapper
-    ],
-    exports: [ControlVehiculoFacade]
+  controllers: [ControlVehiculoController],
+  providers: [
+    ControlVehiculoFacade,
+    RegistrarSalidaUseCase,
+    RegistrarLlegadaUseCase,
+    ListarVehiculosUseCase,
+    VehiculosModelosUseCase,
+    {
+      provide: IControlVehiculoRepository,
+      useClass: ControlVehiculoPrismaRepository,
+    },
+    PrismaService,
+    ControlVehiculoMapper,
+  ],
+  exports: [ControlVehiculoFacade],
 })
-export class ControlVehiculoModule { }
+export class ControlVehiculoModule {}

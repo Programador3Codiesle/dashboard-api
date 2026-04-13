@@ -5,13 +5,10 @@ import { IMantenimientoDashboardRepository } from '../../domain/mantenimiento.re
  * Repositorio Prisma para el dashboard de Mantenimiento.
  */
 @Injectable()
-export class DashboardMantenimientoPrismaRepository
-  implements IMantenimientoDashboardRepository
-{
+export class DashboardMantenimientoPrismaRepository implements IMantenimientoDashboardRepository {
   constructor() {}
 
   sPendientes(sedesIds: string): Promise<{ pendientes: number }> {
     return Promise.resolve({ pendientes: 1 });
   }
 }
-

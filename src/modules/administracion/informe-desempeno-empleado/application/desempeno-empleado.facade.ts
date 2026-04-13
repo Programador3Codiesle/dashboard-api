@@ -10,4 +10,3 @@ export class DesempenoEmpleadoFacade {
     return this.listarUseCase.execute(filtros);
   }
 }
-

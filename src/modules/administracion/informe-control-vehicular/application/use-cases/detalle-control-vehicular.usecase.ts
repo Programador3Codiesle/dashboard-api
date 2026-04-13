@@ -9,4 +9,3 @@ export class DetalleControlVehicularUseCase {
     return this.repo.findById(id);
   }
 }
-

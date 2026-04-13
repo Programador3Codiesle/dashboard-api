@@ -17,13 +17,20 @@ import { UsuarioFacade } from '../application/usuario.facade';
 import { JwtAuthGuard } from '../../auth/infra/jwt-auth.guard';
 
 // DTOs
-import { CreateUsuarioDto, UpdateUsuarioDto, AssignSedeDto, AssignJefeDto, AssignEmpresaDto, AssignHorarioDto, CreateJefeDto } from '../application/dto';
-
+import {
+  CreateUsuarioDto,
+  UpdateUsuarioDto,
+  AssignSedeDto,
+  AssignJefeDto,
+  AssignEmpresaDto,
+  AssignHorarioDto,
+  CreateJefeDto,
+} from '../application/dto';
 
 @UseGuards(JwtAuthGuard)
 @Controller('usuarios')
 export class UsuarioController {
-  constructor(private readonly usuarioFacade: UsuarioFacade) { }
+  constructor(private readonly usuarioFacade: UsuarioFacade) {}
 
   /** Crear usuario */
   @Post()
@@ -77,13 +84,19 @@ export class UsuarioController {
 
   /** Asignar sede */
   @Post(':idUsuario/asignar-sede')
-  asignarSede(@Param('idUsuario') idUsuario: string, @Body() dto: AssignSedeDto) {
+  asignarSede(
+    @Param('idUsuario') idUsuario: string,
+    @Body() dto: AssignSedeDto,
+  ) {
     return this.usuarioFacade.asignarSede(idUsuario, dto);
   }
 
   /** Eliminar sede */
   @Delete(':idUsuario/eliminar-sede')
-  eliminarSede(@Param('idUsuario') idUsuario: string, @Body() dto: AssignSedeDto) {
+  eliminarSede(
+    @Param('idUsuario') idUsuario: string,
+    @Body() dto: AssignSedeDto,
+  ) {
     return this.usuarioFacade.eliminarSede(idUsuario, dto);
   }
 
@@ -176,8 +189,7 @@ export class UsuarioController {
 
   /** Crear jefe */
   @Post('crear-jefe')
-  crearJefe(@Body() dto: CreateJefeDto) { 
+  crearJefe(@Body() dto: CreateJefeDto) {
     return this.usuarioFacade.crearJefe(dto);
   }
-
 }

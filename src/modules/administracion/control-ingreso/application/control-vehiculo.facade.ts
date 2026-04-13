@@ -9,26 +9,26 @@ import { VehiculosModelosUseCase } from './use-cases/vehiculos-modelos.use';
 
 @Injectable()
 export class ControlVehiculoFacade {
-    constructor(
-        private readonly registrarSalidaUC: RegistrarSalidaUseCase,
-        private readonly registrarLlegadaUC: RegistrarLlegadaUseCase,
-        private readonly listarVehiculosUC: ListarVehiculosUseCase,
-        private readonly vehiculosModelosUC: VehiculosModelosUseCase
-    ) {}
+  constructor(
+    private readonly registrarSalidaUC: RegistrarSalidaUseCase,
+    private readonly registrarLlegadaUC: RegistrarLlegadaUseCase,
+    private readonly listarVehiculosUC: ListarVehiculosUseCase,
+    private readonly vehiculosModelosUC: VehiculosModelosUseCase,
+  ) {}
 
-    registrarSalida(dto: RegistrarSalidaDto, userId: number, perfil: number) {
-        return this.registrarSalidaUC.execute(dto, userId, perfil);
-    }
+  registrarSalida(dto: RegistrarSalidaDto, userId: number, perfil: number) {
+    return this.registrarSalidaUC.execute(dto, userId, perfil);
+  }
 
-    registrarLlegada(id: number, dto: RegistrarLlegadaDto) {
-        return this.registrarLlegadaUC.execute(id, dto);
-    }
+  registrarLlegada(id: number, dto: RegistrarLlegadaDto) {
+    return this.registrarLlegadaUC.execute(id, dto);
+  }
 
-    listarVehiculos(perfil?: number) {
-        return this.listarVehiculosUC.execute(perfil);
-    }
+  listarVehiculos(perfil?: number) {
+    return this.listarVehiculosUC.execute(perfil);
+  }
 
-    listarModelos() {
-        return this.vehiculosModelosUC.execute();
-    }
+  listarModelos() {
+    return this.vehiculosModelosUC.execute();
+  }
 }

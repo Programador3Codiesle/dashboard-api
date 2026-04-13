@@ -11,14 +11,9 @@ export interface EdicionClaseOption {
 
 @Injectable()
 export class GetEdicionClasesUseCase {
-  constructor(
-    private readonly repo: ICotizadorEdicionConfigRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorEdicionConfigRepository) {}
 
-  async execute(
-    tablaKey: TablaKeyEdicion,
-  ): Promise<EdicionClaseOption[]> {
+  async execute(tablaKey: TablaKeyEdicion): Promise<EdicionClaseOption[]> {
     return this.repo.getClasesDistinct(tablaKey);
   }
 }
-

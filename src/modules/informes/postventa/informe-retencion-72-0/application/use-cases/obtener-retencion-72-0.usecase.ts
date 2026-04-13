@@ -10,4 +10,3 @@ export class ObtenerRetencion720UseCase {
     return this.repository.obtenerResumen();
   }
 }
-

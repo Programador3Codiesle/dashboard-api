@@ -19,4 +19,3 @@ import { TiempoGestionComprasPrismaRepository } from './repositories/tiempo-gest
   ],
 })
 export class InformeTiempoGestionComprasModule {}
-

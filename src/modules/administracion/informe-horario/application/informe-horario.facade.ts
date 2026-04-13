@@ -10,4 +10,3 @@ export class InformeHorarioFacade {
     return this.listarUC.execute(filtros);
   }
 }
-

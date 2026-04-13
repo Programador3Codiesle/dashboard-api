@@ -9,15 +9,15 @@ import { OrdenSalidaPrismaRepository } from './repositories/orden-salida.prisma.
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
-    controllers: [OrdenSalidaController],
-    providers: [
-        OrdenSalidaFacade,
-        BuscarOrdenSalidaUseCase,
-        CrearOrdenSalidaUseCase,
-        ObtenerTiposSalidaUseCase,
-        { provide: IOrdenSalidaRepository, useClass: OrdenSalidaPrismaRepository },
-        PrismaService
-    ],
-    exports: [OrdenSalidaFacade]
+  controllers: [OrdenSalidaController],
+  providers: [
+    OrdenSalidaFacade,
+    BuscarOrdenSalidaUseCase,
+    CrearOrdenSalidaUseCase,
+    ObtenerTiposSalidaUseCase,
+    { provide: IOrdenSalidaRepository, useClass: OrdenSalidaPrismaRepository },
+    PrismaService,
+  ],
+  exports: [OrdenSalidaFacade],
 })
-export class FormatoOrdenSalidaModule { }
+export class FormatoOrdenSalidaModule {}

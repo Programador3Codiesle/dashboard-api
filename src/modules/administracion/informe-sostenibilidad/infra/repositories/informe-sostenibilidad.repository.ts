@@ -11,9 +11,8 @@ import { IInformeSostenibilidadRepository } from '../../domain/informe-sostenibi
  */
 @Injectable()
 export class InformeSostenibilidadRepository implements IInformeSostenibilidadRepository {
-    obtenerRutaArchivo(): string {
-        // Mantener la misma ruta utilizada previamente en la fachada
-        return '/informes/informe-sostenibilidad-2024.pdf';
-    }
+  obtenerRutaArchivo(): string {
+    // Mantener la misma ruta utilizada previamente en la fachada
+    return '/informes/informe-sostenibilidad-2024.pdf';
+  }
 }
-

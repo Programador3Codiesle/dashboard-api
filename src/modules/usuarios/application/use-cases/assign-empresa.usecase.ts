@@ -1,7 +1,10 @@
-import { Injectable, Inject, BadRequestException } from "@nestjs/common";
-import { AgregarEmpresasResponseDto, AssignEmpresaDto } from "../../application/dto/assign-empresa.dto";
-import { IUsuarioEmpresaRepository } from "../../domain/repositories/usuario-empresa.repository";
-import { IUsuarioCoreRepository } from "../../domain/repositories/usuario-core.repository";
+import { Injectable, Inject, BadRequestException } from '@nestjs/common';
+import {
+  AgregarEmpresasResponseDto,
+  AssignEmpresaDto,
+} from '../../application/dto/assign-empresa.dto';
+import { IUsuarioEmpresaRepository } from '../../domain/repositories/usuario-empresa.repository';
+import { IUsuarioCoreRepository } from '../../domain/repositories/usuario-core.repository';
 
 /**
  * Use Case para gestión de Empresas
@@ -16,21 +19,25 @@ export class AssignEmpresaUseCase {
     private readonly coreRepo: IUsuarioCoreRepository,
   ) {}
 
-  async execute(cedulaUsuario: string, nuevasEmpresasIds: string[]): Promise<AgregarEmpresasResponseDto> {
+  async execute(
+    cedulaUsuario: string,
+    nuevasEmpresasIds: string[],
+  ): Promise<AgregarEmpresasResponseDto> {
     // Validar que las empresas existen
     await this.validarEmpresasExisten(nuevasEmpresasIds);
 
     // Obtener empresas ACTUALES del usuario
-    const empresasActuales = await this.empresaRepo.findEmpresasByUsuario(cedulaUsuario);
+    const empresasActuales =
+      await this.empresaRepo.findEmpresasByUsuario(cedulaUsuario);
 
     // Filtra cualquier objeto donde la propiedad sea null o undefined
     const idsActuales = empresasActuales
-      .filter(e => e.id_empresa != null)
-      .map(e => e.id_empresa.toString());
+      .filter((e) => e.id_empresa != null)
+      .map((e) => e.id_empresa.toString());
 
     // Filtrar solo las NUEVAS (que no tiene)
     const empresasParaAgregar = nuevasEmpresasIds.filter(
-      id => !idsActuales.includes(id)
+      (id) => !idsActuales.includes(id),
     );
 
     // Si no hay nuevas, retornar mensaje
@@ -42,27 +49,37 @@ export class AssignEmpresaUseCase {
         empresasActuales: idsActuales,
         empresasSolicitadas: nuevasEmpresasIds,
         empresasAgregadas: [],
-        empresasQueYaTenía: idsActuales.filter(id => nuevasEmpresasIds.includes(id)),
+        empresasQueYaTenía: idsActuales.filter((id) =>
+          nuevasEmpresasIds.includes(id),
+        ),
         totalEmpresas: idsActuales.length,
       };
     }
 
     // Usar transacción para atomicidad
-    const empresasRealmenteAgregadas = await this.coreRepo.transaction(async () => {
-      return this.empresaRepo.addEmpresasSafe(cedulaUsuario, empresasParaAgregar);
-    });
+    const empresasRealmenteAgregadas = await this.coreRepo.transaction(
+      async () => {
+        return this.empresaRepo.addEmpresasSafe(
+          cedulaUsuario,
+          empresasParaAgregar,
+        );
+      },
+    );
 
     // Retornar resultado
     return {
       success: true,
-      message: empresasRealmenteAgregadas.length > 0 
-        ? `Se agregaron ${empresasRealmenteAgregadas.length} nuevas empresas`
-        : 'No se agregaron nuevas empresas (posible duplicado)',
+      message:
+        empresasRealmenteAgregadas.length > 0
+          ? `Se agregaron ${empresasRealmenteAgregadas.length} nuevas empresas`
+          : 'No se agregaron nuevas empresas (posible duplicado)',
       cedula: cedulaUsuario,
       empresasActuales: [...idsActuales, ...empresasRealmenteAgregadas],
       empresasSolicitadas: nuevasEmpresasIds,
       empresasAgregadas: empresasRealmenteAgregadas,
-      empresasQueYaTenía: idsActuales.filter(id => nuevasEmpresasIds.includes(id)),
+      empresasQueYaTenía: idsActuales.filter((id) =>
+        nuevasEmpresasIds.includes(id),
+      ),
       totalEmpresas: idsActuales.length + empresasRealmenteAgregadas.length,
     };
   }

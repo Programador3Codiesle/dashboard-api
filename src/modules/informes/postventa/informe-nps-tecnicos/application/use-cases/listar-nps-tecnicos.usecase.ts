@@ -13,4 +13,3 @@ export class ListarNpsTecnicosUseCase {
     return this.repository.listar(filtros);
   }
 }
-

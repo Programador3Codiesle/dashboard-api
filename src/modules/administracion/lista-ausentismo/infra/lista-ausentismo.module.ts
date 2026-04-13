@@ -7,13 +7,16 @@ import { ListaAusentismoPrismaRepository } from './repositories/lista-ausentismo
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
-    controllers: [ListaAusentismoController],
-    providers: [
-        ListaAusentismoFacade,
-        ObtenerAusentismosDiaActualUseCase,
-        { provide: IListaAusentismoRepository, useClass: ListaAusentismoPrismaRepository },
-        PrismaService
-    ],
-    exports: [ListaAusentismoFacade]
+  controllers: [ListaAusentismoController],
+  providers: [
+    ListaAusentismoFacade,
+    ObtenerAusentismosDiaActualUseCase,
+    {
+      provide: IListaAusentismoRepository,
+      useClass: ListaAusentismoPrismaRepository,
+    },
+    PrismaService,
+  ],
+  exports: [ListaAusentismoFacade],
 })
-export class ListaAusentismoModule { }
+export class ListaAusentismoModule {}

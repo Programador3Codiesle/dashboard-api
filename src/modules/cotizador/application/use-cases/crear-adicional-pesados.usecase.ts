@@ -7,9 +7,7 @@ export interface CrearAdicionalPesadoDTO {
 
 @Injectable()
 export class CrearAdicionalPesadosUseCase {
-  constructor(
-    private readonly repo: ICotizadorAdicionalesPesadosRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorAdicionalesPesadosRepository) {}
 
   async execute(dto: CrearAdicionalPesadoDTO): Promise<void> {
     const nombre = dto.nombre?.trim().toUpperCase();
@@ -28,4 +26,3 @@ export class CrearAdicionalPesadosUseCase {
     await this.repo.createAdicionalNombre(nombre);
   }
 }
-

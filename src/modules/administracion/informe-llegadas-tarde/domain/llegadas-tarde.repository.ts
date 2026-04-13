@@ -20,4 +20,3 @@ export abstract class ILlegadasTardeRepository {
     fechaFin: string,
   ): Promise<ResumenLlegadasTarde[]>;
 }
-

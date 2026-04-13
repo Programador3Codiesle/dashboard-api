@@ -8,14 +8,17 @@ import { InasistenciaPrismaRepository } from './repositories/inasistencia.prisma
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
-    controllers: [InasistenciaController],
-    providers: [
-        InasistenciaFacade,
-        ListarInasistenciasUseCase,
-        ExportarInasistenciasExcelUseCase,
-        { provide: IInasistenciaRepository, useClass: InasistenciaPrismaRepository },
-        PrismaService
-    ],
-    exports: [InasistenciaFacade]
+  controllers: [InasistenciaController],
+  providers: [
+    InasistenciaFacade,
+    ListarInasistenciasUseCase,
+    ExportarInasistenciasExcelUseCase,
+    {
+      provide: IInasistenciaRepository,
+      useClass: InasistenciaPrismaRepository,
+    },
+    PrismaService,
+  ],
+  exports: [InasistenciaFacade],
 })
-export class InasistenciaModule { }
+export class InasistenciaModule {}

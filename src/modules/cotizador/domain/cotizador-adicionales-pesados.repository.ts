@@ -89,4 +89,3 @@ export abstract class ICotizadorAdicionalesPesadosRepository {
     manoObra: BulkManoObraAdicionalPesadoInput[],
   ): Promise<BulkResultAdicionalPesado>;
 }
-

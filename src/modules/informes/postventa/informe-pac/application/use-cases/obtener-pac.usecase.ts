@@ -10,4 +10,3 @@ export class ObtenerPacUseCase {
     return this.repo.obtenerResumen();
   }
 }
-

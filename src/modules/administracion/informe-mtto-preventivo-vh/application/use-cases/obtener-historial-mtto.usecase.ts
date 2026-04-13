@@ -9,4 +9,3 @@ export class ObtenerHistorialMttoUseCase {
     return this.repo.obtenerHistorial(placa);
   }
 }
-

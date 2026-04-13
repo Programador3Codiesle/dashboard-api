@@ -103,7 +103,9 @@ export interface ManoObraCotizacionPesadosInput {
 
 export abstract class ICotizadorPesadosRepository {
   abstract getClasesDescripcion(): Promise<ClaseDescripcionPesados[]>;
-  abstract getVehiculoPorPlaca(placa: string): Promise<VehiculoCotizacionPesados | null>;
+  abstract getVehiculoPorPlaca(
+    placa: string,
+  ): Promise<VehiculoCotizacionPesados | null>;
   abstract getModelosByClase(clase: string): Promise<ModeloPesados[]>;
   abstract getRevisionesByClase(clase: string): Promise<RevisionPesados[]>;
   abstract getMantenimientoPesados(params: {
@@ -122,4 +124,3 @@ export abstract class ICotizadorPesadosRepository {
     items: ManoObraCotizacionPesadosInput[],
   ): Promise<void>;
 }
-

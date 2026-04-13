@@ -29,4 +29,3 @@ export class InformeTicketPromedioTecnicoController {
     return this.ticketPromedioTecnicoFacade.obtenerTicketPromedio(filtros);
   }
 }
-

@@ -11,9 +11,7 @@ import {
 } from '../../domain/tiempo-entrevista-consultiva.entity';
 
 @Injectable()
-export class TiempoEntrevistaConsultivaPrismaRepository
-  implements ITiempoEntrevistaConsultivaRepository
-{
+export class TiempoEntrevistaConsultivaPrismaRepository implements ITiempoEntrevistaConsultivaRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async obtenerResumen(
@@ -174,9 +172,7 @@ export class TiempoEntrevistaConsultivaPrismaRepository
           placa: r.placa,
           fechaCita: r.fecha_cita.toISOString(),
           bodega: Number(r.bodega),
-          horaLlegada: r.hora_llegada
-            ? r.hora_llegada.toISOString()
-            : null,
+          horaLlegada: r.hora_llegada ? r.hora_llegada.toISOString() : null,
           numeroOrdenTaller: r.numero_orden_taller
             ? Number(r.numero_orden_taller)
             : null,
@@ -186,4 +182,3 @@ export class TiempoEntrevistaConsultivaPrismaRepository
     );
   }
 }
-

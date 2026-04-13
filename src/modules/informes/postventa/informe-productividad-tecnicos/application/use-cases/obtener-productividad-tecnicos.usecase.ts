@@ -7,9 +7,7 @@ import { ProductividadTecnicosResponseEntity } from '../../domain/productividad-
 
 @Injectable()
 export class ObtenerProductividadTecnicosUseCase {
-  constructor(
-    private readonly repository: IProductividadTecnicosRepository,
-  ) {}
+  constructor(private readonly repository: IProductividadTecnicosRepository) {}
 
   execute(
     filtros: FiltrosProductividadTecnicos,
@@ -17,4 +15,3 @@ export class ObtenerProductividadTecnicosUseCase {
     return this.repository.obtenerProductividad(filtros);
   }
 }
-

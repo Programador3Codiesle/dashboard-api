@@ -13,9 +13,7 @@ import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
  * ${ano}/${mes} donde aplique.
  */
 @Injectable()
-export class DashboardAsesorRepPrismaRepository
-  implements IAsesorRepuestoDashboardRepository
-{
+export class DashboardAsesorRepPrismaRepository implements IAsesorRepuestoDashboardRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   private mapRowToComision(row: any | undefined): ComisionRepRow | null {
@@ -153,4 +151,3 @@ export class DashboardAsesorRepPrismaRepository
     return this.mapRowToComision(rows[0]);
   }
 }
-

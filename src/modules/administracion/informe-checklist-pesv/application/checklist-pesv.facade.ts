@@ -4,10 +4,11 @@ import { FiltrosChecklistPesv } from '../domain/checklist-pesv.repository';
 
 @Injectable()
 export class ChecklistPesvFacade {
-  constructor(private readonly listarChecklistPesv: ListarChecklistPesvUseCase) {}
+  constructor(
+    private readonly listarChecklistPesv: ListarChecklistPesvUseCase,
+  ) {}
 
   listar(filtros: FiltrosChecklistPesv) {
     return this.listarChecklistPesv.execute(filtros);
   }
 }
-

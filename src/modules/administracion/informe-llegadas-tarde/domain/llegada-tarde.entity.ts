@@ -14,4 +14,3 @@ export class LlegadaTardeEntity {
     Object.assign(this, partial);
   }
 }
-

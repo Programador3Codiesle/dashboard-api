@@ -21,4 +21,3 @@ import { LlegadasTardePrismaRepository } from './repositories/llegadas-tarde.pri
   ],
 })
 export class InformeLlegadasTardeModule {}
-

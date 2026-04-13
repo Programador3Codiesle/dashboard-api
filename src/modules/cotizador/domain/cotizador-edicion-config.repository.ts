@@ -38,12 +38,9 @@ export abstract class ICotizadorEdicionConfigRepository {
     tablaKey: TablaKeyEdicion,
   ): Promise<{ clase: string; descripcion: string | null }[]>;
 
-  abstract getOpcionesFiltro(
-    req: FiltroOpcionRequest,
-  ): Promise<string[]>;
+  abstract getOpcionesFiltro(req: FiltroOpcionRequest): Promise<string[]>;
 
   abstract aplicarEdicion(
     req: AplicarEdicionRequest,
   ): Promise<AplicarEdicionResult>;
 }
-

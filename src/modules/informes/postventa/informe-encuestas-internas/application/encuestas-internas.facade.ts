@@ -12,4 +12,3 @@ export class EncuestasInternasFacade {
     return this.obtenerUseCase.execute(filtros);
   }
 }
-

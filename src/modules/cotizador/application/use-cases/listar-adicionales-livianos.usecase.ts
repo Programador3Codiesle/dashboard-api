@@ -15,9 +15,7 @@ export interface ListarAdicionalesLivianosResponse {
 
 @Injectable()
 export class ListarAdicionalesLivianosUseCase {
-  constructor(
-    private readonly repo: ICotizadorAdicionalesLivianosRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorAdicionalesLivianosRepository) {}
 
   async execute(
     filtros: FiltrosListaAdicionalesLivianos,
@@ -30,4 +28,3 @@ export class ListarAdicionalesLivianosUseCase {
     return { repuestos, manoObra };
   }
 }
-

@@ -6,4 +6,3 @@ export class IndicadorChecklistEntity {
     Object.assign(this, partial);
   }
 }
-

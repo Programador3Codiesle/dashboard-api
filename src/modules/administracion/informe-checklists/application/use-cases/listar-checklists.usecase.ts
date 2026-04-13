@@ -22,4 +22,3 @@ export class ListarChecklistsUseCase {
     return this.repo.listar(filtros);
   }
 }
-

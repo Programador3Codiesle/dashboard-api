@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { LlegadasTardeFacade } from '../application/llegadas-tarde.facade';
 
-@Controller('informe-llegadas-tarde')
+@Controller('informes/informe-llegadas-tarde')
 export class InformeLlegadasTardeController {
   constructor(private readonly facade: LlegadasTardeFacade) {}
 
@@ -28,4 +28,3 @@ export class InformeLlegadasTardeController {
     return this.facade.listarResumen(fechaInicio ?? '', fechaFin ?? '');
   }
 }
-

@@ -9,15 +9,18 @@ import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import { EmailModule } from '../../../../core/infra/email/email.module';
 
 @Module({
-    imports: [EmailModule],
-    controllers: [SolicitudTiempoSuplementarioController],
-    providers: [
-        SolicitudTiempoSuplementarioFacade,
-        CrearTiempoSuplementarioUseCase,
-        ObtenerCalendarioTiempoSuplementarioUseCase,
-        { provide: ITiempoSuplementarioRepository, useClass: TiempoSuplementarioPrismaRepository },
-        PrismaService
-    ],
-    exports: [SolicitudTiempoSuplementarioFacade, ITiempoSuplementarioRepository]
+  imports: [EmailModule],
+  controllers: [SolicitudTiempoSuplementarioController],
+  providers: [
+    SolicitudTiempoSuplementarioFacade,
+    CrearTiempoSuplementarioUseCase,
+    ObtenerCalendarioTiempoSuplementarioUseCase,
+    {
+      provide: ITiempoSuplementarioRepository,
+      useClass: TiempoSuplementarioPrismaRepository,
+    },
+    PrismaService,
+  ],
+  exports: [SolicitudTiempoSuplementarioFacade, ITiempoSuplementarioRepository],
 })
-export class SolicitudTiempoSuplementarioModule { }
+export class SolicitudTiempoSuplementarioModule {}

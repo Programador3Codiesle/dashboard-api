@@ -5,16 +5,16 @@ import { FiltrosTiempoSuplementarioDto } from './dto/filtros-tiempo-suplementari
 
 @Injectable()
 export class InformeSuplementarioFacade {
-    constructor(
-        private readonly listarTiempoUC: ListarTiempoSuplementarioUseCase,
-        private readonly exportarExcelUC: ExportarTiempoSuplementarioExcelUseCase,
-    ) {}
+  constructor(
+    private readonly listarTiempoUC: ListarTiempoSuplementarioUseCase,
+    private readonly exportarExcelUC: ExportarTiempoSuplementarioExcelUseCase,
+  ) {}
 
-    listar(filtros?: FiltrosTiempoSuplementarioDto) {
-        return this.listarTiempoUC.execute(filtros);
-    }
+  listar(filtros?: FiltrosTiempoSuplementarioDto) {
+    return this.listarTiempoUC.execute(filtros);
+  }
 
-    exportarExcel(filtros?: FiltrosTiempoSuplementarioDto): Promise<Buffer> {
-        return this.exportarExcelUC.execute(filtros);
-    }
+  exportarExcel(filtros?: FiltrosTiempoSuplementarioDto): Promise<Buffer> {
+    return this.exportarExcelUC.execute(filtros);
+  }
 }

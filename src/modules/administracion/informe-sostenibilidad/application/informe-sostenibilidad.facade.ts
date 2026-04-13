@@ -3,12 +3,11 @@ import { IInformeSostenibilidadRepository } from '../domain/informe-sostenibilid
 
 @Injectable()
 export class InformeSostenibilidadFacade {
-    constructor(
-        private readonly informeSostenibilidadRepository: IInformeSostenibilidadRepository,
-    ) {}
+  constructor(
+    private readonly informeSostenibilidadRepository: IInformeSostenibilidadRepository,
+  ) {}
 
-    obtenerRutaArchivo(): string {
-        return this.informeSostenibilidadRepository.obtenerRutaArchivo();
-    }
+  obtenerRutaArchivo(): string {
+    return this.informeSostenibilidadRepository.obtenerRutaArchivo();
+  }
 }
-

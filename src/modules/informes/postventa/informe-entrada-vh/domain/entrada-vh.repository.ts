@@ -10,4 +10,3 @@ export abstract class IInformeEntradaVhRepository {
     filtros: FiltrosInformeEntradaVh,
   ): Promise<InformeEntradaVhResumenEntity>;
 }
-

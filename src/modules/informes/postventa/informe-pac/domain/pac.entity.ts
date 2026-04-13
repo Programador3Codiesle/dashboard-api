@@ -24,4 +24,3 @@ export class PacResumenEntity {
     Object.assign(this, partial);
   }
 }
-

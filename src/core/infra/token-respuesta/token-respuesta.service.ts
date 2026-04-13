@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 
-export type TipoAutorizacion = 'gestion-compra' | 'nuevo-ausentismo' | 'tiempo-suplementario';
+export type TipoAutorizacion =
+  | 'gestion-compra'
+  | 'nuevo-ausentismo'
+  | 'tiempo-suplementario';
 
 export interface PayloadTokenRespuesta {
   id: number | string;
@@ -52,7 +55,9 @@ export class TokenRespuestaService {
       throw new Error('JWT_RESPUESTA_SECRET no configurado');
     }
     try {
-      const decoded = jwt.verify(token, this.secret, { algorithms: ['HS256'] }) as PayloadTokenRespuesta;
+      const decoded = jwt.verify(token, this.secret, {
+        algorithms: ['HS256'],
+      }) as PayloadTokenRespuesta;
       return { id: decoded.id, tipo: decoded.tipo };
     } catch {
       throw new Error('Token inválido o expirado');
@@ -64,7 +69,9 @@ export class TokenRespuestaService {
    * El backend no usa prefijo /api; la ruta es /administracion/responder.
    */
   urlResponder(token: string, accion: 'aprobar' | 'rechazar'): string {
-    const base = this.appUrl.endsWith('/') ? this.appUrl.slice(0, -1) : this.appUrl;
+    const base = this.appUrl.endsWith('/')
+      ? this.appUrl.slice(0, -1)
+      : this.appUrl;
     return `${base}/administracion/responder?token=${encodeURIComponent(token)}&accion=${accion}`;
   }
 }

@@ -3,9 +3,9 @@ import { IHorasExtrasRepository } from '../../domain/horas-extras.repository';
 
 @Injectable()
 export class ObtenerHorasExtrasDiaActualUseCase {
-    constructor(private readonly repo: IHorasExtrasRepository) {}
+  constructor(private readonly repo: IHorasExtrasRepository) {}
 
-    async execute() {
-        return this.repo.obtenerDiaActual();
-    }
+  async execute() {
+    return this.repo.obtenerDiaActual();
+  }
 }

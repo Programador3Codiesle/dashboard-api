@@ -19,4 +19,3 @@ import { TicketPromedioTecnicoFacade } from '../application/ticket-promedio-tecn
   ],
 })
 export class InformeTicketPromedioTecnicoModule {}
-

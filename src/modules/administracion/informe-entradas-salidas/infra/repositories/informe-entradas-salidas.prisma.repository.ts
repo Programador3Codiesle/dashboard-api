@@ -8,12 +8,12 @@ import {
 import { InformeEntradasSalidasEntity } from '../../domain/informe-entradas-salidas.entity';
 
 @Injectable()
-export class InformeEntradasSalidasPrismaRepository
-  implements IInformeEntradasSalidasRepository
-{
+export class InformeEntradasSalidasPrismaRepository implements IInformeEntradasSalidasRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listar(params: FiltrosEntradasSalidas): Promise<InformeEntradasSalidasEntity[]> {
+  async listar(
+    params: FiltrosEntradasSalidas,
+  ): Promise<InformeEntradasSalidasEntity[]> {
     const { sede, fechaIni, fechaFin, empleado } = params;
 
     const conditions: Prisma.Sql[] = [];
@@ -32,7 +32,9 @@ export class InformeEntradasSalidasPrismaRepository
     }
 
     const whereClause =
-      conditions.length > 0 ? Prisma.sql`WHERE accion IS NOT NULL AND ${Prisma.join(conditions, ' AND ')}` : Prisma.empty;
+      conditions.length > 0
+        ? Prisma.sql`WHERE accion IS NOT NULL AND ${Prisma.join(conditions, ' AND ')}`
+        : Prisma.empty;
 
     const sql = Prisma.sql`
       SELECT
@@ -66,4 +68,3 @@ export class InformeEntradasSalidasPrismaRepository
     );
   }
 }
-

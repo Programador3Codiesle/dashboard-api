@@ -19,4 +19,3 @@ export abstract class IChecklistCarroRepository {
     filtros: FiltrosChecklistCarro,
   ): Promise<{ items: ChecklistCarroEntity[]; total: number }>;
 }
-

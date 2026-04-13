@@ -8,9 +8,7 @@ import {
 
 @Injectable()
 export class AplicarEdicionConfigUseCase {
-  constructor(
-    private readonly repo: ICotizadorEdicionConfigRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorEdicionConfigRepository) {}
 
   async execute(req: AplicarEdicionRequest): Promise<AplicarEdicionResult> {
     const tablaKey: TablaKeyEdicion = req.tablaKey;
@@ -22,9 +20,7 @@ export class AplicarEdicionConfigUseCase {
     }
 
     if (!req.campos || !Object.keys(req.campos).length) {
-      throw new BadRequestException(
-        'Debe indicar al menos un campo a editar.',
-      );
+      throw new BadRequestException('Debe indicar al menos un campo a editar.');
     }
 
     const result = await this.repo.aplicarEdicion({
@@ -42,4 +38,3 @@ export class AplicarEdicionConfigUseCase {
     return result;
   }
 }
-

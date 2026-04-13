@@ -2,10 +2,10 @@
  * Repositorio de Usuario - Gestión de Sedes
  * Implementa IUsuarioSedeRepository siguiendo Clean Architecture
  */
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
-import { SedesEntity } from "../../domain/usuario.entity";
-import { IUsuarioSedeRepository } from "../../domain/repositories/usuario-sede.repository";
+import { SedesEntity } from '../../domain/usuario.entity';
+import { IUsuarioSedeRepository } from '../../domain/repositories/usuario-sede.repository';
 
 @Injectable()
 export class UsuarioSedeRepository implements IUsuarioSedeRepository {
@@ -21,10 +21,13 @@ export class UsuarioSedeRepository implements IUsuarioSedeRepository {
       ORDER BY bodega
     `;
 
-    return results.map((item) => new SedesEntity({
-      id: item.bodega.toString(),
-      nombre: item.descripcion,
-    }));
+    return results.map(
+      (item) =>
+        new SedesEntity({
+          id: item.bodega.toString(),
+          nombre: item.descripcion,
+        }),
+    );
   }
 
   /**
@@ -37,9 +40,12 @@ export class UsuarioSedeRepository implements IUsuarioSedeRepository {
       WHERE idusuario = ${id} AND idsede IS NOT NULL
     `;
 
-    return results.map((item) => new SedesEntity({
-      id: item.idsede?.toString() || ''
-    }));
+    return results.map(
+      (item) =>
+        new SedesEntity({
+          id: item.idsede?.toString() || '',
+        }),
+    );
   }
 
   /**
@@ -53,7 +59,9 @@ export class UsuarioSedeRepository implements IUsuarioSedeRepository {
     `;
 
     // Obtener los datos de la sede directamente desde bodegas
-    const sedeData = await this.prisma.$queryRaw<Array<{ bodega: number, descripcion: string }>>`
+    const sedeData = await this.prisma.$queryRaw<
+      Array<{ bodega: number; descripcion: string }>
+    >`
       SELECT bodega, descripcion
       FROM bodegas
       WHERE id = ${idSede}
@@ -81,7 +89,9 @@ export class UsuarioSedeRepository implements IUsuarioSedeRepository {
     `;
 
     // Obtener los datos de la sede directamente desde bodegas
-    const sedeData = await this.prisma.$queryRaw<Array<{ bodega: number, descripcion: string }>>`
+    const sedeData = await this.prisma.$queryRaw<
+      Array<{ bodega: number; descripcion: string }>
+    >`
       SELECT bodega, descripcion
       FROM bodegas
       WHERE id = ${idSede}

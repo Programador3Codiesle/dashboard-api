@@ -3,7 +3,6 @@ import { User } from '../../domain/user.entity';
 import { UserPresenter } from '../presenters/user.presenter';
 
 export class UserMapper {
-
   // Convierte dominio → presenter → objeto plano para API
   static toHttp(user: User) {
     const presenter = new UserPresenter({

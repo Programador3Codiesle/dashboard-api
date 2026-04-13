@@ -21,4 +21,3 @@ export class Ventas1a1AsesorEntity {
     Object.assign(this, props);
   }
 }
-

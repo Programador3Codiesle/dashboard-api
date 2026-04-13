@@ -8,12 +8,12 @@ import {
 import { DesempenoEmpleadoEntity } from '../../domain/desempeno-empleado.entity';
 
 @Injectable()
-export class DesempenoEmpleadoPrismaRepository
-  implements IDesempenoEmpleadoRepository
-{
+export class DesempenoEmpleadoPrismaRepository implements IDesempenoEmpleadoRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listar(filtros: FiltrosDesempenoEmpleado): Promise<DesempenoEmpleadoEntity[]> {
+  async listar(
+    filtros: FiltrosDesempenoEmpleado,
+  ): Promise<DesempenoEmpleadoEntity[]> {
     const conditions: Prisma.Sql[] = [
       Prisma.sql`YEAR(d.fecha) = ${filtros.anio}`,
     ];
@@ -100,7 +100,6 @@ export class DesempenoEmpleadoPrismaRepository
       ORDER BY d.fecha DESC, d.empleado
     `;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows = await this.prisma.$queryRaw<any[]>(sql);
 
     return rows.map((r) => {
@@ -185,4 +184,3 @@ export class DesempenoEmpleadoPrismaRepository
     });
   }
 }
-

@@ -12,9 +12,7 @@ export interface AdicionalesPesadosInitResponse {
 
 @Injectable()
 export class GetAdicionalesPesadosInitUseCase {
-  constructor(
-    private readonly repo: ICotizadorAdicionalesPesadosRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorAdicionalesPesadosRepository) {}
 
   async execute(): Promise<AdicionalesPesadosInitResponse> {
     const [clases, adicionales] = await Promise.all([
@@ -25,4 +23,3 @@ export class GetAdicionalesPesadosInitUseCase {
     return { clases, adicionales };
   }
 }
-

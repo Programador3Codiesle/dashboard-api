@@ -9,4 +9,3 @@ export abstract class IMpcRepository {
     userId: number,
   ): Promise<void>;
 }
-

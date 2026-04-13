@@ -6,24 +6,32 @@ import { ControlVehiculoMapper } from '../../presentation/mappers/control-vehicu
 
 @Injectable()
 export class RegistrarLlegadaUseCase {
-    constructor(private readonly repo: IControlVehiculoRepository) {}
+  constructor(private readonly repo: IControlVehiculoRepository) {}
 
-    async execute(id: number, dto: RegistrarLlegadaDto): Promise<RegistrarLlegadaResponseDto> {
-        const fechaLlegada = new Date(); // Obtener fecha actual desde el use case
+  async execute(
+    id: number,
+    dto: RegistrarLlegadaDto,
+  ): Promise<RegistrarLlegadaResponseDto> {
+    const fechaLlegada = new Date(); // Obtener fecha actual desde el use case
 
-        const result = await this.repo.registrarLlegada(id, fechaLlegada, BigInt(dto.km_llegada), dto.observacion);
+    const result = await this.repo.registrarLlegada(
+      id,
+      fechaLlegada,
+      BigInt(dto.km_llegada),
+      dto.observacion,
+    );
 
-        if (result.data) {
-            return {
-                status: result.status,
-                message: result.message,
-                data: ControlVehiculoMapper.toRegistrarLlegadaResponseDto(result.data)
-            };
-        }
-
-        return {
-            status: result.status,
-            message: result.message
-        };
+    if (result.data) {
+      return {
+        status: result.status,
+        message: result.message,
+        data: ControlVehiculoMapper.toRegistrarLlegadaResponseDto(result.data),
+      };
     }
+
+    return {
+      status: result.status,
+      message: result.message,
+    };
+  }
 }

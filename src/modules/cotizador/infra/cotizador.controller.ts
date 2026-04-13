@@ -1,4 +1,16 @@
-import { Body, Controller, Delete, Get, Post, Put, Query, Req, StreamableFile, UnauthorizedException, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Put,
+  Query,
+  Req,
+  StreamableFile,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/infra/jwt-auth.guard';
 import { CotizadorFacade } from '../application/cotizador.facade';
 import { CrearCotizacionLivianosDTO } from '../application/use-cases/crear-cotizacion-livianos.usecase';
@@ -29,7 +41,8 @@ export class CotizadorController {
     @Query('placa') placa: string,
     @Query('empresa') empresa?: string,
   ) {
-    const empresaId = empresa != null && empresa !== '' ? Number(empresa) : undefined;
+    const empresaId =
+      empresa != null && empresa !== '' ? Number(empresa) : undefined;
     return this.facade.getVehiculoPorPlaca(placa, empresaId);
   }
 
@@ -72,7 +85,10 @@ export class CotizadorController {
   }
 
   @Post('livianos/cotizacion')
-  crearCotizacionLivianos(@Req() req: any, @Body() body: CrearCotizacionLivianosDTO) {
+  crearCotizacionLivianos(
+    @Req() req: any,
+    @Body() body: CrearCotizacionLivianosDTO,
+  ) {
     // postv_cotizacion_contact.usuario = id_usuario (sub), no nit (cédula)
     const userId = req.user?.nit != null ? Number(req.user.nit) : null;
     if (userId != null) {
@@ -82,7 +98,16 @@ export class CotizadorController {
   }
 
   @Post('livianos/posible-retorno')
-  crearPosibleRetorno(@Req() req: any, @Body() body: { placa: string; tipo_retorno: number; observacion: string; bodega: number | null }) {
+  crearPosibleRetorno(
+    @Req() req: any,
+    @Body()
+    body: {
+      placa: string;
+      tipo_retorno: number;
+      observacion: string;
+      bodega: number | null;
+    },
+  ) {
     const userId = req.user?.nit != null ? Number(req.user.nit) : null;
     if (userId == null) {
       throw new UnauthorizedException('Usuario no autenticado');
@@ -99,7 +124,11 @@ export class CotizadorController {
       estado: number;
     },
   ) {
-    return this.facade.enviarEmailCotizacionLivianos(body.idCotizacion, body.placa, body.estado);
+    return this.facade.enviarEmailCotizacionLivianos(
+      body.idCotizacion,
+      body.placa,
+      body.estado,
+    );
   }
 
   // Pesados
@@ -140,8 +169,13 @@ export class CotizadorController {
     @Query('dateEnd') dateEnd: string,
     @Query('empresa') empresa?: string,
   ) {
-    const empresaId = empresa != null && empresa !== '' ? Number(empresa) : undefined;
-    return this.facade.listarCotizacionesLivianos({ dateStart, dateEnd, empresaId });
+    const empresaId =
+      empresa != null && empresa !== '' ? Number(empresa) : undefined;
+    return this.facade.listarCotizacionesLivianos({
+      dateStart,
+      dateEnd,
+      empresaId,
+    });
   }
 
   @Get('informe-cotizaciones/pesados')
@@ -150,8 +184,13 @@ export class CotizadorController {
     @Query('dateEnd') dateEnd: string,
     @Query('empresa') empresa?: string,
   ) {
-    const empresaId = empresa != null && empresa !== '' ? Number(empresa) : undefined;
-    return this.facade.listarCotizacionesPesados({ dateStart, dateEnd, empresaId });
+    const empresaId =
+      empresa != null && empresa !== '' ? Number(empresa) : undefined;
+    return this.facade.listarCotizacionesPesados({
+      dateStart,
+      dateEnd,
+      empresaId,
+    });
   }
 
   @Post('informe-cotizaciones/email')
@@ -169,9 +208,19 @@ export class CotizadorController {
     const estado = body.estado ?? 0;
     const idEmpresa = body.empresa;
     if (body.origen === 'livianos') {
-      return this.facade.enviarEmailCotizacionLivianos(body.idCotizacion, body.placa, estado, idEmpresa);
+      return this.facade.enviarEmailCotizacionLivianos(
+        body.idCotizacion,
+        body.placa,
+        estado,
+        idEmpresa,
+      );
     }
-    return this.facade.enviarEmailCotizacionPesados(body.idCotizacion, body.placa, estado, idEmpresa);
+    return this.facade.enviarEmailCotizacionPesados(
+      body.idCotizacion,
+      body.placa,
+      estado,
+      idEmpresa,
+    );
   }
 
   @Post('informe-cotizaciones/agenda')
@@ -196,7 +245,8 @@ export class CotizadorController {
     @Query('empresa') empresa?: string,
   ): Promise<StreamableFile> {
     const idNum = Number(idCotizacion);
-    const idEmpresa = empresa != null && empresa !== '' ? Number(empresa) : undefined;
+    const idEmpresa =
+      empresa != null && empresa !== '' ? Number(empresa) : undefined;
     const buffer = await this.facade.generarCotizacionPdf({
       origen: origen === 'pesados' ? 'pesados' : 'livianos',
       idCotizacion: idNum,
@@ -226,7 +276,11 @@ export class CotizadorController {
     @Query('bodega') bodega?: string,
   ) {
     const bodegaNum = bodega ? Number(bodega) : null;
-    return this.facade.getEjecucionResumen({ dateStart, dateEnd, bodega: bodegaNum });
+    return this.facade.getEjecucionResumen({
+      dateStart,
+      dateEnd,
+      bodega: bodegaNum,
+    });
   }
 
   @Get('ejecucion-cotizado-vs-facturado/cotizacion-to-facturado')
@@ -236,7 +290,11 @@ export class CotizadorController {
     @Query('bodega') bodega?: string,
   ) {
     const bodegaNum = bodega ? Number(bodega) : null;
-    return this.facade.getEjecucionCotizacionToFacturado({ dateStart, dateEnd, bodega: bodegaNum });
+    return this.facade.getEjecucionCotizacionToFacturado({
+      dateStart,
+      dateEnd,
+      bodega: bodegaNum,
+    });
   }
 
   @Get('ejecucion-cotizado-vs-facturado/facturado-to-cotizacion')
@@ -246,7 +304,11 @@ export class CotizadorController {
     @Query('bodega') bodega?: string,
   ) {
     const bodegaNum = bodega ? Number(bodega) : null;
-    return this.facade.getEjecucionFacturadoToCotizacion({ dateStart, dateEnd, bodega: bodegaNum });
+    return this.facade.getEjecucionFacturadoToCotizacion({
+      dateStart,
+      dateEnd,
+      bodega: bodegaNum,
+    });
   }
 
   @Get('repuestos-no-disponibles')
@@ -279,9 +341,7 @@ export class CotizadorController {
   }
 
   @Post('adicionales-livianos/adicional/estado')
-  updateAdicionalLivianoEstado(
-    @Body() body: { id: number; estado: number },
-  ) {
+  updateAdicionalLivianoEstado(@Body() body: { id: number; estado: number }) {
     return this.facade.updateAdicionalEstadoLiviano({
       id: body.id,
       estado: body.estado,
@@ -328,7 +388,10 @@ export class CotizadorController {
     @Query('clases') clasesCsv?: string,
   ) {
     const clases = clasesCsv
-      ? clasesCsv.split(',').map((c) => c.trim()).filter(Boolean)
+      ? clasesCsv
+          .split(',')
+          .map((c) => c.trim())
+          .filter(Boolean)
       : [];
     return this.facade.listarAdicionalesLivianos({
       adicionalId: adicionalId ? Number(adicionalId) : undefined,
@@ -453,7 +516,10 @@ export class CotizadorController {
     @Query('clases') clasesCsv?: string,
   ) {
     const clases = clasesCsv
-      ? clasesCsv.split(',').map((c) => c.trim()).filter(Boolean)
+      ? clasesCsv
+          .split(',')
+          .map((c) => c.trim())
+          .filter(Boolean)
       : [];
     return this.facade.listarAdicionalesPesados({
       adicionalId: adicionalId ? Number(adicionalId) : undefined,
@@ -505,4 +571,3 @@ export class CotizadorController {
     });
   }
 }
-

@@ -19,4 +19,3 @@ export abstract class IOrdenSalidaRepository {
   abstract listar(filtros: FiltrosOrdenSalida): Promise<OrdenSalidaEntity[]>;
   abstract guardarObservacion(id: number, observacion: string): Promise<void>;
 }
-

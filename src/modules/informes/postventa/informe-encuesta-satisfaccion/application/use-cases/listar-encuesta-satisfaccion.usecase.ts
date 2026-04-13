@@ -7,9 +7,7 @@ import { EncuestaSatisfaccionResumenEntity } from '../../domain/encuesta-satisfa
 
 @Injectable()
 export class ListarEncuestaSatisfaccionUseCase {
-  constructor(
-    private readonly encuestaRepo: IEncuestaSatisfaccionRepository,
-  ) {}
+  constructor(private readonly encuestaRepo: IEncuestaSatisfaccionRepository) {}
 
   async execute(
     filtros: FiltrosEncuestaSatisfaccion,
@@ -23,4 +21,3 @@ export class ListarEncuestaSatisfaccionUseCase {
     return this.encuestaRepo.listarResumen(filtros);
   }
 }
-

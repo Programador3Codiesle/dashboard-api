@@ -5,10 +5,10 @@ import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 @UseGuards(JwtAuthGuard)
 @Controller('administracion/lista-ausentismo')
 export class ListaAusentismoController {
-    constructor(private readonly facade: ListaAusentismoFacade) {}
+  constructor(private readonly facade: ListaAusentismoFacade) {}
 
-    @Get('dia-actual')
-    obtenerDiaActual() {
-        return this.facade.obtenerDiaActual();
-    }
+  @Get('dia-actual')
+  obtenerDiaActual() {
+    return this.facade.obtenerDiaActual();
+  }
 }

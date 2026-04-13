@@ -2,8 +2,8 @@
  * Contrato del Repositorio de Usuario - Gestión de Jefes
  * Define las operaciones de asignación y gestión de jefes
  */
-import { JefesEntity } from "../usuario.entity";
-import { CreateJefeDto } from "../../application/dto/assign-jefe.dto";
+import { JefesEntity } from '../usuario.entity';
+import { CreateJefeDto } from '../../application/dto/assign-jefe.dto';
 
 export abstract class IUsuarioJefeRepository {
   /**
@@ -34,5 +34,7 @@ export abstract class IUsuarioJefeRepository {
   /**
    * Crear un nuevo jefe
    */
-  abstract crearJefe(dto: CreateJefeDto): Promise<{ success: boolean; message: string }>;
+  abstract crearJefe(
+    dto: CreateJefeDto,
+  ): Promise<{ success: boolean; message: string }>;
 }

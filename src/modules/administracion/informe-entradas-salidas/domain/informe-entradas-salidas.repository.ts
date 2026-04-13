@@ -8,6 +8,7 @@ export interface FiltrosEntradasSalidas {
 }
 
 export abstract class IInformeEntradasSalidasRepository {
-  abstract listar(params: FiltrosEntradasSalidas): Promise<InformeEntradasSalidasEntity[]>;
+  abstract listar(
+    params: FiltrosEntradasSalidas,
+  ): Promise<InformeEntradasSalidasEntity[]>;
 }
-

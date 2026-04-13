@@ -5,16 +5,16 @@ import { FiltrosAusentismoDto } from './dto/filtros-ausentismo.dto';
 
 @Injectable()
 export class InformeAusentismoFacade {
-    constructor(
-        private readonly listarAusentismosUC: ListarAusentismosUseCase,
-        private readonly obtenerDetalleUC: ObtenerDetalleAusentismoUseCase
-    ) {}
+  constructor(
+    private readonly listarAusentismosUC: ListarAusentismosUseCase,
+    private readonly obtenerDetalleUC: ObtenerDetalleAusentismoUseCase,
+  ) {}
 
-    listar(filtros?: FiltrosAusentismoDto) {
-        return this.listarAusentismosUC.execute(filtros);
-    }
+  listar(filtros?: FiltrosAusentismoDto) {
+    return this.listarAusentismosUC.execute(filtros);
+  }
 
-    obtenerDetalle(id: bigint) {
-        return this.obtenerDetalleUC.execute(id);
-    }
+  obtenerDetalle(id: bigint) {
+    return this.obtenerDetalleUC.execute(id);
+  }
 }

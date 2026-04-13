@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
 import { IInformeMttoPreventivoRepository } from '../../domain/informe-mtto-preventivo.repository';
-import { InformeMttoPreventivoEntity, ProximoMtto } from '../../domain/informe-mtto-preventivo.entity';
+import {
+  InformeMttoPreventivoEntity,
+  ProximoMtto,
+} from '../../domain/informe-mtto-preventivo.entity';
 
 @Injectable()
 export class InformeMttoPreventivoPrismaRepository implements IInformeMttoPreventivoRepository {
@@ -43,7 +46,9 @@ export class InformeMttoPreventivoPrismaRepository implements IInformeMttoPreven
     const now = new Date();
     const endOfYear = new Date(now.getFullYear(), 11, 31);
     const msPerDay = 1000 * 60 * 60 * 24;
-    const diasRestantesYear = Math.floor((endOfYear.getTime() - now.getTime()) / msPerDay);
+    const diasRestantesYear = Math.floor(
+      (endOfYear.getTime() - now.getTime()) / msPerDay,
+    );
 
     const results: InformeMttoPreventivoEntity[] = [];
 
@@ -61,7 +66,9 @@ export class InformeMttoPreventivoPrismaRepository implements IInformeMttoPreven
 
       for (let i = 0; i < 10; i++) {
         if (Math.trunc(diasNextMtto) <= diasRestantesYear) {
-          const fecha = new Date(now.getTime() + Math.trunc(diasNextMtto) * msPerDay);
+          const fecha = new Date(
+            now.getTime() + Math.trunc(diasNextMtto) * msPerDay,
+          );
           const fechaStr = fecha.toISOString().slice(0, 10);
 
           proximos.push({
@@ -102,7 +109,10 @@ export class InformeMttoPreventivoPrismaRepository implements IInformeMttoPreven
       }
 
       const diasEntreMtto = Math.trunc(5000 / km_promedio);
-      const diasProximoMtto = proximos.length > 0 ? Math.trunc((proximos[0].mttoKm - kilometro_final) / km_promedio) : 0;
+      const diasProximoMtto =
+        proximos.length > 0
+          ? Math.trunc((proximos[0].mttoKm - kilometro_final) / km_promedio)
+          : 0;
 
       results.push(
         new InformeMttoPreventivoEntity({
@@ -149,4 +159,3 @@ export class InformeMttoPreventivoPrismaRepository implements IInformeMttoPreven
     return rows;
   }
 }
-

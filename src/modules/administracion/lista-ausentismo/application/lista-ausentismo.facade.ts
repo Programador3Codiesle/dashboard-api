@@ -3,9 +3,11 @@ import { ObtenerAusentismosDiaActualUseCase } from './use-cases/obtener-ausentis
 
 @Injectable()
 export class ListaAusentismoFacade {
-    constructor(private readonly obtenerAusentismosUC: ObtenerAusentismosDiaActualUseCase) {}
+  constructor(
+    private readonly obtenerAusentismosUC: ObtenerAusentismosDiaActualUseCase,
+  ) {}
 
-    obtenerDiaActual() {
-        return this.obtenerAusentismosUC.execute();
-    }
+  obtenerDiaActual() {
+    return this.obtenerAusentismosUC.execute();
+  }
 }

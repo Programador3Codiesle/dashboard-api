@@ -5,11 +5,14 @@ import { IInformeSostenibilidadRepository } from '../domain/informe-sostenibilid
 import { InformeSostenibilidadRepository } from './repositories/informe-sostenibilidad.repository';
 
 @Module({
-    controllers: [InformeSostenibilidadController],
-    providers: [
-        InformeSostenibilidadFacade,
-        { provide: IInformeSostenibilidadRepository, useClass: InformeSostenibilidadRepository },
-    ],
-    exports: [InformeSostenibilidadFacade],
+  controllers: [InformeSostenibilidadController],
+  providers: [
+    InformeSostenibilidadFacade,
+    {
+      provide: IInformeSostenibilidadRepository,
+      useClass: InformeSostenibilidadRepository,
+    },
+  ],
+  exports: [InformeSostenibilidadFacade],
 })
-export class InformeSostenibilidadModule { }
+export class InformeSostenibilidadModule {}

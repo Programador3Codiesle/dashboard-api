@@ -11,4 +11,3 @@ export class InformePacController {
     return this.facade.resumen();
   }
 }
-

@@ -5,4 +5,3 @@ export * from './assign-sede.dto';
 export * from './create-usuario.dto';
 export * from './update-usuario.dto';
 export * from './get-usuarios-response.dto';
-

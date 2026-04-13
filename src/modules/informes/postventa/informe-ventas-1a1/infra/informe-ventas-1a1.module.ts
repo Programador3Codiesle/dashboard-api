@@ -21,4 +21,3 @@ import { Ventas1a1Facade } from '../application/ventas-1a1.facade';
   ],
 })
 export class InformeVentas1a1Module {}
-

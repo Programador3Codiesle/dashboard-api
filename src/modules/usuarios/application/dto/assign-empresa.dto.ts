@@ -7,13 +7,12 @@ export class AssignEmpresaDto {
     example: ['1', '2', '3'],
     description: 'Array de IDs de empresas a asignar',
     type: [String],
-    required: true
+    required: true,
   })
   @IsArray()
   @IsString({ each: true })
   empresas!: string[];
 }
-
 
 export class AgregarEmpresasResponseDto {
   @ApiProperty({ example: true })

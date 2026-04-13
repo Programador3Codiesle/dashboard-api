@@ -14,8 +14,11 @@ export class OrdenesSalidaFacade {
     return this.listarUseCase.execute(filtros);
   }
 
-  guardarObservacion(id: number, observacion: string, idUsuario: number | null) {
+  guardarObservacion(
+    id: number,
+    observacion: string,
+    idUsuario: number | null,
+  ) {
     return this.guardarObsUseCase.execute(id, observacion, idUsuario);
   }
 }
-

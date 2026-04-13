@@ -4,6 +4,7 @@ import { InformeNpsInternoController } from './informe-nps-interno.controller';
 import { INpsInternoRepository } from '../domain/nps-interno.repository';
 import { NpsInternoPrismaRepository } from './repositories/nps-interno.prisma.repository';
 import { ObtenerNpsInternoUseCase } from '../application/use-cases/obtener-nps-interno.usecase';
+import { ListarEncuestasNpsInternoUseCase } from '../application/use-cases/listar-encuestas-nps-interno.usecase';
 import { NpsInternoFacade } from '../application/nps-interno.facade';
 
 @Module({
@@ -15,8 +16,8 @@ import { NpsInternoFacade } from '../application/nps-interno.facade';
       useClass: NpsInternoPrismaRepository,
     },
     ObtenerNpsInternoUseCase,
+    ListarEncuestasNpsInternoUseCase,
     NpsInternoFacade,
   ],
 })
 export class InformeNpsInternoModule {}
-

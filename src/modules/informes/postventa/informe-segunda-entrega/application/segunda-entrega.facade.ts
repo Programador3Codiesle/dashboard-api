@@ -12,13 +12,10 @@ export class SegundaEntregaFacade {
     private readonly listarSegundaEntrega: ListarSegundaEntregaUseCase,
   ) {}
 
-  listar(
-    filtros: FiltrosSegundaEntrega,
-  ): Promise<{
+  listar(filtros: FiltrosSegundaEntrega): Promise<{
     resumen: SegundaEntregaResumenEntity[];
     detalle: SegundaEntregaDetalleEntity[];
   }> {
     return this.listarSegundaEntrega.execute(filtros);
   }
 }
-

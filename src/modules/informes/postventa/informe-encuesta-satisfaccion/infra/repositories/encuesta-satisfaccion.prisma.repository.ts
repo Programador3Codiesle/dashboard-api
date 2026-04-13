@@ -8,9 +8,7 @@ import {
 } from '../../domain/encuesta-satisfaccion.repository';
 
 @Injectable()
-export class EncuestaSatisfaccionPrismaRepository
-  implements IEncuestaSatisfaccionRepository
-{
+export class EncuestaSatisfaccionPrismaRepository implements IEncuestaSatisfaccionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async listarResumen(
@@ -27,17 +25,53 @@ export class EncuestaSatisfaccionPrismaRepository
 
     if (bode === 'todas' && tec === 'all' && !cli && !ot && (!ns || ns === 0)) {
       sql = this.sqlInfGral(fi, ff);
-    } else if (bode !== 'todas' && tec === 'all' && !cli && !ot && (!ns || ns === 0)) {
+    } else if (
+      bode !== 'todas' &&
+      tec === 'all' &&
+      !cli &&
+      !ot &&
+      (!ns || ns === 0)
+    ) {
       sql = this.sqlInfGralBod(fi, ff, bode);
-    } else if (bode !== 'todas' && tec !== 'all' && !cli && !ot && (!ns || ns === 0)) {
+    } else if (
+      bode !== 'todas' &&
+      tec !== 'all' &&
+      !cli &&
+      !ot &&
+      (!ns || ns === 0)
+    ) {
       sql = this.sqlInfGralTec(fi, ff, tec);
-    } else if (bode !== 'todas' && tec !== 'all' && cli && !ot && (!ns || ns === 0)) {
+    } else if (
+      bode !== 'todas' &&
+      tec !== 'all' &&
+      cli &&
+      !ot &&
+      (!ns || ns === 0)
+    ) {
       sql = this.sqlInfGralCli(fi, ff, cli);
-    } else if (bode === 'todas' && tec === 'all' && cli && !ot && (!ns || ns === 0)) {
+    } else if (
+      bode === 'todas' &&
+      tec === 'all' &&
+      cli &&
+      !ot &&
+      (!ns || ns === 0)
+    ) {
       sql = this.sqlInfGralCli(fi, ff, cli);
-    } else if (bode === 'todas' && tec === 'all' && ot && !cli && (!ns || ns === 0)) {
+    } else if (
+      bode === 'todas' &&
+      tec === 'all' &&
+      ot &&
+      !cli &&
+      (!ns || ns === 0)
+    ) {
       sql = this.sqlInfGralOt(fi, ff, ot);
-    } else if (bode !== 'todas' && tec === 'all' && ot && !cli && (!ns || ns === 0)) {
+    } else if (
+      bode !== 'todas' &&
+      tec === 'all' &&
+      ot &&
+      !cli &&
+      (!ns || ns === 0)
+    ) {
       sql = this.sqlInfGralOt(fi, ff, ot);
     } else if (bode !== 'todas' && tec === 'all' && !ot && ns && ns !== 0) {
       sql = this.sqlInfGralNs(fi, ff, ns);
@@ -73,7 +107,14 @@ export class EncuestaSatisfaccionPrismaRepository
       FROM posv_encuesta_satisfaccion pes
       INNER JOIN tall_encabeza_orden teo ON teo.numero = pes.n_orden
       INNER JOIN terceros t ON t.nit_real = teo.vendedor
-      WHERE CONVERT(DATE, pes.fecha) BETWEEN CONVERT(DATE, ${fi}) AND CONVERT(DATE, ${ff})
+      CROSS APPLY (
+        SELECT COALESCE(
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''), 23),
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''), 103),
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''))
+        ) AS fecha_dt
+      ) AS fd
+      WHERE fd.fecha_dt BETWEEN CONVERT(DATE, ${fi}) AND CONVERT(DATE, ${ff})
     `;
   }
 
@@ -92,7 +133,14 @@ export class EncuestaSatisfaccionPrismaRepository
       INNER JOIN tall_encabeza_orden teo ON teo.numero = pes.n_orden
       INNER JOIN terceros t ON t.nit_real = teo.vendedor
       INNER JOIN bodegas b ON b.bodega = teo.bodega
-      WHERE CONVERT(DATE, pes.fecha) BETWEEN CONVERT(DATE, ${fi}) AND CONVERT(DATE, ${ff})
+      CROSS APPLY (
+        SELECT COALESCE(
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''), 23),
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''), 103),
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''))
+        ) AS fecha_dt
+      ) AS fd
+      WHERE fd.fecha_dt BETWEEN CONVERT(DATE, ${fi}) AND CONVERT(DATE, ${ff})
       AND b.bodega = ${bode}
     `;
     return Prisma.sql`
@@ -108,7 +156,14 @@ export class EncuestaSatisfaccionPrismaRepository
       INNER JOIN tall_encabeza_orden teo ON teo.numero = pes.n_orden
       INNER JOIN terceros t ON t.nit_real = teo.vendedor
       INNER JOIN bodegas b ON b.bodega = teo.bodega
-      WHERE CONVERT(DATE, pes.fecha) BETWEEN CONVERT(DATE, ${fi}) AND CONVERT(DATE, ${ff})
+      CROSS APPLY (
+        SELECT COALESCE(
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''), 23),
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''), 103),
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''))
+        ) AS fecha_dt
+      ) AS fd
+      WHERE fd.fecha_dt BETWEEN CONVERT(DATE, ${fi}) AND CONVERT(DATE, ${ff})
       AND teo.vendedor = ${tec}
     `;
     return Prisma.sql`
@@ -124,7 +179,14 @@ export class EncuestaSatisfaccionPrismaRepository
       INNER JOIN tall_encabeza_orden teo ON teo.numero = pes.n_orden
       INNER JOIN terceros t ON t.nit_real = teo.vendedor
       INNER JOIN bodegas b ON b.bodega = teo.bodega
-      WHERE CONVERT(DATE, pes.fecha) BETWEEN CONVERT(DATE, ${fi}) AND CONVERT(DATE, ${ff})
+      CROSS APPLY (
+        SELECT COALESCE(
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''), 23),
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''), 103),
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''))
+        ) AS fecha_dt
+      ) AS fd
+      WHERE fd.fecha_dt BETWEEN CONVERT(DATE, ${fi}) AND CONVERT(DATE, ${ff})
       AND teo.nit = ${cli}
     `;
     return Prisma.sql`
@@ -140,7 +202,14 @@ export class EncuestaSatisfaccionPrismaRepository
       INNER JOIN tall_encabeza_orden teo ON teo.numero = pes.n_orden
       INNER JOIN terceros t ON t.nit_real = teo.vendedor
       INNER JOIN bodegas b ON b.bodega = teo.bodega
-      WHERE CONVERT(DATE, pes.fecha) BETWEEN CONVERT(DATE, ${fi}) AND CONVERT(DATE, ${ff})
+      CROSS APPLY (
+        SELECT COALESCE(
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''), 23),
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''), 103),
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''))
+        ) AS fecha_dt
+      ) AS fd
+      WHERE fd.fecha_dt BETWEEN CONVERT(DATE, ${fi}) AND CONVERT(DATE, ${ff})
       AND teo.numero = ${ot}
     `;
     return Prisma.sql`
@@ -173,7 +242,14 @@ export class EncuestaSatisfaccionPrismaRepository
       INNER JOIN tall_encabeza_orden teo ON teo.numero = pes.n_orden
       INNER JOIN terceros t ON t.nit_real = teo.vendedor
       INNER JOIN bodegas b ON b.bodega = teo.bodega
-      WHERE CONVERT(DATE, pes.fecha) BETWEEN CONVERT(DATE, ${fi}) AND CONVERT(DATE, ${ff})
+      CROSS APPLY (
+        SELECT COALESCE(
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''), 23),
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''), 103),
+          TRY_CONVERT(DATE, NULLIF(LTRIM(RTRIM(pes.fecha)), ''))
+        ) AS fecha_dt
+      ) AS fd
+      WHERE fd.fecha_dt BETWEEN CONVERT(DATE, ${fi}) AND CONVERT(DATE, ${ff})
       GROUP BY teo.vendedor, t.nombres
       HAVING
         AVG(pes.pregunta1) >= ${ns1}
@@ -188,4 +264,3 @@ export class EncuestaSatisfaccionPrismaRepository
     `;
   }
 }
-

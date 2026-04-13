@@ -19,4 +19,3 @@ import { SegundaEntregaFacade } from '../application/segunda-entrega.facade';
   ],
 })
 export class InformeSegundaEntregaModule {}
-

@@ -10,9 +10,7 @@ export interface DeleteManoObraAdicionalLivianoDTO {
 
 @Injectable()
 export class DeleteManoObraAdicionalLivianosUseCase {
-  constructor(
-    private readonly repo: ICotizadorAdicionalesLivianosRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorAdicionalesLivianosRepository) {}
 
   async execute(dto: DeleteManoObraAdicionalLivianoDTO): Promise<void> {
     if (!dto.id || !dto.operacion || !dto.adicionalId) {
@@ -31,4 +29,3 @@ export class DeleteManoObraAdicionalLivianosUseCase {
     );
   }
 }
-

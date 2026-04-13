@@ -3,12 +3,11 @@ import { IReglamentoInternoRepository } from '../domain/reglamento-interno.repos
 
 @Injectable()
 export class ReglamentoInternoFacade {
-    constructor(
-        private readonly reglamentoInternoRepository: IReglamentoInternoRepository,
-    ) {}
+  constructor(
+    private readonly reglamentoInternoRepository: IReglamentoInternoRepository,
+  ) {}
 
-    obtenerRutaArchivo(): string {
-        return this.reglamentoInternoRepository.obtenerRutaArchivo();
-    }
+  obtenerRutaArchivo(): string {
+    return this.reglamentoInternoRepository.obtenerRutaArchivo();
+  }
 }
-

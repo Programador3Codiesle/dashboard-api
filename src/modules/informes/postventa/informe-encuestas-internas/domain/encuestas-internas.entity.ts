@@ -17,4 +17,3 @@ export class EncuestaInternaRowEntity {
     Object.assign(this, props);
   }
 }
-

@@ -17,4 +17,3 @@ export class InformeMttoPreventivoEntity {
     Object.assign(this, partial);
   }
 }
-

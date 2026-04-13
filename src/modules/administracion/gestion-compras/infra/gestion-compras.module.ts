@@ -14,20 +14,23 @@ import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import { EmailModule } from '../../../../core/infra/email/email.module';
 
 @Module({
-    imports: [EmailModule],
-    controllers: [GestionComprasController],
-    providers: [
-        GestionCompraFacade,
-        CrearSolicitudCompraUseCase,
-        ListarComprasUseCase,
-        CambiarEstadoCompraUseCase,
-        MarcarConFacturaCompraUseCase,
-        GestionMensajesCompraUseCase,
-        EnviarAutorizacionCompraUseCase,
-        ExportarComprasExcelUseCase,
-        { provide: IGestionCompraRepository, useClass: GestionCompraPrismaRepository },
-        PrismaService
-    ],
-    exports: [GestionCompraFacade, IGestionCompraRepository]
+  imports: [EmailModule],
+  controllers: [GestionComprasController],
+  providers: [
+    GestionCompraFacade,
+    CrearSolicitudCompraUseCase,
+    ListarComprasUseCase,
+    CambiarEstadoCompraUseCase,
+    MarcarConFacturaCompraUseCase,
+    GestionMensajesCompraUseCase,
+    EnviarAutorizacionCompraUseCase,
+    ExportarComprasExcelUseCase,
+    {
+      provide: IGestionCompraRepository,
+      useClass: GestionCompraPrismaRepository,
+    },
+    PrismaService,
+  ],
+  exports: [GestionCompraFacade, IGestionCompraRepository],
 })
-export class GestionComprasModule { }
+export class GestionComprasModule {}

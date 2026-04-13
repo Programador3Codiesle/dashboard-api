@@ -19,4 +19,3 @@ import { DesempenoEmpleadoPrismaRepository } from './repositories/desempeno-empl
   ],
 })
 export class InformeDesempenoEmpleadoModule {}
-

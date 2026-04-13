@@ -19,11 +19,12 @@ export class GetEjecucionCotizacionToFacturadoUseCase {
     return dateStr.replace(/-/g, '');
   }
 
-  async execute(params: EjecucionFiltroParams): Promise<FilaCotizacionToFacturado[]> {
+  async execute(
+    params: EjecucionFiltroParams,
+  ): Promise<FilaCotizacionToFacturado[]> {
     const bodegas = this.getBodegasArray(params.bodega ?? null);
     const desde = this.toYmd(params.dateStart);
     const hasta = this.toYmd(params.dateEnd);
     return this.repo.getCotizacionToFacturado(desde, hasta, bodegas);
   }
 }
-

@@ -19,4 +19,3 @@ import { IndicadorChecklistPrismaRepository } from './repositories/indicador-che
   ],
 })
 export class InformeIndicadorChecklistModule {}
-

@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ICotizadorLivianosRepository, RevisionOption } from '../../domain/cotizador-livianos.repository';
+import {
+  ICotizadorLivianosRepository,
+  RevisionOption,
+} from '../../domain/cotizador-livianos.repository';
 
 @Injectable()
 export class GetRevisionesLivianosUseCase {
@@ -13,4 +16,3 @@ export class GetRevisionesLivianosUseCase {
     return this.repo.getRevisionesPorClase(normalizada);
   }
 }
-

@@ -7,13 +7,16 @@ import { FormatoNominaPrismaRepository } from './repositories/formato-nomina.pri
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
-    controllers: [FormatosNominaController],
-    providers: [
-        FormatosNominaFacade,
-        ObtenerFormatosUseCase,
-        { provide: IFormatoNominaRepository, useClass: FormatoNominaPrismaRepository },
-        PrismaService
-    ],
-    exports: [FormatosNominaFacade]
+  controllers: [FormatosNominaController],
+  providers: [
+    FormatosNominaFacade,
+    ObtenerFormatosUseCase,
+    {
+      provide: IFormatoNominaRepository,
+      useClass: FormatoNominaPrismaRepository,
+    },
+    PrismaService,
+  ],
+  exports: [FormatosNominaFacade],
 })
-export class FormatosNominaModule { }
+export class FormatosNominaModule {}

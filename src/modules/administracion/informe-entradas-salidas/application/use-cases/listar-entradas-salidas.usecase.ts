@@ -12,4 +12,3 @@ export class ListarEntradasSalidasUseCase {
     return this.repo.listar(filtros);
   }
 }
-

@@ -9,4 +9,3 @@ export class TallasPersonalFacade {
     return this.listarUseCase.execute();
   }
 }
-

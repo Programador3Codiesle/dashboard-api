@@ -22,4 +22,3 @@ export class MpcFacade {
     return this.cambiarEstadoCasoEspecialUseCase.execute(placa, estado, userId);
   }
 }
-

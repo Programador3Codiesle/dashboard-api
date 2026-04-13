@@ -8,14 +8,17 @@ import { TallaDotacionPrismaRepository } from './repositories/talla-dotacion.pri
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
-    controllers: [TallasDotacionController],
-    providers: [
-        TallaDotacionFacade,
-        ObtenerTallaDotacionUseCase,
-        ActualizarTallaDotacionUseCase,
-        { provide: ITallaDotacionRepository, useClass: TallaDotacionPrismaRepository },
-        PrismaService
-    ],
-    exports: [TallaDotacionFacade]
+  controllers: [TallasDotacionController],
+  providers: [
+    TallaDotacionFacade,
+    ObtenerTallaDotacionUseCase,
+    ActualizarTallaDotacionUseCase,
+    {
+      provide: ITallaDotacionRepository,
+      useClass: TallaDotacionPrismaRepository,
+    },
+    PrismaService,
+  ],
+  exports: [TallaDotacionFacade],
 })
-export class TallasDotacionModule { }
+export class TallasDotacionModule {}

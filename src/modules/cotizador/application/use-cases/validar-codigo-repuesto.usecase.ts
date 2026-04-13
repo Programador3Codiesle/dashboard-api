@@ -6,9 +6,7 @@ import {
 
 @Injectable()
 export class ValidarCodigoRepuestoUseCase {
-  constructor(
-    private readonly repo: ICotizadorAdicionalesLivianosRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorAdicionalesLivianosRepository) {}
 
   async execute(codigo: string): Promise<CodigoRepuestoValidationResult> {
     if (!codigo || !codigo.trim()) {
@@ -18,4 +16,3 @@ export class ValidarCodigoRepuestoUseCase {
     return this.repo.validateCodigoRepuesto(codigo.trim());
   }
 }
-

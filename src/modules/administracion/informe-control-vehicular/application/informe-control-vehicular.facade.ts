@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  FiltrosControlVehicular,
-} from '../domain/informe-control-vehicular.repository';
+import { FiltrosControlVehicular } from '../domain/informe-control-vehicular.repository';
 import { ListarControlVehicularUseCase } from './use-cases/listar-control-vehicular.usecase';
 import { DetalleControlVehicularUseCase } from './use-cases/detalle-control-vehicular.usecase';
 import { ExportarControlVehicularUseCase } from './use-cases/exportar-control-vehicular.usecase';
@@ -26,4 +24,3 @@ export class InformeControlVehicularFacade {
     return this.exportarUC.execute(filtros);
   }
 }
-

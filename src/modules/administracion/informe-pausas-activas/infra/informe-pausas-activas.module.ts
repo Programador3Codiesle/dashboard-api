@@ -19,4 +19,3 @@ import { InformePausasActivasPrismaRepository } from './repositories/informe-pau
   ],
 })
 export class InformePausasActivasModule {}
-

@@ -38,7 +38,9 @@ export class ChecklistMotoPrismaRepository implements IChecklistMotoRepository {
     }
 
     const where =
-      conditions.length > 0 ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}` : Prisma.empty;
+      conditions.length > 0
+        ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
+        : Prisma.empty;
 
     const countSql = Prisma.sql`
       SELECT COUNT(1) AS total
@@ -54,9 +56,11 @@ export class ChecklistMotoPrismaRepository implements IChecklistMotoRepository {
       OFFSET ${offset} ROWS FETCH NEXT ${limite} ROWS ONLY
     `;
 
-    const totalRows = await this.prisma.$queryRaw<Array<{ total: bigint | number }>>(countSql);
+    const totalRows =
+      await this.prisma.$queryRaw<Array<{ total: bigint | number }>>(countSql);
     const totalRaw = totalRows?.[0]?.total ?? 0;
-    const total = typeof totalRaw === 'bigint' ? Number(totalRaw) : Number(totalRaw || 0);
+    const total =
+      typeof totalRaw === 'bigint' ? Number(totalRaw) : Number(totalRaw || 0);
     const rows = await this.prisma.$queryRaw<any[]>(dataSql);
 
     const items = rows.map(
@@ -71,4 +75,3 @@ export class ChecklistMotoPrismaRepository implements IChecklistMotoRepository {
     return { items, total };
   }
 }
-

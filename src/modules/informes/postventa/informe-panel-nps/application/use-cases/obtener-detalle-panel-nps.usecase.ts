@@ -35,4 +35,3 @@ export class ObtenerDetalleGeneralPanelNpsUseCase {
     return this.repository.obtenerDetalleGeneral(params);
   }
 }
-

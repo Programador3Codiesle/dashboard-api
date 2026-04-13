@@ -13,7 +13,8 @@ export class OrdenSalidaPrismaRepository implements IOrdenSalidaRepository {
 
   async listar(filtros: FiltrosOrdenSalida): Promise<OrdenSalidaEntity[]> {
     const conditions: Prisma.Sql[] = [];
-    const nitUsuario = filtros.nitUsuario != null ? Number(filtros.nitUsuario) : null;
+    const nitUsuario =
+      filtros.nitUsuario != null ? Number(filtros.nitUsuario) : null;
 
     if (filtros.fechaIni && filtros.fechaFin) {
       conditions.push(
@@ -85,7 +86,6 @@ export class OrdenSalidaPrismaRepository implements IOrdenSalidaRepository {
       ORDER BY observacion_null_flag ASC, fecha_salida ASC
     `;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows = await this.prisma.$queryRaw<any[]>(sql);
 
     const tipos_salidas: Record<number, string> = {
@@ -163,7 +163,8 @@ export class OrdenSalidaPrismaRepository implements IOrdenSalidaRepository {
           ...r,
           id: Number(r.id),
           jefeNombre: jefes[r.jefe as number] ?? String(r.jefe),
-          tipoSalidaNombre: tipos_salidas[r.tipoSalida as number] ?? String(r.tipoSalida),
+          tipoSalidaNombre:
+            tipos_salidas[r.tipoSalida as number] ?? String(r.tipoSalida),
           tieneObservacion: r.observacion !== null && r.observacion !== '',
         }),
     );
@@ -178,4 +179,3 @@ export class OrdenSalidaPrismaRepository implements IOrdenSalidaRepository {
     `;
   }
 }
-

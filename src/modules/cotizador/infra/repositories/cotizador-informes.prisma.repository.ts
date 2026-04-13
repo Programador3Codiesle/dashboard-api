@@ -58,7 +58,8 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
       placa: r.placa,
       clase: r.clase,
       des_modelo: r.des_modelo,
-      kilometraje_cliente: r.kilometraje_cliente != null ? Number(r.kilometraje_cliente) : null,
+      kilometraje_cliente:
+        r.kilometraje_cliente != null ? Number(r.kilometraje_cliente) : null,
       revision: r.revision != null ? Number(r.revision) : null,
       bodega: r.bodega != null ? Number(r.bodega) : null,
       NomBodega: r.NomBodega ?? null,
@@ -117,7 +118,8 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
       placa: r.placa,
       clase: r.clase,
       des_modelo: r.des_modelo,
-      kilometraje_cliente: r.kilometraje_cliente != null ? Number(r.kilometraje_cliente) : null,
+      kilometraje_cliente:
+        r.kilometraje_cliente != null ? Number(r.kilometraje_cliente) : null,
       revision: r.revision != null ? Number(r.revision) : null,
       bodega: r.bodega != null ? Number(r.bodega) : null,
       NomBodega: r.NomBodega ?? null,
@@ -178,13 +180,13 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
     idCotizacion: number,
     placa: string,
   ): Promise<{
-      id_cotizacion: number;
-      placa: string;
-      nombreCliente: string;
-      emailCliente: string | null;
-      correoAsesor: string | null;
-      bodega: number | null;
-    } | null> {
+    id_cotizacion: number;
+    placa: string;
+    nombreCliente: string;
+    emailCliente: string | null;
+    correoAsesor: string | null;
+    bodega: number | null;
+  } | null> {
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT 
         CT.id_cotizacion,
@@ -218,7 +220,9 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
     };
   }
 
-  async actualizarEstadoCotizacionLivianos(idCotizacion: number): Promise<void> {
+  async actualizarEstadoCotizacionLivianos(
+    idCotizacion: number,
+  ): Promise<void> {
     await this.prisma.$executeRaw`
       UPDATE dbo.postv_cotizacion_contact
       SET estado = 1
@@ -281,7 +285,9 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
     return this.mapRowToCotizacionPdfGeneral(r);
   }
 
-  async getRepuestosCotiLivianos(idCotizacion: number): Promise<CotizacionRepuestoRow[]> {
+  async getRepuestosCotiLivianos(
+    idCotizacion: number,
+  ): Promise<CotizacionRepuestoRow[]> {
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT codigo, descripcion, categoria, estado, valor
       FROM dbo.postv_cotizacion_repuestos
@@ -304,7 +310,9 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
     });
   }
 
-  async getMttoCotiLivianos(idCotizacion: number): Promise<CotizacionMttoRow[]> {
+  async getMttoCotiLivianos(
+    idCotizacion: number,
+  ): Promise<CotizacionMttoRow[]> {
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT mtto, estado, valor, cant_horas
       FROM dbo.postv_cotizacion_mtto
@@ -350,7 +358,9 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
     return this.mapRowToCotizacionPdfGeneral(rows[0]);
   }
 
-  async getRepuestosCotiPesados(idCotizacion: number): Promise<CotizacionRepuestoRow[]> {
+  async getRepuestosCotiPesados(
+    idCotizacion: number,
+  ): Promise<CotizacionRepuestoRow[]> {
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT codigo, descripcion, categoria, estado, valor
       FROM dbo.postv_cotizacion_repuestos_p
@@ -407,4 +417,3 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
     };
   }
 }
-

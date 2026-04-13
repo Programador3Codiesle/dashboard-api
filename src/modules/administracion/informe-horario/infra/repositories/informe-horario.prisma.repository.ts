@@ -25,7 +25,9 @@ export class InformeHorarioPrismaRepository implements IInformeHorarioRepository
     }
 
     const whereClause =
-      conditions.length > 0 ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}` : Prisma.empty;
+      conditions.length > 0
+        ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
+        : Prisma.empty;
 
     const sql = Prisma.sql`
       SELECT
@@ -151,23 +153,26 @@ export class InformeHorarioPrismaRepository implements IInformeHorarioRepository
           llegada_pm: r.llegada_pm ?? null,
           salida_pm: r.salida_pm ?? null,
           dif_entrada_am:
-            typeof r.dif_entrada_am === 'number' && !Number.isNaN(r.dif_entrada_am)
+            typeof r.dif_entrada_am === 'number' &&
+            !Number.isNaN(r.dif_entrada_am)
               ? r.dif_entrada_am
               : null,
           dif_salida_am:
-            typeof r.dif_salida_am === 'number' && !Number.isNaN(r.dif_salida_am)
+            typeof r.dif_salida_am === 'number' &&
+            !Number.isNaN(r.dif_salida_am)
               ? r.dif_salida_am
               : null,
           dif_entrada_pm:
-            typeof r.dif_entrada_pm === 'number' && !Number.isNaN(r.dif_entrada_pm)
+            typeof r.dif_entrada_pm === 'number' &&
+            !Number.isNaN(r.dif_entrada_pm)
               ? r.dif_entrada_pm
               : null,
           dif_salida_pm:
-            typeof r.dif_salida_pm === 'number' && !Number.isNaN(r.dif_salida_pm)
+            typeof r.dif_salida_pm === 'number' &&
+            !Number.isNaN(r.dif_salida_pm)
               ? r.dif_salida_pm
               : null,
         }),
     );
   }
 }
-

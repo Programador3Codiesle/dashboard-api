@@ -7,9 +7,7 @@ import { EncuestaInternaRowEntity } from '../../domain/encuestas-internas.entity
 
 @Injectable()
 export class ObtenerEncuestasInternasUseCase {
-  constructor(
-    private readonly repo: IEncuestasInternasRepository,
-  ) {}
+  constructor(private readonly repo: IEncuestasInternasRepository) {}
 
   async execute(
     filtros: FiltrosEncuestasInternas,
@@ -17,4 +15,3 @@ export class ObtenerEncuestasInternasUseCase {
     return this.repo.obtener(filtros);
   }
 }
-

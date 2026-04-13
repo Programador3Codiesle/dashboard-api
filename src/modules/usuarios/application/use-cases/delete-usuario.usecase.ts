@@ -1,5 +1,5 @@
-import { Injectable, Inject } from "@nestjs/common";
-import { IUsuarioCoreRepository } from "../../domain/repositories/usuario-core.repository";
+import { Injectable, Inject } from '@nestjs/common';
+import { IUsuarioCoreRepository } from '../../domain/repositories/usuario-core.repository';
 
 /**
  * Use Case para eliminar Usuario
@@ -7,12 +7,12 @@ import { IUsuarioCoreRepository } from "../../domain/repositories/usuario-core.r
  */
 @Injectable()
 export class DeleteUsuarioUseCase {
-    constructor(
-        @Inject(IUsuarioCoreRepository)
-        private readonly coreRepo: IUsuarioCoreRepository
-    ) {}
+  constructor(
+    @Inject(IUsuarioCoreRepository)
+    private readonly coreRepo: IUsuarioCoreRepository,
+  ) {}
 
-    async execute(id: number) {
-        await this.coreRepo.delete(id);
-    }
+  async execute(id: number) {
+    await this.coreRepo.delete(id);
+  }
 }

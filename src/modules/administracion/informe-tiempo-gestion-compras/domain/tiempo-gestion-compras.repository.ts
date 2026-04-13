@@ -11,4 +11,3 @@ export abstract class ITiempoGestionComprasRepository {
     filtros: FiltrosTiempoGestionCompras,
   ): Promise<TiempoGestionComprasEntity[]>;
 }
-

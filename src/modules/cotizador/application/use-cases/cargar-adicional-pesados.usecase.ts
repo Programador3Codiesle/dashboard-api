@@ -15,9 +15,7 @@ export interface CargarAdicionalPesadosDTO {
 
 @Injectable()
 export class CargarAdicionalPesadosUseCase {
-  constructor(
-    private readonly repo: ICotizadorAdicionalesPesadosRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorAdicionalesPesadosRepository) {}
 
   async execute(
     dto: CargarAdicionalPesadosDTO,
@@ -38,4 +36,3 @@ export class CargarAdicionalPesadosUseCase {
     );
   }
 }
-

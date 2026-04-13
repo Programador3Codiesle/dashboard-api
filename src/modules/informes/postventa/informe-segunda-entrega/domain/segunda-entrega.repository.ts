@@ -17,4 +17,3 @@ export abstract class ISegundaEntregaRepository {
     filtros: FiltrosSegundaEntrega,
   ): Promise<SegundaEntregaDetalleEntity[]>;
 }
-

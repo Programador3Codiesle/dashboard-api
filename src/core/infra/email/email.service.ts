@@ -45,12 +45,19 @@ export class EmailService {
     });
 
     // Nodemailer types: si enviamos Address, "name" debe ser string (no undefined).
-    this.from = fromName ? { address: fromAddress, name: fromName } : fromAddress;
+    this.from = fromName
+      ? { address: fromAddress, name: fromName }
+      : fromAddress;
   }
 
-  async sendEmail(params: SendEmailParams): Promise<{ ok: boolean; error?: string }> {
+  async sendEmail(
+    params: SendEmailParams,
+  ): Promise<{ ok: boolean; error?: string }> {
     if (!this.transporter || !this.from) {
-      return { ok: false, error: 'SMTP no configurado (faltan variables de entorno).' };
+      return {
+        ok: false,
+        error: 'SMTP no configurado (faltan variables de entorno).',
+      };
     }
 
     try {
@@ -68,4 +75,3 @@ export class EmailService {
     }
   }
 }
-

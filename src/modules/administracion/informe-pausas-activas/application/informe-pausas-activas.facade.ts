@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ListarPausasActivasUseCase, FiltrosPausasActivas } from './use-cases/listar-pausas-activas.usecase';
+import {
+  ListarPausasActivasUseCase,
+  FiltrosPausasActivas,
+} from './use-cases/listar-pausas-activas.usecase';
 
 @Injectable()
 export class InformePausasActivasFacade {
@@ -9,4 +12,3 @@ export class InformePausasActivasFacade {
     return this.listarUC.execute(filtros);
   }
 }
-

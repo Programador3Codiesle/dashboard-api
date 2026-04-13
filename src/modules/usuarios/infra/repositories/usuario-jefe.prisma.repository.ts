@@ -2,11 +2,11 @@
  * Repositorio de Usuario - Gestión de Jefes
  * Implementa IUsuarioJefeRepository siguiendo Clean Architecture
  */
-import { Injectable } from "@nestjs/common";
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
-import { JefesEntity } from "../../domain/usuario.entity";
-import { CreateJefeDto } from "../../application/dto/assign-jefe.dto";
-import { IUsuarioJefeRepository } from "../../domain/repositories/usuario-jefe.repository";
+import { JefesEntity } from '../../domain/usuario.entity';
+import { CreateJefeDto } from '../../application/dto/assign-jefe.dto';
+import { IUsuarioJefeRepository } from '../../domain/repositories/usuario-jefe.repository';
 
 @Injectable()
 export class UsuarioJefeRepository implements IUsuarioJefeRepository {
@@ -23,7 +23,9 @@ export class UsuarioJefeRepository implements IUsuarioJefeRepository {
     `;
 
     // Obtener los datos del jefe para retornarlos
-    const jefeData = await this.prisma.$queryRaw<Array<{ id_jefe: number, nombres: string }>>`
+    const jefeData = await this.prisma.$queryRaw<
+      Array<{ id_jefe: number; nombres: string }>
+    >`
       SELECT j.id_jefe, t.nombres
       FROM postv_jefes j
       LEFT JOIN terceros t ON j.nit_jefe = t.nit
@@ -48,11 +50,14 @@ export class UsuarioJefeRepository implements IUsuarioJefeRepository {
       WHERE empleado = ${id}
     `;
 
-    return results.map((item) => new JefesEntity({
-      id: item.jefe.toString(),
-      nombre: item.nombres,
-      nit: item.nit_jefe?.toString(),
-    }));
+    return results.map(
+      (item) =>
+        new JefesEntity({
+          id: item.jefe.toString(),
+          nombre: item.nombres,
+          nit: item.nit_jefe?.toString(),
+        }),
+    );
   }
 
   /**
@@ -65,10 +70,13 @@ export class UsuarioJefeRepository implements IUsuarioJefeRepository {
       LEFT JOIN terceros t ON j.nit_jefe = t.nit
     `;
 
-    return results.map((item) => new JefesEntity({
-      id: item.id_jefe.toString(),
-      nombre: item.nombres,
-    }));
+    return results.map(
+      (item) =>
+        new JefesEntity({
+          id: item.id_jefe.toString(),
+          nombre: item.nombres,
+        }),
+    );
   }
 
   /**
@@ -82,7 +90,9 @@ export class UsuarioJefeRepository implements IUsuarioJefeRepository {
     `;
 
     // Obtener los datos del jefe para retornarlos
-    const jefeData = await this.prisma.$queryRaw<Array<{ id_jefe: number, nombres: string }>>`
+    const jefeData = await this.prisma.$queryRaw<
+      Array<{ id_jefe: number; nombres: string }>
+    >`
       SELECT j.id_jefe, t.nombres
       FROM postv_jefes j
       LEFT JOIN terceros t ON j.nit_jefe = t.nit
@@ -106,18 +116,23 @@ export class UsuarioJefeRepository implements IUsuarioJefeRepository {
       ORDER BY id_jefe DESC
     `;
 
-    return rawData.map((row) => new JefesEntity({
-      id: row.id_jefe.toString(),
-      nit: row.nit_jefe.toString(),
-      nombre: row.nombres,
-      email: row.correo
-    }));
+    return rawData.map(
+      (row) =>
+        new JefesEntity({
+          id: row.id_jefe.toString(),
+          nit: row.nit_jefe.toString(),
+          nombre: row.nombres,
+          email: row.correo,
+        }),
+    );
   }
 
   /**
    * Crear un nuevo jefe
    */
-  async crearJefe(dto: CreateJefeDto): Promise<{ success: boolean; message: string }> {
+  async crearJefe(
+    dto: CreateJefeDto,
+  ): Promise<{ success: boolean; message: string }> {
     try {
       await this.prisma.$executeRaw`
         INSERT INTO postv_jefes (nit_jefe, correo) VALUES (${dto.nit}, ${dto.email})
@@ -125,13 +140,13 @@ export class UsuarioJefeRepository implements IUsuarioJefeRepository {
 
       return {
         success: true,
-        message: 'Jefe creado correctamente'
+        message: 'Jefe creado correctamente',
       };
     } catch (error: any) {
       console.error('Error creando jefe:', error);
       return {
         success: false,
-        message: 'Error al crear el jefe: ' + error.message
+        message: 'Error al crear el jefe: ' + error.message,
       };
     }
   }

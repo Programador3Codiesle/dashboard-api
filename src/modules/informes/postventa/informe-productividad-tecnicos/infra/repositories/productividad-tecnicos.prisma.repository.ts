@@ -11,9 +11,7 @@ import {
 } from '../../domain/productividad-tecnicos.entity';
 
 @Injectable()
-export class ProductividadTecnicosPrismaRepository
-  implements IProductividadTecnicosRepository
-{
+export class ProductividadTecnicosPrismaRepository implements IProductividadTecnicosRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async obtenerProductividad(
@@ -167,32 +165,42 @@ export class ProductividadTecnicosPrismaRepository
       ORDER BY tt.patio ASC, t.nombres ASC
     `);
 
+    const asNum = (v: unknown): number => {
+      if (v === null || v === undefined) return 0;
+      if (typeof v === 'number' && Number.isFinite(v)) return v;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : 0;
+    };
+
     const mapRow = (row: {
       nit: string;
       nombres: string;
       patio: number;
-      horas_cliente: number | null;
-      horas_garantia: number | null;
-      horas_servicio: number | null;
-      horas_interno: number | null;
-      total_horas: number | null;
-      horas_disp: number | null;
+      horas_cliente: unknown;
+      horas_garantia: unknown;
+      horas_servicio: unknown;
+      horas_interno: unknown;
+      total_horas: unknown;
+      horas_disp: unknown;
     }) => {
-      const horasCliente = row.horas_cliente ?? 0;
-      const horasGarantia = row.horas_garantia ?? 0;
-      const horasServicio = row.horas_servicio ?? 0;
-      const horasInterno = row.horas_interno ?? 0;
-      const totalHoras =
-        row.total_horas ??
+      const horasCliente = asNum(row.horas_cliente);
+      const horasGarantia = asNum(row.horas_garantia);
+      const horasServicio = asNum(row.horas_servicio);
+      const horasInterno = asNum(row.horas_interno);
+      const sumPartes =
         horasCliente + horasGarantia + horasServicio + horasInterno;
-      const horasDisponibles = row.horas_disp ?? 0;
+      const totalHoras =
+        row.total_horas === null || row.total_horas === undefined
+          ? sumPartes
+          : asNum(row.total_horas);
+      const horasDisponibles = asNum(row.horas_disp);
       const productividad =
         horasDisponibles > 0 ? (totalHoras / horasDisponibles) * 100 : 0;
 
       return new ProductividadTecnicoRowEntity({
-        nit: row.nit,
-        nombres: row.nombres,
-        patio: row.patio,
+        nit: String(row.nit ?? ''),
+        nombres: String(row.nombres ?? ''),
+        patio: asNum(row.patio),
         horasCliente,
         horasGarantia,
         horasServicio,
@@ -212,4 +220,3 @@ export class ProductividadTecnicosPrismaRepository
     });
   }
 }
-

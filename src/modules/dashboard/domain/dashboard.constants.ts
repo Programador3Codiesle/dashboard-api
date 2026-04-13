@@ -22,9 +22,7 @@ export const CENTROS_BARRANCA = '13,70,11';
 export const CENTROS_BOCONO = '29,80,31,46,28';
 export const CENTROS_CHEVRO = '15';
 export const CENTROS_SOLOCH = '60';
-export const CENTROS_TODOS =
-  '4,40,33,45,3,16,17,13,70,11,29,80,31,46,28,60,15';
-
+export const CENTROS_TODOS = '4,40,33,45,3,16,17,13,70,11,29,80,31,46,28,60,15';
 
 export const ASESORES: AsesorConfig[] = [
   { nombre: 'QUIÑONEZ NAVAS DIEGO ALONSO', sede: 'MOSTRADOR' },

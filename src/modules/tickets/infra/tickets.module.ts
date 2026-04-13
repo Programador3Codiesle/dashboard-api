@@ -1,4 +1,3 @@
-
 import { Module } from '@nestjs/common';
 import { TicketController } from './tickets.controller';
 import { TicketFacade } from '../application/ticket.facade';
@@ -11,16 +10,16 @@ import { TicketPrismaRepository } from './repositories/ticket.prisma.repository'
 import { PrismaService } from '../../../core/infra/prisma/prisma.service';
 
 @Module({
-    controllers: [TicketController],
-    providers: [
-        TicketFacade,
-        CreateTicketUseCase,
-        UpdateTicketUseCase,
-        GetTicketsUseCase,
-        ResponderTicketUseCase,
-        { provide: ITicketRepository, useClass: TicketPrismaRepository },
-        PrismaService
-    ],
-    exports: [TicketFacade]
+  controllers: [TicketController],
+  providers: [
+    TicketFacade,
+    CreateTicketUseCase,
+    UpdateTicketUseCase,
+    GetTicketsUseCase,
+    ResponderTicketUseCase,
+    { provide: ITicketRepository, useClass: TicketPrismaRepository },
+    PrismaService,
+  ],
+  exports: [TicketFacade],
 })
-export class TicketsModule { }
+export class TicketsModule {}

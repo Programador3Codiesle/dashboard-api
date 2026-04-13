@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  FiltrosChecklistCarro,
-} from '../domain/checklist-carro.repository';
+import { FiltrosChecklistCarro } from '../domain/checklist-carro.repository';
 import { ListarChecklistCarroUseCase } from './use-cases/listar-checklist-carro.usecase';
 
 @Injectable()
@@ -12,4 +10,3 @@ export class ChecklistCarroFacade {
     return this.listarUC.execute(filtros);
   }
 }
-

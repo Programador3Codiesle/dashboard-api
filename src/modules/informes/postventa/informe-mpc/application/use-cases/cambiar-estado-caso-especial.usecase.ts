@@ -7,9 +7,7 @@ export class CambiarEstadoCasoEspecialUseCase {
 
   async execute(placa: string, estado: number, userId: number): Promise<void> {
     if (!placa) {
-      throw new BadRequestException(
-        'No se ha recibido la placa del vehículo.',
-      );
+      throw new BadRequestException('No se ha recibido la placa del vehículo.');
     }
 
     if (!userId) {
@@ -21,4 +19,3 @@ export class CambiarEstadoCasoEspecialUseCase {
     await this.repo.cambiarEstadoCasoEspecial(placa, estado, userId);
   }
 }
-

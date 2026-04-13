@@ -9,4 +9,3 @@ export class PacNpsInternoBodegaEntity {
     Object.assign(this, partial);
   }
 }
-

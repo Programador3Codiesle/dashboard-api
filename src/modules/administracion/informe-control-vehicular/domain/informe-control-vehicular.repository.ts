@@ -10,9 +10,12 @@ export interface FiltrosControlVehicular {
 }
 
 export abstract class IInformeControlVehicularRepository {
-  abstract listar(
-    filtros: FiltrosControlVehicular,
-  ): Promise<{ items: InformeControlVehicularEntity[]; total: number; page: number; limit: number }>;
+  abstract listar(filtros: FiltrosControlVehicular): Promise<{
+    items: InformeControlVehicularEntity[];
+    total: number;
+    page: number;
+    limit: number;
+  }>;
 
   abstract findById(id: number): Promise<InformeControlVehicularEntity | null>;
 
@@ -20,4 +23,3 @@ export abstract class IInformeControlVehicularRepository {
     filtros: FiltrosControlVehicular,
   ): Promise<InformeControlVehicularEntity[]>;
 }
-

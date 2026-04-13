@@ -20,7 +20,9 @@ import {
 export class CotizadorLivianosPrismaRepository implements ICotizadorLivianosRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getVehiculoPorPlaca(placa: string): Promise<VehiculoCotizacionLivianos | null> {
+  async getVehiculoPorPlaca(
+    placa: string,
+  ): Promise<VehiculoCotizacionLivianos | null> {
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT 
         v.marca,
@@ -266,20 +268,23 @@ export class CotizadorLivianosPrismaRepository implements ICotizadorLivianosRepo
       repuestosRows
         .filter(
           (r: any) =>
-            r.Categoria === 'MANDATORIO' || r.Categoria === 'MANDATORIO CODIESEL',
+            r.Categoria === 'MANDATORIO' ||
+            r.Categoria === 'MANDATORIO CODIESEL',
         )
         .map((r: any) => Number(r.seq)),
     );
 
-    const repuestos: RepuestoRevisionDetalle[] = repuestosRows.map((r: any) => ({
-      seq: Number(r.seq),
-      codigo: r.codigo,
-      descripcion: r.descripcion,
-      categoria: r.Categoria,
-      cantidad: Number(r.Cantidad),
-      valor: Number(r.Valor),
-      unidades_disponibles: Number(r.unidades_disponibles ?? 0),
-    }));
+    const repuestos: RepuestoRevisionDetalle[] = repuestosRows.map(
+      (r: any) => ({
+        seq: Number(r.seq),
+        codigo: r.codigo,
+        descripcion: r.descripcion,
+        categoria: r.Categoria,
+        cantidad: Number(r.Cantidad),
+        valor: Number(r.Valor),
+        unidades_disponibles: Number(r.unidades_disponibles ?? 0),
+      }),
+    );
 
     const manoObraBase: ManoObraMttoDetalle[] = manoObraRows.map((m: any) => {
       const valorMenos5 = Number(m.valor_unitario ?? 0);
@@ -299,7 +304,8 @@ export class CotizadorLivianosPrismaRepository implements ICotizadorLivianosRepo
         const valorMenos5 = Number(a.valor_menos_5anos ?? 0);
         const valorMas5 = Number(a.valor_mas_5anos ?? 0);
         const costo = usarValorMenos5 ? valorMenos5 : valorMas5;
-        const cantHoras = a.tiempo_adicional != null ? Number(a.tiempo_adicional) : 0;
+        const cantHoras =
+          a.tiempo_adicional != null ? Number(a.tiempo_adicional) : 0;
 
         return {
           descripcion_operacion: a.nombre_operacion,
@@ -311,7 +317,10 @@ export class CotizadorLivianosPrismaRepository implements ICotizadorLivianosRepo
       },
     );
 
-    const manoObra: ManoObraMttoDetalle[] = [...manoObraBase, ...manoObraAdicional];
+    const manoObra: ManoObraMttoDetalle[] = [
+      ...manoObraBase,
+      ...manoObraAdicional,
+    ];
 
     return { repuestos, manoObra };
   }
@@ -365,11 +374,15 @@ export class CotizadorLivianosPrismaRepository implements ICotizadorLivianosRepo
       throw new Error('No se pudo crear la cotización.');
     }
 
-    const insertedId = rows[0].id_cotizacion ?? rows[0].ID_COTIZACION ?? rows[0].Id_cotizacion;
+    const insertedId =
+      rows[0].id_cotizacion ?? rows[0].ID_COTIZACION ?? rows[0].Id_cotizacion;
     return Number(insertedId);
   }
 
-  async agregarRepuestosCotizacion(idCotizacion: number, items: RepuestoCotizacionInput[]): Promise<void> {
+  async agregarRepuestosCotizacion(
+    idCotizacion: number,
+    items: RepuestoCotizacionInput[],
+  ): Promise<void> {
     if (!items.length) return;
 
     for (const item of items) {
@@ -400,7 +413,10 @@ export class CotizadorLivianosPrismaRepository implements ICotizadorLivianosRepo
     }
   }
 
-  async agregarManoObraCotizacion(idCotizacion: number, items: ManoObraCotizacionInput[]): Promise<void> {
+  async agregarManoObraCotizacion(
+    idCotizacion: number,
+    items: ManoObraCotizacionInput[],
+  ): Promise<void> {
     if (!items.length) return;
 
     for (const item of items) {
@@ -496,7 +512,9 @@ export class CotizadorLivianosPrismaRepository implements ICotizadorLivianosRepo
     adicional: number,
     operacion?: string,
   ): Promise<RawSqlRow[]> {
-    const opFilter = operacion ? Prisma.sql`AND mo.operacion = ${operacion}` : Prisma.empty;
+    const opFilter = operacion
+      ? Prisma.sql`AND mo.operacion = ${operacion}`
+      : Prisma.empty;
     const rows = await this.prisma.$queryRaw<any[]>(
       Prisma.sql`
       SELECT mo.id, mo.clase, mo.operacion, mo.tiempo,

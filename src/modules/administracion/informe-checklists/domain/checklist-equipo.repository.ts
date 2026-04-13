@@ -8,6 +8,7 @@ export interface FiltrosChecklistEquipo {
 }
 
 export abstract class IChecklistEquipoRepository {
-  abstract listar(filtros: FiltrosChecklistEquipo): Promise<ChecklistEquipoEntity[]>;
+  abstract listar(
+    filtros: FiltrosChecklistEquipo,
+  ): Promise<ChecklistEquipoEntity[]>;
 }
-

@@ -2,11 +2,11 @@
  * Repositorio de Usuario - Operaciones Core (CRUD básico)
  * Implementa IUsuarioCoreRepository siguiendo Clean Architecture
  */
-import { Injectable } from "@nestjs/common";
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
-import { UsuarioMapper } from "../../presentation/mappers/usuario.mapper";
-import { PerfilesEntity, UsuarioEntity } from "../../domain/usuario.entity";
-import { IUsuarioCoreRepository } from "../../domain/repositories/usuario-core.repository";
+import { UsuarioMapper } from '../../presentation/mappers/usuario.mapper';
+import { PerfilesEntity, UsuarioEntity } from '../../domain/usuario.entity';
+import { IUsuarioCoreRepository } from '../../domain/repositories/usuario-core.repository';
 
 @Injectable()
 export class UsuarioCoreRepository implements IUsuarioCoreRepository {
@@ -71,7 +71,9 @@ export class UsuarioCoreRepository implements IUsuarioCoreRepository {
       data: dto,
     });
 
-    const usuarioData = await this.prisma.$queryRaw<Array<{ id_perfil: number, nom_perfil: string }>>`
+    const usuarioData = await this.prisma.$queryRaw<
+      Array<{ id_perfil: number; nom_perfil: string }>
+    >`
       SELECT * FROM postv_perfiles where id_perfil=${dto.perfil_postventa};
     `;
 
@@ -92,21 +94,28 @@ export class UsuarioCoreRepository implements IUsuarioCoreRepository {
    * Listar todos los perfiles disponibles
    */
   async listarPerfiles(): Promise<PerfilesEntity[]> {
-    const perfilesData = await this.prisma.$queryRaw<Array<{ id_perfil: number, nom_perfil: string }>>`
+    const perfilesData = await this.prisma.$queryRaw<
+      Array<{ id_perfil: number; nom_perfil: string }>
+    >`
       SELECT id_perfil , nom_perfil
       FROM postv_perfiles
     `;
-    return perfilesData.map((item) => new PerfilesEntity({ 
-      id: item.id_perfil.toString(), 
-      nombre: item.nom_perfil 
-    }));
+    return perfilesData.map(
+      (item) =>
+        new PerfilesEntity({
+          id: item.id_perfil.toString(),
+          nombre: item.nom_perfil,
+        }),
+    );
   }
 
   /**
    * Obtener el perfil de un usuario específico
    */
   async listarPerfilUsuario(id: number): Promise<PerfilesEntity[]> {
-    const perfilData = await this.prisma.$queryRaw<Array<{ id_perfil: bigint, nom_perfil: string }>>`
+    const perfilData = await this.prisma.$queryRaw<
+      Array<{ id_perfil: bigint; nom_perfil: string }>
+    >`
       SELECT 
         w.perfil_postventa AS id_perfil,
         pv.nom_perfil 
@@ -116,13 +125,14 @@ export class UsuarioCoreRepository implements IUsuarioCoreRepository {
     `;
 
     return perfilData.map((item) => {
-      const perfilId = typeof item.id_perfil === 'bigint'
-        ? item.id_perfil.toString()
-        : item.id_perfil;
+      const perfilId =
+        typeof item.id_perfil === 'bigint'
+          ? item.id_perfil.toString()
+          : item.id_perfil;
 
       return new PerfilesEntity({
         id: perfilId,
-        nombre: item.nom_perfil
+        nombre: item.nom_perfil,
       });
     });
   }
@@ -130,25 +140,28 @@ export class UsuarioCoreRepository implements IUsuarioCoreRepository {
   /**
    * Resetear la contraseña de un usuario
    */
-  async resetPassword(id: number, encryptedPassword: string): Promise<{ success: boolean; message: string }> {
+  async resetPassword(
+    id: number,
+    encryptedPassword: string,
+  ): Promise<{ success: boolean; message: string }> {
     try {
       await this.prisma.w_sist_usuarios.update({
         where: { id_usuario: id },
         data: {
           pass: encryptedPassword,
           num_intentos: 0,
-          estado_usuario: 1
-        }
+          estado_usuario: 1,
+        },
       });
       return {
         success: true,
-        message: 'Contraseña actualizada correctamente'
+        message: 'Contraseña actualizada correctamente',
       };
     } catch (error: any) {
       console.error('Error resetting password:', error);
       return {
         success: false,
-        message: 'Error al actualizar la contraseña: ' + error.message
+        message: 'Error al actualizar la contraseña: ' + error.message,
       };
     }
   }
@@ -156,21 +169,23 @@ export class UsuarioCoreRepository implements IUsuarioCoreRepository {
   /**
    * Deshabilitar un usuario
    */
-  async deshabilitar(id: number): Promise<{ success: boolean; message: string }> {
+  async deshabilitar(
+    id: number,
+  ): Promise<{ success: boolean; message: string }> {
     try {
       await this.prisma.w_sist_usuarios.update({
         where: { id_usuario: id },
-        data: { estado: 0 }
+        data: { estado: 0 },
       });
       return {
         success: true,
-        message: 'Usuario deshabilitado correctamente'
+        message: 'Usuario deshabilitado correctamente',
       };
     } catch (error: any) {
       console.error('Error deshabilitando usuario:', error);
       return {
         success: false,
-        message: 'Error al deshabilitar el usuario: ' + error.message
+        message: 'Error al deshabilitar el usuario: ' + error.message,
       };
     }
   }
@@ -182,17 +197,17 @@ export class UsuarioCoreRepository implements IUsuarioCoreRepository {
     try {
       await this.prisma.w_sist_usuarios.update({
         where: { id_usuario: id },
-        data: { estado: 1 }
+        data: { estado: 1 },
       });
       return {
         success: true,
-        message: 'Usuario habilitado correctamente'
+        message: 'Usuario habilitado correctamente',
       };
     } catch (error: any) {
       console.error('Error habilitando usuario:', error);
       return {
         success: false,
-        message: 'Error al habilitar el usuario: ' + error.message
+        message: 'Error al habilitar el usuario: ' + error.message,
       };
     }
   }
@@ -209,10 +224,13 @@ export class UsuarioCoreRepository implements IUsuarioCoreRepository {
       WHERE u.estado = 1
     `;
 
-    return rawData.map((row) => new UsuarioEntity({
-      id: row.nit.toString(),
-      nombre: row.nombres
-    }));
+    return rawData.map(
+      (row) =>
+        new UsuarioEntity({
+          id: row.nit.toString(),
+          nombre: row.nombres,
+        }),
+    );
   }
 
   /**
@@ -259,7 +277,9 @@ export class UsuarioCoreRepository implements IUsuarioCoreRepository {
   /**
    * Crear un nuevo usuario
    */
-  async crearUsuario(data: any): Promise<{ success: boolean; message: string }> {
+  async crearUsuario(
+    data: any,
+  ): Promise<{ success: boolean; message: string }> {
     try {
       await this.prisma.$executeRaw`
         INSERT INTO w_sist_usuarios (nit_usuario,estado,pass,num_intentos,perfil_postventa,clave,tipo_tercero,fid_perfil)
@@ -268,13 +288,13 @@ export class UsuarioCoreRepository implements IUsuarioCoreRepository {
 
       return {
         success: true,
-        message: 'Usuario creado correctamente'
+        message: 'Usuario creado correctamente',
       };
     } catch (error: any) {
       console.error('Error creando usuario:', error);
       return {
         success: false,
-        message: 'Error al crear el usuario: ' + error.message
+        message: 'Error al crear el usuario: ' + error.message,
       };
     }
   }

@@ -15,9 +15,7 @@ export interface ListarAdicionalesPesadosResponse {
 
 @Injectable()
 export class ListarAdicionalesPesadosUseCase {
-  constructor(
-    private readonly repo: ICotizadorAdicionalesPesadosRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorAdicionalesPesadosRepository) {}
 
   async execute(
     filtros: FiltrosListaAdicionalesPesados,
@@ -30,4 +28,3 @@ export class ListarAdicionalesPesadosUseCase {
     return { repuestos, manoObra };
   }
 }
-

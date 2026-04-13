@@ -19,4 +19,3 @@ import { ChecklistCarroPrismaRepository } from './repositories/checklist-carro.p
   ],
 })
 export class InformeChecklistCarroModule {}
-

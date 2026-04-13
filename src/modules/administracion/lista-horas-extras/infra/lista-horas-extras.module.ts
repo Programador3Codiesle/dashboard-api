@@ -7,13 +7,13 @@ import { HorasExtrasPrismaRepository } from './repositories/horas-extras.prisma.
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
-    controllers: [ListaHorasExtrasController],
-    providers: [
-        ListaHorasExtrasFacade,
-        ObtenerHorasExtrasDiaActualUseCase,
-        { provide: IHorasExtrasRepository, useClass: HorasExtrasPrismaRepository },
-        PrismaService
-    ],
-    exports: [ListaHorasExtrasFacade]
+  controllers: [ListaHorasExtrasController],
+  providers: [
+    ListaHorasExtrasFacade,
+    ObtenerHorasExtrasDiaActualUseCase,
+    { provide: IHorasExtrasRepository, useClass: HorasExtrasPrismaRepository },
+    PrismaService,
+  ],
+  exports: [ListaHorasExtrasFacade],
 })
-export class ListaHorasExtrasModule { }
+export class ListaHorasExtrasModule {}

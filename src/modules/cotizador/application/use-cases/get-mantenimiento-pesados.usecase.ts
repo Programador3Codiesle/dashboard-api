@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ICotizadorPesadosRepository, MantenimientoPesadosResponse } from '../../domain/cotizador-pesados.repository';
+import {
+  ICotizadorPesadosRepository,
+  MantenimientoPesadosResponse,
+} from '../../domain/cotizador-pesados.repository';
 
 export interface GetMantenimientoPesadosParams {
   clase: string;
@@ -12,7 +15,9 @@ export interface GetMantenimientoPesadosParams {
 export class GetMantenimientoPesadosUseCase {
   constructor(private readonly repo: ICotizadorPesadosRepository) {}
 
-  async execute(params: GetMantenimientoPesadosParams): Promise<MantenimientoPesadosResponse> {
+  async execute(
+    params: GetMantenimientoPesadosParams,
+  ): Promise<MantenimientoPesadosResponse> {
     const { clase, revision, bodega, yearModel } = params;
     if (!clase.trim() || !revision || !bodega || !yearModel) {
       return { grupos: [] };
@@ -25,4 +30,3 @@ export class GetMantenimientoPesadosUseCase {
     });
   }
 }
-

@@ -11,18 +11,29 @@ export class UpdateUsuarioDto {
 
   @IsOptional()
   @IsString()
-  @ApiProperty({ example: '12345678', description: 'NIT del usuario', required: false })
+  @ApiProperty({
+    example: '12345678',
+    description: 'NIT del usuario',
+    required: false,
+  })
   nit?: string;
 
   @IsOptional()
   @IsString()
-  @ApiProperty({ example: 'Nombre del usuario', description: 'Nombre del usuario', required: false })
+  @ApiProperty({
+    example: 'Nombre del usuario',
+    description: 'Nombre del usuario',
+    required: false,
+  })
   nombre?: string;
 
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  @ApiProperty({ example: 21, description: 'ID del perfil del usuario', required: false })
+  @ApiProperty({
+    example: 21,
+    description: 'ID del perfil del usuario',
+    required: false,
+  })
   perfil?: number;
 }
-

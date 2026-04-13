@@ -3,9 +3,11 @@ import { ObtenerHorasExtrasDiaActualUseCase } from './use-cases/obtener-horas-ex
 
 @Injectable()
 export class ListaHorasExtrasFacade {
-    constructor(private readonly obtenerHorasExtrasUC: ObtenerHorasExtrasDiaActualUseCase) {}
+  constructor(
+    private readonly obtenerHorasExtrasUC: ObtenerHorasExtrasDiaActualUseCase,
+  ) {}
 
-    obtenerDiaActual() {
-        return this.obtenerHorasExtrasUC.execute();
-    }
+  obtenerDiaActual() {
+    return this.obtenerHorasExtrasUC.execute();
+  }
 }

@@ -29,7 +29,6 @@ export class TallaPersonalPrismaRepository implements ITallaPersonalRepository {
       ORDER BY ter.nombres
     `;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows = await this.prisma.$queryRaw<any[]>(sql);
 
     return rows.map(
@@ -45,4 +44,3 @@ export class TallaPersonalPrismaRepository implements ITallaPersonalRepository {
     );
   }
 }
-

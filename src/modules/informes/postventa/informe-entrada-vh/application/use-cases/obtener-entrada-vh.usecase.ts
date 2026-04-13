@@ -17,4 +17,3 @@ export class ObtenerInformeEntradaVhUseCase {
     return this.informeEntradaVhRepository.obtenerResumen(filtros);
   }
 }
-

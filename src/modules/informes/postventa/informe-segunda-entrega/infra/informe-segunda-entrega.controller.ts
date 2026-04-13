@@ -26,4 +26,3 @@ export class InformeSegundaEntregaController {
     return this.facade.listar(filtros);
   }
 }
-

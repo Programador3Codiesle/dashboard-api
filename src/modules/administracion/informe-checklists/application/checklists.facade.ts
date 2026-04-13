@@ -10,4 +10,3 @@ export class ChecklistsFacade {
     return this.listarChecklists.execute(filtros);
   }
 }
-

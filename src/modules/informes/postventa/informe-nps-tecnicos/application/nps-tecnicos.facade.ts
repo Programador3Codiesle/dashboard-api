@@ -26,4 +26,3 @@ export class NpsTecnicosFacade {
     return this.listarNpsTecnicosUseCase.execute(filtros);
   }
 }
-

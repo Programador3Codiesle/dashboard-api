@@ -11,4 +11,3 @@ export abstract class ITicketPromedioTecnicoRepository {
     filtros: FiltrosTicketPromedioTecnico,
   ): Promise<TicketPromedioTecnicoRowEntity[]>;
 }
-

@@ -12,4 +12,3 @@ export class ListarChecklistCarroUseCase {
     return this.repo.listar(filtros);
   }
 }
-

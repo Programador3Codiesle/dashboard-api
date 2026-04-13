@@ -8,4 +8,3 @@ export abstract class IInformePausasActivasRepository {
     fechaMes?: string | null;
   }): Promise<InformePausasActivasEntity[]>;
 }
-

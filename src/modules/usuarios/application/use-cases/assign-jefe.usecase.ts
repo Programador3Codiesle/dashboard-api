@@ -1,8 +1,11 @@
-import { Injectable, Inject } from "@nestjs/common";
-import { AssignJefeDto, CreateJefeDto } from "../../application/dto/assign-jefe.dto";
-import { UsuarioMapper } from "../../presentation/mappers/usuario.mapper";
-import { IUsuarioJefeRepository } from "../../domain/repositories/usuario-jefe.repository";
-import { IUsuarioCoreRepository } from "../../domain/repositories/usuario-core.repository";
+import { Injectable, Inject } from '@nestjs/common';
+import {
+  AssignJefeDto,
+  CreateJefeDto,
+} from '../../application/dto/assign-jefe.dto';
+import { UsuarioMapper } from '../../presentation/mappers/usuario.mapper';
+import { IUsuarioJefeRepository } from '../../domain/repositories/usuario-jefe.repository';
+import { IUsuarioCoreRepository } from '../../domain/repositories/usuario-core.repository';
 
 /**
  * Use Case para gestión de Jefes
@@ -57,7 +60,9 @@ export class AssignJefeUseCase {
 
   async verUsuariosJefes() {
     const usuarios = await this.coreRepo.verUsuariosJefes();
-    return usuarios.map((usuario) => UsuarioMapper.jefeResponseUsuario(usuario));
+    return usuarios.map((usuario) =>
+      UsuarioMapper.jefeResponseUsuario(usuario),
+    );
   }
 
   async crearJefe(dto: CreateJefeDto) {

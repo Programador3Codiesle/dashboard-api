@@ -15,4 +15,3 @@ export class ObtenerNpsInternoUseCase {
     return this.repository.obtenerResumen(filtros);
   }
 }
-

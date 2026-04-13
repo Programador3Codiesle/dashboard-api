@@ -8,6 +8,7 @@ export interface FiltrosIndicadorChecklist {
 }
 
 export abstract class IIndicadorChecklistRepository {
-  abstract listar(filtros: FiltrosIndicadorChecklist): Promise<IndicadorChecklistEntity[]>;
+  abstract listar(
+    filtros: FiltrosIndicadorChecklist,
+  ): Promise<IndicadorChecklistEntity[]>;
 }
-

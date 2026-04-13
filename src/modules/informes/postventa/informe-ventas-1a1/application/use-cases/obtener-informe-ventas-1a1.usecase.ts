@@ -9,10 +9,7 @@ import { Ventas1a1RowEntity } from '../../domain/ventas-1a1.entity';
 export class ObtenerInformeVentas1a1UseCase {
   constructor(private readonly ventas1a1Repository: IVentas1a1Repository) {}
 
-  async execute(
-    filtros: FiltrosVentas1a1,
-  ): Promise<Ventas1a1RowEntity[]> {
+  async execute(filtros: FiltrosVentas1a1): Promise<Ventas1a1RowEntity[]> {
     return this.ventas1a1Repository.obtenerInforme(filtros);
   }
 }
-

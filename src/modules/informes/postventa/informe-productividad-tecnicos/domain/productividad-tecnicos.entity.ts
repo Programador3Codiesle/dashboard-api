@@ -47,4 +47,3 @@ export class ProductividadTecnicosResponseEntity {
     this.consolidado = props.consolidado;
   }
 }
-

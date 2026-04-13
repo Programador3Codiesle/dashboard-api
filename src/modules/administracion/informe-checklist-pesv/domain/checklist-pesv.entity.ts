@@ -6,4 +6,3 @@ export class ChecklistPesvEntity {
     Object.assign(this, partial);
   }
 }
-

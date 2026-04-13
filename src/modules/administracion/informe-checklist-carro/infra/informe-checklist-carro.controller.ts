@@ -29,10 +29,8 @@ export class InformeChecklistCarroController {
     };
 
     const u = req.user;
-    const idUsuario =
-      u?.sub != null && u.sub !== '' ? Number(u.sub) : null;
-    const nitUsuario =
-      u?.nit != null && u.nit !== '' ? String(u.nit) : null;
+    const idUsuario = u?.sub != null && u.sub !== '' ? Number(u.sub) : null;
+    const nitUsuario = u?.nit != null && u.nit !== '' ? String(u.nit) : null;
     const perfilRaw = u?.role;
     const perfil =
       perfilRaw != null && perfilRaw !== '' ? Number(perfilRaw) : null;
@@ -43,10 +41,10 @@ export class InformeChecklistCarroController {
       sede: sede ?? null,
       pagina: toNum(pagina),
       limite: toNum(limite),
-      idUsuario: idUsuario != null && Number.isFinite(idUsuario) ? idUsuario : null,
+      idUsuario:
+        idUsuario != null && Number.isFinite(idUsuario) ? idUsuario : null,
       nitUsuario,
       perfil: perfil != null && Number.isFinite(perfil) ? perfil : null,
     });
   }
 }
-

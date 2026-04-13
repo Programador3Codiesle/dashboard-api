@@ -3,9 +3,7 @@ import { TiempoEntrevistaConsultivaFacade } from '../application/tiempo-entrevis
 
 @Controller('informes/postventa/tiempo-entrevista-consultiva')
 export class InformeTiempoEntrevistaConsultivaController {
-  constructor(
-    private readonly facade: TiempoEntrevistaConsultivaFacade,
-  ) {}
+  constructor(private readonly facade: TiempoEntrevistaConsultivaFacade) {}
 
   @Get()
   async obtenerResumen(
@@ -37,4 +35,3 @@ export class InformeTiempoEntrevistaConsultivaController {
     return this.facade.obtenerDetalle(parsedBodega, { startDate, endDate });
   }
 }
-

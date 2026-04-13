@@ -21,4 +21,3 @@ import { TiempoEntrevistaConsultivaFacade } from '../application/tiempo-entrevis
   ],
 })
 export class InformeTiempoEntrevistaConsultivaModule {}
-

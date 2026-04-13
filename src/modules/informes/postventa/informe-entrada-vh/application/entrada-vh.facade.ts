@@ -12,4 +12,3 @@ export class EntradaVhFacade {
     return this.obtenerInformeEntradaVhUseCase.execute(filtros);
   }
 }
-

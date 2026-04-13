@@ -17,4 +17,3 @@ export class ObtenerTicketPromedioTecnicoUseCase {
     return this.ticketPromedioRepo.obtenerDatos(filtros);
   }
 }
-

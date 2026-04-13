@@ -10,4 +10,3 @@ export class ObtenerKpiUseCase {
     return this.kpiRepository.obtenerResumen();
   }
 }
-

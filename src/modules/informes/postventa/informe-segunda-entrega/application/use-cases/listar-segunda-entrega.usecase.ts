@@ -12,9 +12,7 @@ import {
 export class ListarSegundaEntregaUseCase {
   constructor(private readonly repo: ISegundaEntregaRepository) {}
 
-  async execute(
-    filtros: FiltrosSegundaEntrega,
-  ): Promise<{
+  async execute(filtros: FiltrosSegundaEntrega): Promise<{
     resumen: SegundaEntregaResumenEntity[];
     detalle: SegundaEntregaDetalleEntity[];
   }> {
@@ -30,4 +28,3 @@ export class ListarSegundaEntregaUseCase {
     return { resumen, detalle };
   }
 }
-

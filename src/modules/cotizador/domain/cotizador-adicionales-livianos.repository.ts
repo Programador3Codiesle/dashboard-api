@@ -144,4 +144,3 @@ export abstract class ICotizadorAdicionalesLivianosRepository {
     input: UpdateManoObraAdicionalInput,
   ): Promise<void>;
 }
-

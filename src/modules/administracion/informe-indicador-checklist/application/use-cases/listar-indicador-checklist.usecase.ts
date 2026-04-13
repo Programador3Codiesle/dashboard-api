@@ -12,4 +12,3 @@ export class ListarIndicadorChecklistUseCase {
     return this.repo.listar(filtros);
   }
 }
-

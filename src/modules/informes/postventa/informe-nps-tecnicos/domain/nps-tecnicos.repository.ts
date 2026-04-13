@@ -11,4 +11,3 @@ export interface FiltrosNpsTecnicos {
 export abstract class INpsTecnicosRepository {
   abstract listar(filtros: FiltrosNpsTecnicos): Promise<NpsTecnicoRowEntity[]>;
 }
-

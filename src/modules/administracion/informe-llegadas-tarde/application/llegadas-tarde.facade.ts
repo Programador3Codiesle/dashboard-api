@@ -18,4 +18,3 @@ export class LlegadasTardeFacade {
     return this.listarResumenUseCase.execute(fechaInicio, fechaFin);
   }
 }
-

@@ -6,9 +6,7 @@ import {
 
 @Injectable()
 export class ListarPacNpsInternoDetalladoUseCase {
-  constructor(
-    private readonly repo: IPacNpsInternoDetalladoRepository,
-  ) {}
+  constructor(private readonly repo: IPacNpsInternoDetalladoRepository) {}
 
   execute(filtros: FiltrosPacNpsInterno) {
     if (!filtros.anio || !filtros.mes) {
@@ -17,4 +15,3 @@ export class ListarPacNpsInternoDetalladoUseCase {
     return this.repo.listarPorMes(filtros);
   }
 }
-

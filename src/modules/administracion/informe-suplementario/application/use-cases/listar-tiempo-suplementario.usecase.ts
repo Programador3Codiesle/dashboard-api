@@ -4,9 +4,9 @@ import { FiltrosTiempoSuplementarioDto } from '../dto/filtros-tiempo-suplementar
 
 @Injectable()
 export class ListarTiempoSuplementarioUseCase {
-    constructor(private readonly repo: IInformeTiempoSuplementarioRepository) {}
+  constructor(private readonly repo: IInformeTiempoSuplementarioRepository) {}
 
-    async execute(filtros?: FiltrosTiempoSuplementarioDto) {
-        return this.repo.listar(filtros);
-    }
+  async execute(filtros?: FiltrosTiempoSuplementarioDto) {
+    return this.repo.listar(filtros);
+  }
 }

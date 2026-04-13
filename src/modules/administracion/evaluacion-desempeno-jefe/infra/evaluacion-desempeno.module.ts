@@ -9,15 +9,18 @@ import { EvaluacionDesempenoPrismaRepository } from './repositories/evaluacion-d
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
-    controllers: [EvaluacionDesempenoController],
-    providers: [
-        EvaluacionDesempenoFacade,
-        ListarEmpleadosPendientesUseCase,
-        ObtenerEvaluacionPorIdUseCase,
-        CalificarEmpleadoUseCase,
-        { provide: IEvaluacionDesempenoRepository, useClass: EvaluacionDesempenoPrismaRepository },
-        PrismaService
-    ],
-    exports: [EvaluacionDesempenoFacade]
+  controllers: [EvaluacionDesempenoController],
+  providers: [
+    EvaluacionDesempenoFacade,
+    ListarEmpleadosPendientesUseCase,
+    ObtenerEvaluacionPorIdUseCase,
+    CalificarEmpleadoUseCase,
+    {
+      provide: IEvaluacionDesempenoRepository,
+      useClass: EvaluacionDesempenoPrismaRepository,
+    },
+    PrismaService,
+  ],
+  exports: [EvaluacionDesempenoFacade],
 })
-export class EvaluacionDesempenoModule { }
+export class EvaluacionDesempenoModule {}

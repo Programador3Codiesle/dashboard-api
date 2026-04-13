@@ -29,11 +29,15 @@ export class AuthController {
     private readonly registerUseCase: RegisterUseCase,
     private readonly refreshUseCase: RefreshTokenUseCase,
     private readonly authService: AuthService,
-  ) { }
+  ) {}
 
   @Post('login')
-  async login(@Body() dto: LoginDto, @Res({ passthrough: true }) res: Response) {
-    const { user, accessToken, refreshToken } = await this.loginUseCase.execute(dto);
+  async login(
+    @Body() dto: LoginDto,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const { user, accessToken, refreshToken } =
+      await this.loginUseCase.execute(dto);
 
     // Cookies HttpOnly
     const isProduction = process.env.NODE_ENV === 'production';
@@ -70,9 +74,12 @@ export class AuthController {
   @UseGuards(ThrottlerAuthGuard)
   @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 refreshes por minuto por IP
   @Post('refresh')
-  async refresh(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
+  async refresh(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ) {
     const refreshToken = req.cookies?.['refresh_token'];
-    
+
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token no encontrado');
     }

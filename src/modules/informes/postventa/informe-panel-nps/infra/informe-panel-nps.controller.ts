@@ -1,4 +1,5 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../../../../auth/infra/jwt-auth.guard';
 import { PanelNpsFacade } from '../application/panel-nps.facade';
 import {
   PanelNpsDetalleEntity,
@@ -6,6 +7,7 @@ import {
 } from '../domain/panel-nps.entity';
 
 @Controller('informes/postventa/panel-nps')
+@UseGuards(JwtAuthGuard)
 export class InformePanelNpsController {
   constructor(private readonly facade: PanelNpsFacade) {}
 
@@ -47,4 +49,3 @@ export class InformePanelNpsController {
     });
   }
 }
-

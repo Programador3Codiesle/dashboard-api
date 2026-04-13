@@ -19,7 +19,9 @@ export interface CrearCotizacionPesadosDTO {
 export class CrearCotizacionPesadosUseCase {
   constructor(private readonly repo: ICotizadorPesadosRepository) {}
 
-  async execute(dto: CrearCotizacionPesadosDTO): Promise<{ idCotizacion: number }> {
+  async execute(
+    dto: CrearCotizacionPesadosDTO,
+  ): Promise<{ idCotizacion: number }> {
     const idCotizacion = await this.repo.crearCotizacion(dto.general);
     await this.repo.agregarRepuestosCotizacion(idCotizacion, dto.repuestos);
     await this.repo.agregarManoObraCotizacion(idCotizacion, dto.manoObra);
@@ -27,4 +29,3 @@ export class CrearCotizacionPesadosUseCase {
     return { idCotizacion };
   }
 }
-

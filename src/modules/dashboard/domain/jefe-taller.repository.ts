@@ -11,4 +11,3 @@ export abstract class IJefeTallerDashboardRepository {
     ano: number,
   ): Promise<VentasBodRow | null>;
 }
-

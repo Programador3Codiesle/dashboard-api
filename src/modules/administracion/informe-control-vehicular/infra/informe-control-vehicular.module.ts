@@ -23,4 +23,3 @@ import { InformeControlVehicularPrismaRepository } from './repositories/informe-
   ],
 })
 export class InformeControlVehicularModule {}
-

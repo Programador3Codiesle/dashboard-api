@@ -19,4 +19,3 @@ import { NpsTecnicosFacade } from '../application/nps-tecnicos.facade';
   ],
 })
 export class InformeNpsTecnicosModule {}
-

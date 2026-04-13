@@ -6,12 +6,9 @@ import {
 
 @Injectable()
 export class GetEdicionTablasUseCase {
-  constructor(
-    private readonly repo: ICotizadorEdicionConfigRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorEdicionConfigRepository) {}
 
   async execute(): Promise<TablaConfigEntry[]> {
     return this.repo.getTablaConfig();
   }
 }
-

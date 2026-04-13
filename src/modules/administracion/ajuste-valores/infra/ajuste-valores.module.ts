@@ -9,16 +9,19 @@ import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import { AjusteValoresMapper } from '../presentation/mappers/ajuste-valores.mapper';
 
 @Module({
-    controllers: [AjusteValoresController],
-    providers: [
-        AjusteValoresFacade,
-        ObtenerValoresUseCase,
-        ActualizarValoresUseCase,
-        { provide: IAjusteValoresRepository, useClass: AjusteValoresPrismaRepository },
-        PrismaService,
-        // Mappers
-        AjusteValoresMapper
-    ],
-    exports: [AjusteValoresFacade]
+  controllers: [AjusteValoresController],
+  providers: [
+    AjusteValoresFacade,
+    ObtenerValoresUseCase,
+    ActualizarValoresUseCase,
+    {
+      provide: IAjusteValoresRepository,
+      useClass: AjusteValoresPrismaRepository,
+    },
+    PrismaService,
+    // Mappers
+    AjusteValoresMapper,
+  ],
+  exports: [AjusteValoresFacade],
 })
-export class AjusteValoresModule { }
+export class AjusteValoresModule {}

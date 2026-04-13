@@ -6,12 +6,9 @@ import {
 
 @Injectable()
 export class GetEdicionFiltroOpcionesUseCase {
-  constructor(
-    private readonly repo: ICotizadorEdicionConfigRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorEdicionConfigRepository) {}
 
   async execute(req: FiltroOpcionRequest): Promise<string[]> {
     return this.repo.getOpcionesFiltro(req);
   }
 }
-

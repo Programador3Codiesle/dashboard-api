@@ -6,6 +6,7 @@ export interface FiltrosDesempenoEmpleado {
 }
 
 export abstract class IDesempenoEmpleadoRepository {
-  abstract listar(filtros: FiltrosDesempenoEmpleado): Promise<DesempenoEmpleadoEntity[]>;
+  abstract listar(
+    filtros: FiltrosDesempenoEmpleado,
+  ): Promise<DesempenoEmpleadoEntity[]>;
 }
-

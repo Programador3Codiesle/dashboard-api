@@ -8,14 +8,17 @@ import { FormatoDesempenoPrismaRepository } from './repositories/formato-desempe
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
-    controllers: [FormatoDesempenoController],
-    providers: [
-        FormatoDesempenoFacade,
-        CrearFormatoDesempenoUseCase,
-        ObtenerFormatoDesempenoUseCase,
-        { provide: IFormatoDesempenoRepository, useClass: FormatoDesempenoPrismaRepository },
-        PrismaService
-    ],
-    exports: [FormatoDesempenoFacade]
+  controllers: [FormatoDesempenoController],
+  providers: [
+    FormatoDesempenoFacade,
+    CrearFormatoDesempenoUseCase,
+    ObtenerFormatoDesempenoUseCase,
+    {
+      provide: IFormatoDesempenoRepository,
+      useClass: FormatoDesempenoPrismaRepository,
+    },
+    PrismaService,
+  ],
+  exports: [FormatoDesempenoFacade],
 })
-export class FormatoDesempenoModule { }
+export class FormatoDesempenoModule {}

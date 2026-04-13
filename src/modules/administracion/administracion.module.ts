@@ -19,26 +19,26 @@ import { FormatoDesempenoModule } from './formato-desempeno-empleado/infra/forma
 import { ResponderAutorizacionModule } from './responder-autorizacion/infra/responder-autorizacion.module';
 
 @Module({
-    imports: [
-        AjusteValoresModule,
-        ControlVehiculoModule,
-        GestionComprasModule,
-        NuevoAusentismoModule,
-        FormatosNominaModule,
-        InformeSostenibilidadModule,
-        ReglamentoInternoModule,
-        TallasDotacionModule,
-        FormatoOrdenSalidaModule,
-        SolicitudTiempoSuplementarioModule,
-        ListaHorasExtrasModule,
-        InformeTiempoSuplementarioModule,
-        InasistenciaModule,
-        InformeAusentismoModule,
-        ListaAusentismoModule,
-        EvaluacionDesempenoModule,
-        FormatoDesempenoModule,
-        ResponderAutorizacionModule,
-    ],
-    exports: []
+  imports: [
+    AjusteValoresModule,
+    ControlVehiculoModule,
+    GestionComprasModule,
+    NuevoAusentismoModule,
+    FormatosNominaModule,
+    InformeSostenibilidadModule,
+    ReglamentoInternoModule,
+    TallasDotacionModule,
+    FormatoOrdenSalidaModule,
+    SolicitudTiempoSuplementarioModule,
+    ListaHorasExtrasModule,
+    InformeTiempoSuplementarioModule,
+    InasistenciaModule,
+    InformeAusentismoModule,
+    ListaAusentismoModule,
+    EvaluacionDesempenoModule,
+    FormatoDesempenoModule,
+    ResponderAutorizacionModule,
+  ],
+  exports: [],
 })
-export class AdministracionModule { }
+export class AdministracionModule {}

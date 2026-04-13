@@ -19,4 +19,3 @@ import { InventarioObsoletosFacade } from '../application/inventario-obsoletos.f
   ],
 })
 export class InformeInventarioObsoletosModule {}
-

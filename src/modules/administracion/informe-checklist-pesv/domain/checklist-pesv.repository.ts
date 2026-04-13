@@ -10,6 +10,7 @@ export interface FiltrosChecklistPesv {
 }
 
 export abstract class IChecklistPesvRepository {
-  abstract listar(filtros: FiltrosChecklistPesv): Promise<ChecklistPesvEntity[]>;
+  abstract listar(
+    filtros: FiltrosChecklistPesv,
+  ): Promise<ChecklistPesvEntity[]>;
 }
-

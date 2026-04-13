@@ -19,4 +19,3 @@ import { EncuestaSatisfaccionFacade } from '../application/encuesta-satisfaccion
   ],
 })
 export class InformeEncuestaSatisfaccionModule {}
-

@@ -18,7 +18,9 @@ export interface GetAdicionalesLivianosModalResult {
 export class GetAdicionalesLivianosModalUseCase {
   constructor(private readonly repo: ICotizadorLivianosRepository) {}
 
-  async execute(params: GetAdicionalesLivianosModalParams): Promise<GetAdicionalesLivianosModalResult> {
+  async execute(
+    params: GetAdicionalesLivianosModalParams,
+  ): Promise<GetAdicionalesLivianosModalResult> {
     const soloManoObra = await this.repo.getAdicionalOnlyMo(params.adicional);
     const repuestos = soloManoObra
       ? []
@@ -28,7 +30,10 @@ export class GetAdicionalesLivianosModalUseCase {
           params.adicional,
           params.year,
         );
-    const manoObra = await this.repo.getManoObraAdicional(params.clase, params.adicional);
+    const manoObra = await this.repo.getManoObraAdicional(
+      params.clase,
+      params.adicional,
+    );
     return {
       soloManoObra,
       repuestos,

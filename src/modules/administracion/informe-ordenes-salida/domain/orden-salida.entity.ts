@@ -21,4 +21,3 @@ export class OrdenSalidaEntity {
     Object.assign(this, partial);
   }
 }
-

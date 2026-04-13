@@ -19,4 +19,3 @@ import { EncuestasInternasFacade } from '../application/encuestas-internas.facad
   ],
 })
 export class InformeEncuestasInternasModule {}
-

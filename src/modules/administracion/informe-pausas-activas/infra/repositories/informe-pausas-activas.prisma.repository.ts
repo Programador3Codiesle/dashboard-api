@@ -44,7 +44,9 @@ export class InformePausasActivasPrismaRepository implements IInformePausasActiv
     }
 
     const whereClause =
-      conditions.length > 0 ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}` : Prisma.empty;
+      conditions.length > 0
+        ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
+        : Prisma.empty;
 
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT
@@ -72,4 +74,3 @@ export class InformePausasActivasPrismaRepository implements IInformePausasActiv
     );
   }
 }
-

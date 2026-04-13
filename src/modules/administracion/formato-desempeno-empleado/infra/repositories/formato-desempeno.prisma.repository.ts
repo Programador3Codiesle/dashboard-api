@@ -6,60 +6,66 @@ import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class FormatoDesempenoPrismaRepository implements IFormatoDesempenoRepository {
-    constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-    async create(data: Partial<FormatoDesempenoEntity>): Promise<{status: boolean, message: string, data?: FormatoDesempenoEntity}> {
-        try {
-          
-            
-            if (!data.nit_empleado) {
-                return {
-                    status: false,
-                    message: 'El NIT del empleado es requerido'
-                };
+  async create(data: Partial<FormatoDesempenoEntity>): Promise<{
+    status: boolean;
+    message: string;
+    data?: FormatoDesempenoEntity;
+  }> {
+    try {
+      if (!data.nit_empleado) {
+        return {
+          status: false,
+          message: 'El NIT del empleado es requerido',
+        };
+      }
+
+      const fecha =
+        data.fecha?.toISOString().split('T')[0] ||
+        new Date().toISOString().split('T')[0];
+
+      // Verificar si existe
+      const existenteResult = await this.findByEmpleado(data.nit_empleado);
+      const existente = existenteResult.status ? existenteResult.data : null;
+
+      if (existente && existente.id) {
+        // UPDATE
+        const updateFields: string[] = [];
+
+        Object.keys(data).forEach((key) => {
+          if (key !== 'id' && key !== 'fecha') {
+            const value = (data as any)[key];
+            if (value !== undefined && value !== null) {
+              if (typeof value === 'string') {
+                updateFields.push(`${key} = '${value.replace(/'/g, "''")}'`);
+              } else {
+                updateFields.push(`${key} = ${value}`);
+              }
             }
+          }
+        });
 
-            const fecha = data.fecha?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0];
-            
-            // Verificar si existe
-            const existenteResult = await this.findByEmpleado(data.nit_empleado);
-            const existente = existenteResult.status ? existenteResult.data : null;
-            
-            if (existente && existente.id) {
-                // UPDATE
-                const updateFields: string[] = [];
-                
-                Object.keys(data).forEach(key => {
-                    if (key !== 'id' && key !== 'fecha') {
-                        const value = (data as any)[key];
-                        if (value !== undefined && value !== null) {
-                            if (typeof value === 'string') {
-                                updateFields.push(`${key} = '${value.replace(/'/g, "''")}'`);
-                            } else {
-                                updateFields.push(`${key} = ${value}`);
-                            }
-                        }
-                    }
-                });
-                
-                if (updateFields.length > 0) {
-                    const sql = Prisma.sql`
+        if (updateFields.length > 0) {
+          const sql = Prisma.sql`
                         UPDATE swcrm_desempeno_empleado
                         SET ${Prisma.raw(updateFields.join(', '))}, fecha = ${fecha}
                         WHERE id = ${existente.id}
                     `;
-                    await this.prisma.$executeRaw(sql);
-                }
-                
-                const updatedResult = await this.findById(existente.id);
-                return {
-                    status: updatedResult.status,
-                    message: updatedResult.status ? 'Auto-evaluación actualizada correctamente' : updatedResult.message,
-                    data: updatedResult.data
-                };
-            } else {
-                // INSERT - Usando Prisma.sql con parámetros seguros
-                const sql = Prisma.sql`
+          await this.prisma.$executeRaw(sql);
+        }
+
+        const updatedResult = await this.findById(existente.id);
+        return {
+          status: updatedResult.status,
+          message: updatedResult.status
+            ? 'Auto-evaluación actualizada correctamente'
+            : updatedResult.message,
+          data: updatedResult.data,
+        };
+      } else {
+        // INSERT - Usando Prisma.sql con parámetros seguros
+        const sql = Prisma.sql`
                     INSERT INTO swcrm_desempeno_empleado 
                     (nit_empleado, empleado, area, cargo, sede, fecha, id_empresa,
                      trabajo_equipo_e, part_activa_e, prop_iniciativas_e,
@@ -113,94 +119,108 @@ export class FormatoDesempenoPrismaRepository implements IFormatoDesempenoReposi
                      ${data.capacidades_entrenamiento || null}, 
                      ${data.compromisos || null})
                 `;
-                
-                const result = await this.prisma.$queryRaw<any[]>(sql);
-                const inserted = result[0];
-                
-                return {
-                    status: true,
-                    message: 'Auto-evaluación creada correctamente',
-                    data: FormatoDesempenoEntity.fromDatabase(inserted)
-                };
-            }
-        } catch (error: any) {
-            return {
-                status: false,
-                message: 'Error al crear auto-evaluación: ' + (error instanceof Error ? error.message : 'Error desconocido')
-            };
-        }
-    }
 
-    async findById(id: bigint): Promise<{status: boolean, message: string, data?: FormatoDesempenoEntity}> {
-        try {
-            if (!id) {
-                return {
-                    status: false,
-                    message: 'El ID es requerido'
-                };
-            }
-            
-            const sql = Prisma.sql`
+        const result = await this.prisma.$queryRaw<any[]>(sql);
+        const inserted = result[0];
+
+        return {
+          status: true,
+          message: 'Auto-evaluación creada correctamente',
+          data: FormatoDesempenoEntity.fromDatabase(inserted),
+        };
+      }
+    } catch (error: any) {
+      return {
+        status: false,
+        message:
+          'Error al crear auto-evaluación: ' +
+          (error instanceof Error ? error.message : 'Error desconocido'),
+      };
+    }
+  }
+
+  async findById(id: bigint): Promise<{
+    status: boolean;
+    message: string;
+    data?: FormatoDesempenoEntity;
+  }> {
+    try {
+      if (!id) {
+        return {
+          status: false,
+          message: 'El ID es requerido',
+        };
+      }
+
+      const sql = Prisma.sql`
                 SELECT * FROM swcrm_desempeno_empleado WHERE id = ${id}
             `;
-            const result = await this.prisma.$queryRaw<any[]>(sql);
-            
-            if (!result || result.length === 0) {
-                return {
-                    status: false,
-                    message: 'No se encontró la evaluación con el ID proporcionado'
-                };
-            }
-            
-            return {
-                status: true,
-                message: 'Evaluación encontrada correctamente',
-                data: FormatoDesempenoEntity.fromDatabase(result[0])
-            };
-        } catch (error: any) {
-            console.error('Error buscando evaluación:', error);
-            return {
-                status: false,
-                message: 'Error al buscar la evaluación: ' + (error instanceof Error ? error.message : 'Error desconocido')
-            };
-        }
-    }
+      const result = await this.prisma.$queryRaw<any[]>(sql);
 
-    async findByEmpleado(empleadoId: number): Promise<{status: boolean, message: string, data?: FormatoDesempenoEntity}> {
-        try {
-            if (!empleadoId) {
-                return {
-                    status: false,
-                    message: 'El NIT del empleado es requerido'
-                };
-            }
-            
-            const sql = Prisma.sql`
+      if (!result || result.length === 0) {
+        return {
+          status: false,
+          message: 'No se encontró la evaluación con el ID proporcionado',
+        };
+      }
+
+      return {
+        status: true,
+        message: 'Evaluación encontrada correctamente',
+        data: FormatoDesempenoEntity.fromDatabase(result[0]),
+      };
+    } catch (error: any) {
+      console.error('Error buscando evaluación:', error);
+      return {
+        status: false,
+        message:
+          'Error al buscar la evaluación: ' +
+          (error instanceof Error ? error.message : 'Error desconocido'),
+      };
+    }
+  }
+
+  async findByEmpleado(empleadoId: number): Promise<{
+    status: boolean;
+    message: string;
+    data?: FormatoDesempenoEntity;
+  }> {
+    try {
+      if (!empleadoId) {
+        return {
+          status: false,
+          message: 'El NIT del empleado es requerido',
+        };
+      }
+
+      const sql = Prisma.sql`
                 SELECT TOP 1 * FROM swcrm_desempeno_empleado 
                 WHERE nit_empleado = ${empleadoId}
                 ORDER BY fecha DESC
             `;
-            const result = await this.prisma.$queryRaw<any[]>(sql);
-            
-            if (!result || result.length === 0) {
-                return {
-                    status: false,
-                    message: 'No se encontró evaluación para el empleado con NIT: ' + empleadoId
-                };
-            }
-            
-            return {
-                status: true,
-                message: 'Evaluación encontrada correctamente',
-                data: FormatoDesempenoEntity.fromDatabase(result[0])
-            };
-        } catch (error: any) {
-            console.error('Error buscando evaluación por empleado:', error);
-            return {
-                status: false,
-                message: 'Error al buscar la evaluación del empleado: ' + (error instanceof Error ? error.message : 'Error desconocido')
-            };
-        }
-    }
+      const result = await this.prisma.$queryRaw<any[]>(sql);
 
+      if (!result || result.length === 0) {
+        return {
+          status: false,
+          message:
+            'No se encontró evaluación para el empleado con NIT: ' + empleadoId,
+        };
+      }
+
+      return {
+        status: true,
+        message: 'Evaluación encontrada correctamente',
+        data: FormatoDesempenoEntity.fromDatabase(result[0]),
+      };
+    } catch (error: any) {
+      console.error('Error buscando evaluación por empleado:', error);
+      return {
+        status: false,
+        message:
+          'Error al buscar la evaluación del empleado: ' +
+          (error instanceof Error ? error.message : 'Error desconocido'),
+      };
+    }
+  }
 }

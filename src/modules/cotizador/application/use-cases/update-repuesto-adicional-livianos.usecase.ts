@@ -6,13 +6,13 @@ import {
 
 @Injectable()
 export class UpdateRepuestoAdicionalLivianosUseCase {
-  constructor(
-    private readonly repo: ICotizadorAdicionalesLivianosRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorAdicionalesLivianosRepository) {}
 
   async execute(input: UpdateRepuestoAdicionalInput): Promise<void> {
     if (!input.seq) {
-      throw new BadRequestException('El identificador del repuesto es obligatorio.');
+      throw new BadRequestException(
+        'El identificador del repuesto es obligatorio.',
+      );
     }
 
     if (!input.descripcion || !input.descripcion.trim()) {
@@ -23,12 +23,19 @@ export class UpdateRepuestoAdicionalLivianosUseCase {
       throw new BadRequestException('La cantidad debe ser mayor a cero.');
     }
 
-    if (input.yearStart < 2000 || input.yearEnd > new Date().getFullYear() + 1) {
-      throw new BadRequestException('Los años están fuera del rango permitido.');
+    if (
+      input.yearStart < 2000 ||
+      input.yearEnd > new Date().getFullYear() + 1
+    ) {
+      throw new BadRequestException(
+        'Los años están fuera del rango permitido.',
+      );
     }
 
     if (input.yearStart > input.yearEnd) {
-      throw new BadRequestException('El año inicial no puede ser mayor al año final.');
+      throw new BadRequestException(
+        'El año inicial no puede ser mayor al año final.',
+      );
     }
 
     if (
@@ -45,4 +52,3 @@ export class UpdateRepuestoAdicionalLivianosUseCase {
     await this.repo.updateRepuestoAdicional(input);
   }
 }
-

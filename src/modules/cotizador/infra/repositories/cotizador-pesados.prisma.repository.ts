@@ -42,7 +42,9 @@ export class CotizadorPesadosPrismaRepository implements ICotizadorPesadosReposi
     }));
   }
 
-  async getVehiculoPorPlaca(placa: string): Promise<VehiculoCotizacionPesados | null> {
+  async getVehiculoPorPlaca(
+    placa: string,
+  ): Promise<VehiculoCotizacionPesados | null> {
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT 
         v.nit_comprador as nit, 
@@ -116,9 +118,12 @@ export class CotizadorPesadosPrismaRepository implements ICotizadorPesadosReposi
     }));
   }
 
-  private async getRepuestosMtto(
-    params: { clase: string; revision: number; bodega: number; grupo: string },
-  ): Promise<RepuestoMantenimientoPesados[]> {
+  private async getRepuestosMtto(params: {
+    clase: string;
+    revision: number;
+    bodega: number;
+    grupo: string;
+  }): Promise<RepuestoMantenimientoPesados[]> {
     const { clase, revision, bodega, grupo } = params;
 
     const rows = await this.prisma.$queryRaw<any[]>`
@@ -183,9 +188,11 @@ export class CotizadorPesadosPrismaRepository implements ICotizadorPesadosReposi
     }));
   }
 
-  private async getManoObraGrupo(
-    params: { clase: string; grupo: string; bodega: number },
-  ): Promise<ManoObraMantenimientoPesados[]> {
+  private async getManoObraGrupo(params: {
+    clase: string;
+    grupo: string;
+    bodega: number;
+  }): Promise<ManoObraMantenimientoPesados[]> {
     const { clase, grupo, bodega } = params;
 
     const rows = await this.prisma.$queryRaw<any[]>`
@@ -219,12 +226,13 @@ export class CotizadorPesadosPrismaRepository implements ICotizadorPesadosReposi
     const grupoAC = 'ACDelco';
     const grupoGM = 'GM';
 
-    const [repuestosAC, repuestosGM, manoObraAC, manoObraGM] = await Promise.all([
-      this.getRepuestosMtto({ clase, revision, bodega, grupo: grupoAC }),
-      this.getRepuestosMtto({ clase, revision, bodega, grupo: grupoGM }),
-      this.getManoObraGrupo({ clase, grupo: grupoAC, bodega }),
-      this.getManoObraGrupo({ clase, grupo: grupoGM, bodega }),
-    ]);
+    const [repuestosAC, repuestosGM, manoObraAC, manoObraGM] =
+      await Promise.all([
+        this.getRepuestosMtto({ clase, revision, bodega, grupo: grupoAC }),
+        this.getRepuestosMtto({ clase, revision, bodega, grupo: grupoGM }),
+        this.getManoObraGrupo({ clase, grupo: grupoAC, bodega }),
+        this.getManoObraGrupo({ clase, grupo: grupoGM, bodega }),
+      ]);
 
     const filtrarPorYear = (items: RepuestoMantenimientoPesados[]) =>
       items.filter((r) => yearModel >= r.ano_inicio && yearModel <= r.ano_fin);
@@ -296,7 +304,8 @@ export class CotizadorPesadosPrismaRepository implements ICotizadorPesadosReposi
       throw new Error('No se pudo crear la cotización de pesados.');
     }
 
-    const insertedId = rows[0].id_cotizacion ?? rows[0].ID_COTIZACION ?? rows[0].Id_cotizacion;
+    const insertedId =
+      rows[0].id_cotizacion ?? rows[0].ID_COTIZACION ?? rows[0].Id_cotizacion;
     return Number(insertedId);
   }
 
@@ -362,4 +371,3 @@ export class CotizadorPesadosPrismaRepository implements ICotizadorPesadosReposi
     }
   }
 }
-

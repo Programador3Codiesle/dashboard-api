@@ -84,4 +84,3 @@ export class ChecklistCarroEntity {
     Object.assign(this, partial);
   }
 }
-

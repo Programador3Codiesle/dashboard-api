@@ -7,29 +7,32 @@ import { CalificarEmpleadoDto } from './dto/calificar-empleado.dto';
 
 @Injectable()
 export class EvaluacionDesempenoFacade {
-    constructor(
-        private readonly listarEmpleadosPendientesUC: ListarEmpleadosPendientesUseCase,
-        private readonly obtenerEvaluacionPorIdUC: ObtenerEvaluacionPorIdUseCase,
-        private readonly calificarEmpleadoUC: CalificarEmpleadoUseCase
-    ) {}
+  constructor(
+    private readonly listarEmpleadosPendientesUC: ListarEmpleadosPendientesUseCase,
+    private readonly obtenerEvaluacionPorIdUC: ObtenerEvaluacionPorIdUseCase,
+    private readonly calificarEmpleadoUC: CalificarEmpleadoUseCase,
+  ) {}
 
-    listarEmpleadosPendientes(jefeId: number) {
-        return this.listarEmpleadosPendientesUC.execute(jefeId);
-    }
+  listarEmpleadosPendientes(jefeId: number) {
+    return this.listarEmpleadosPendientesUC.execute(jefeId);
+  }
 
-    obtenerEvaluacionPorId(id: number) {
-        return this.obtenerEvaluacionPorIdUC.execute(id);
-    }
-    
-    obtenerIdJefe(nit_usuario: number) {
-        return this.listarEmpleadosPendientesUC.obtenerIdJefe(nit_usuario);
-    }
+  obtenerEvaluacionPorId(id: number) {
+    return this.obtenerEvaluacionPorIdUC.execute(id);
+  }
 
-    calificarEmpleado(id: bigint, dto: CalificarEmpleadoDto) {
-        return this.calificarEmpleadoUC.execute(id, dto);
-    }
+  obtenerIdJefe(nit_usuario: number) {
+    return this.listarEmpleadosPendientesUC.obtenerIdJefe(nit_usuario);
+  }
 
-    relacionarEvaluacion(nit_empleado: number, nit_jefe: number) {
-        return this.calificarEmpleadoUC.relacionarEvaluacionJefeEmpleado(nit_empleado, nit_jefe);
-    }
+  calificarEmpleado(id: bigint, dto: CalificarEmpleadoDto) {
+    return this.calificarEmpleadoUC.execute(id, dto);
+  }
+
+  relacionarEvaluacion(nit_empleado: number, nit_jefe: number) {
+    return this.calificarEmpleadoUC.relacionarEvaluacionJefeEmpleado(
+      nit_empleado,
+      nit_jefe,
+    );
+  }
 }

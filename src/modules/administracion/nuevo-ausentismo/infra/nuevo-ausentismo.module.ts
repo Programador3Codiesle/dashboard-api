@@ -9,15 +9,18 @@ import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import { EmailModule } from '../../../../core/infra/email/email.module';
 
 @Module({
-    imports: [EmailModule],
-    controllers: [NuevoAusentismoController],
-    providers: [
-        NuevoAusentismoFacade,
-        CrearAusentismoUseCase,
-        ObtenerAusentismosCalendarioUseCase,
-        { provide: INuevoAusentismoRepository, useClass: NuevoAusentismoPrismaRepository },
-        PrismaService
-    ],
-    exports: [NuevoAusentismoFacade, INuevoAusentismoRepository]
+  imports: [EmailModule],
+  controllers: [NuevoAusentismoController],
+  providers: [
+    NuevoAusentismoFacade,
+    CrearAusentismoUseCase,
+    ObtenerAusentismosCalendarioUseCase,
+    {
+      provide: INuevoAusentismoRepository,
+      useClass: NuevoAusentismoPrismaRepository,
+    },
+    PrismaService,
+  ],
+  exports: [NuevoAusentismoFacade, INuevoAusentismoRepository],
 })
-export class NuevoAusentismoModule { }
+export class NuevoAusentismoModule {}

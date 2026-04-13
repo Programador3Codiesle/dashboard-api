@@ -105,9 +105,11 @@ export class ControlComprasPrismaRepository implements IControlComprasRepository
       OFFSET ${offset} ROWS FETCH NEXT ${pageSize} ROWS ONLY
     `;
 
-    const totalRows = await this.prisma.$queryRaw<Array<{ total: bigint | number }>>(countSql);
+    const totalRows =
+      await this.prisma.$queryRaw<Array<{ total: bigint | number }>>(countSql);
     const totalRaw = totalRows?.[0]?.total ?? 0;
-    const total = typeof totalRaw === 'bigint' ? Number(totalRaw) : Number(totalRaw || 0);
+    const total =
+      typeof totalRaw === 'bigint' ? Number(totalRaw) : Number(totalRaw || 0);
 
     const rows = await this.prisma.$queryRaw<any[]>(dataSql);
 
@@ -140,4 +142,3 @@ export class ControlComprasPrismaRepository implements IControlComprasRepository
     return { items, total };
   }
 }
-

@@ -7,9 +7,7 @@ import { TiempoEntrevistaConsultivaResumenRowEntity } from '../../domain/tiempo-
 
 @Injectable()
 export class ObtenerResumenTiempoEntrevistaUseCase {
-  constructor(
-    private readonly repo: ITiempoEntrevistaConsultivaRepository,
-  ) {}
+  constructor(private readonly repo: ITiempoEntrevistaConsultivaRepository) {}
 
   async execute(
     filtros: FiltrosTiempoEntrevistaConsultiva,
@@ -17,4 +15,3 @@ export class ObtenerResumenTiempoEntrevistaUseCase {
     return this.repo.obtenerResumen(filtros);
   }
 }
-

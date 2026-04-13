@@ -25,10 +25,12 @@ import { IUserRepository } from '../domain/user.repository';
 @Module({
   imports: [
     ConfigModule,
-    ThrottlerModule.forRoot([{
-      ttl: 60000, // 1 minuto
-      limit: 5, // 5 solicitudes por minuto por IP
-    }]),
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000, // 1 minuto
+        limit: 5, // 5 solicitudes por minuto por IP
+      },
+    ]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (config: ConfigService) => ({

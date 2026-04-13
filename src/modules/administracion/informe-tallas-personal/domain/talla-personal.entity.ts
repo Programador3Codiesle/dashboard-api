@@ -10,4 +10,3 @@ export class TallaPersonalEntity {
     Object.assign(this, partial);
   }
 }
-

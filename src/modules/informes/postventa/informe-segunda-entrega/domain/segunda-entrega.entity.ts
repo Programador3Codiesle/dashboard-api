@@ -22,4 +22,3 @@ export class SegundaEntregaDetalleEntity {
     Object.assign(this, partial);
   }
 }
-

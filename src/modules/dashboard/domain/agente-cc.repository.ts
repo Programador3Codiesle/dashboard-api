@@ -6,4 +6,3 @@ export abstract class IAgenteCCDashboardRepository {
     nitUsuario: number,
   ): Promise<Array<{ estado: string }>>;
 }
-

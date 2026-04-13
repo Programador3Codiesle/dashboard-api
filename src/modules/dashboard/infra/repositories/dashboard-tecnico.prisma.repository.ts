@@ -18,9 +18,7 @@ import { Prisma } from '@prisma/client';
  * por si v_Informe_tecnico / v_ventas_tec_ranking no existen en el entorno.
  */
 @Injectable()
-export class DashboardTecnicoPrismaRepository
-  implements ITecnicoDashboardRepository
-{
+export class DashboardTecnicoPrismaRepository implements ITecnicoDashboardRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   private mapNpsRow(r: any): NpsSedesMesRow {

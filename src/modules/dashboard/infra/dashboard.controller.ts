@@ -15,7 +15,11 @@ export class DashboardController {
     @Query('mes') mes?: string,
     @Query('ano') ano?: string,
   ) {
-    const user = (req as any).user as { sub: string; nit: number; role: string | number };
+    const user = (req as any).user as {
+      sub: string;
+      nit: number;
+      role: string | number;
+    };
     const userId = String(user?.sub ?? '');
     const nitUsuario = Number(user?.nit ?? 0);
     const perfil = user?.role ?? 0;
@@ -32,6 +36,4 @@ export class DashboardController {
       anoNum,
     );
   }
-
-
 }

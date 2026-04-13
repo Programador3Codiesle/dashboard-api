@@ -8,4 +8,3 @@ export class EncuestaSatisfaccionResumenEntity {
     Object.assign(this, partial);
   }
 }
-

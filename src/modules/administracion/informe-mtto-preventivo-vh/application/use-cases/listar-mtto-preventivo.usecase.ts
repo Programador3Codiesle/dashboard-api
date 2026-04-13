@@ -9,4 +9,3 @@ export class ListarMttoPreventivoUseCase {
     return this.repo.listar();
   }
 }
-

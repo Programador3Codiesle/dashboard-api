@@ -5,13 +5,17 @@ import { ControlVehiculoMapper } from '../../presentation/mappers/control-vehicu
 
 @Injectable()
 export class ListarVehiculosUseCase {
-    constructor(private readonly repo: IControlVehiculoRepository) {}
+  constructor(private readonly repo: IControlVehiculoRepository) {}
 
-    async execute(perfil?: number): Promise<ListarVehiculosResponseDto[]> {
-        const entities = await this.repo.listar(perfil);
-        // Usar el mapper para convertir las entidades a DTOs de respuesta
-        return entities.map(entity => 
-            ControlVehiculoMapper.toListResponseDto(entity, entity.modelo_descripcion, entity.empresa_nombre)
-        );
-    }
+  async execute(perfil?: number): Promise<ListarVehiculosResponseDto[]> {
+    const entities = await this.repo.listar(perfil);
+    // Usar el mapper para convertir las entidades a DTOs de respuesta
+    return entities.map((entity) =>
+      ControlVehiculoMapper.toListResponseDto(
+        entity,
+        entity.modelo_descripcion,
+        entity.empresa_nombre,
+      ),
+    );
+  }
 }

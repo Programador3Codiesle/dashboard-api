@@ -1,7 +1,7 @@
 /**
  * Exportación de todos los repositorios de Usuario
  * Organizados por responsabilidad (SRP - Single Responsibility Principle)
- * 
+ *
  * Estructura refactorizada:
  * - Core: CRUD básico, perfiles, estados
  * - Empresa: Gestión de relación usuario-empresa

@@ -19,7 +19,9 @@ export interface CrearCotizacionLivianosDTO {
 export class CrearCotizacionLivianosUseCase {
   constructor(private readonly repo: ICotizadorLivianosRepository) {}
 
-  async execute(dto: CrearCotizacionLivianosDTO): Promise<{ idCotizacion: number }> {
+  async execute(
+    dto: CrearCotizacionLivianosDTO,
+  ): Promise<{ idCotizacion: number }> {
     const now = dto.general.fecha_creacion ?? new Date();
     const agendar = dto.general.estado === 1;
 
@@ -40,4 +42,3 @@ export class CrearCotizacionLivianosUseCase {
     return { idCotizacion };
   }
 }
-

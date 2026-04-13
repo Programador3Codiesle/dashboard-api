@@ -3,9 +3,7 @@ import { EncuestasInternasFacade } from '../application/encuestas-internas.facad
 
 @Controller('informes/postventa/encuestas-internas')
 export class InformeEncuestasInternasController {
-  constructor(
-    private readonly facade: EncuestasInternasFacade,
-  ) {}
+  constructor(private readonly facade: EncuestasInternasFacade) {}
 
   @Get()
   async obtener(
@@ -24,4 +22,3 @@ export class InformeEncuestasInternasController {
     });
   }
 }
-

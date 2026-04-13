@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Patch, Query, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Patch,
+  Query,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 import { OrdenesSalidaFacade } from '../application/ordenes-salida.facade';
 
@@ -35,7 +44,8 @@ export class InformeOrdenesSalidaController {
       area: area || null,
       sede: sede || null,
       tipoSalida: tipoSalida ? Number(tipoSalida) : null,
-      idUsuario: idUsuario != null && Number.isFinite(idUsuario) ? idUsuario : null,
+      idUsuario:
+        idUsuario != null && Number.isFinite(idUsuario) ? idUsuario : null,
       nitUsuario,
       perfil: perfil != null && Number.isFinite(perfil) ? perfil : null,
     });
@@ -47,8 +57,10 @@ export class InformeOrdenesSalidaController {
     @Param('id') id: string,
     @Body('observacion') observacion: string,
   ) {
-    const idUsuario = req.user?.sub != null && req.user.sub !== '' ? Number(req.user.sub) : null;
+    const idUsuario =
+      req.user?.sub != null && req.user.sub !== ''
+        ? Number(req.user.sub)
+        : null;
     return this.facade.guardarObservacion(Number(id), observacion, idUsuario);
   }
 }
-

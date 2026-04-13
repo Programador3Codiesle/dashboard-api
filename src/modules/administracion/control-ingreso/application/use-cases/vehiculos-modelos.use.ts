@@ -3,10 +3,9 @@ import { IControlVehiculoRepository } from '../../domain/control-vehiculo.reposi
 
 @Injectable()
 export class VehiculosModelosUseCase {
-    constructor(private readonly repo: IControlVehiculoRepository) {}
+  constructor(private readonly repo: IControlVehiculoRepository) {}
 
-    async execute() {
-        return this.repo.listarVehiculosModelos();
-    }
+  async execute() {
+    return this.repo.listarVehiculosModelos();
+  }
 }
-

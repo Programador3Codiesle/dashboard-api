@@ -5,7 +5,7 @@ import {
 
 export interface FiltrosTiempoEntrevistaConsultiva {
   startDate: string; // 'YYYY-MM-DD'
-  endDate: string;   // 'YYYY-MM-DD'
+  endDate: string; // 'YYYY-MM-DD'
 }
 
 export abstract class ITiempoEntrevistaConsultivaRepository {
@@ -18,4 +18,3 @@ export abstract class ITiempoEntrevistaConsultivaRepository {
     filtros: FiltrosTiempoEntrevistaConsultiva,
   ): Promise<TiempoEntrevistaConsultivaDetalleRowEntity[]>;
 }
-

@@ -18,7 +18,9 @@ export class GetPesadosInfoClientUseCase {
 
     const vehiculo = await this.repo.getVehiculoPorPlaca(normalizada);
     if (!vehiculo) {
-      throw new NotFoundException('No se encontró información para la placa ingresada.');
+      throw new NotFoundException(
+        'No se encontró información para la placa ingresada.',
+      );
     }
 
     const revisiones = await this.repo.getRevisionesByClase(vehiculo.clase);
@@ -29,4 +31,3 @@ export class GetPesadosInfoClientUseCase {
     };
   }
 }
-

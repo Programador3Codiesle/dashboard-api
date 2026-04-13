@@ -13,4 +13,3 @@ export abstract class IChecklistMotoRepository {
     filtros: FiltrosChecklistMoto,
   ): Promise<{ items: ChecklistMotoEntity[]; total: number }>;
 }
-

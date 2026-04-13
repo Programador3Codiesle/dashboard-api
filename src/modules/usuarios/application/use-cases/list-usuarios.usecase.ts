@@ -1,6 +1,6 @@
-import { Injectable, Inject } from "@nestjs/common";
-import { UsuarioMapper } from "../../presentation/mappers/usuario.mapper";
-import { IUsuarioCoreRepository } from "../../domain/repositories/usuario-core.repository";
+import { Injectable, Inject } from '@nestjs/common';
+import { UsuarioMapper } from '../../presentation/mappers/usuario.mapper';
+import { IUsuarioCoreRepository } from '../../domain/repositories/usuario-core.repository';
 
 /**
  * Use Case para listar Usuarios
@@ -11,11 +11,13 @@ import { IUsuarioCoreRepository } from "../../domain/repositories/usuario-core.r
 export class ListUsuariosUseCase {
   constructor(
     @Inject(IUsuarioCoreRepository)
-    private readonly coreRepo: IUsuarioCoreRepository
+    private readonly coreRepo: IUsuarioCoreRepository,
   ) {}
 
   async execute() {
     const usuarios = await this.coreRepo.findAll();
-    return usuarios.map(usuario => UsuarioMapper.mapUsuariosResponse(usuario));
+    return usuarios.map((usuario) =>
+      UsuarioMapper.mapUsuariosResponse(usuario),
+    );
   }
 }

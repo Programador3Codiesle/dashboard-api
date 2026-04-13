@@ -2,7 +2,7 @@
  * Contrato del Repositorio de Usuario - Gestión de Sedes
  * Define las operaciones de asignación y gestión de sedes
  */
-import { SedesEntity } from "../usuario.entity";
+import { SedesEntity } from '../usuario.entity';
 
 export abstract class IUsuarioSedeRepository {
   /**
@@ -23,5 +23,8 @@ export abstract class IUsuarioSedeRepository {
   /**
    * Eliminar la asignación de una sede a un usuario
    */
-  abstract eliminarSede(idUsuario: number, idSede: number): Promise<SedesEntity>;
+  abstract eliminarSede(
+    idUsuario: number,
+    idSede: number,
+  ): Promise<SedesEntity>;
 }

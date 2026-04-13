@@ -82,11 +82,7 @@ export class GetDashboardUseCase {
       );
     }
     if (perfilNum === PERFIL_COMPRAS) {
-      return this.comprasService.buildCompras(
-        fechaActual,
-        diaFestivo,
-        userId,
-      );
+      return this.comprasService.buildCompras(fechaActual, diaFestivo, userId);
     }
     if (perfilNum === PERFIL_ASESOR_REP) {
       return this.asesorRepService.buildAsesorRep(

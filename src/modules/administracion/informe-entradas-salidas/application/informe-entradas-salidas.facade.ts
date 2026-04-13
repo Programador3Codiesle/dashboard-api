@@ -10,4 +10,3 @@ export class InformeEntradasSalidasFacade {
     return this.listarUC.execute(filtros);
   }
 }
-

@@ -19,4 +19,3 @@ import { ControlComprasPrismaRepository } from './repositories/control-compras.p
   ],
 })
 export class InformeControlComprasModule {}
-

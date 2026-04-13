@@ -10,9 +10,7 @@ import {
 } from '../../domain/cotizador-ejecucion.repository';
 
 @Injectable()
-export class CotizadorEjecucionPrismaRepository
-  implements ICotizadorEjecucionRepository
-{
+export class CotizadorEjecucionPrismaRepository implements ICotizadorEjecucionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   private bodegasToList(bodegas: number[]): string {
@@ -441,4 +439,3 @@ export class CotizadorEjecucionPrismaRepository
     }));
   }
 }
-

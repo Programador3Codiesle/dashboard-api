@@ -4,9 +4,7 @@ import { ProductividadTecnicosResponseEntity } from '../domain/productividad-tec
 
 @Controller('informes/postventa/productividad-tecnicos')
 export class InformeProductividadTecnicosController {
-  constructor(
-    private readonly facade: ProductividadTecnicosFacade,
-  ) {}
+  constructor(private readonly facade: ProductividadTecnicosFacade) {}
 
   @Get()
   obtener(
@@ -32,4 +30,3 @@ export class InformeProductividadTecnicosController {
     });
   }
 }
-

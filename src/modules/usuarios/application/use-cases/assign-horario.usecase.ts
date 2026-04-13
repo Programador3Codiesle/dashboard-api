@@ -1,8 +1,8 @@
-import { Injectable, Inject, NotFoundException } from "@nestjs/common";
-import { UsuarioMapper } from "../../presentation/mappers/usuario.mapper";
-import { AssignHorarioDto } from "../dto/assign-horario.dto";
-import { HorarioEntity } from "../../domain/usuario.entity";
-import { IUsuarioHorarioRepository } from "../../domain/repositories/usuario-horario.repository";
+import { Injectable, Inject, NotFoundException } from '@nestjs/common';
+import { UsuarioMapper } from '../../presentation/mappers/usuario.mapper';
+import { AssignHorarioDto } from '../dto/assign-horario.dto';
+import { HorarioEntity } from '../../domain/usuario.entity';
+import { IUsuarioHorarioRepository } from '../../domain/repositories/usuario-horario.repository';
 
 /**
  * Use Case para gestión de Horarios
@@ -12,7 +12,7 @@ import { IUsuarioHorarioRepository } from "../../domain/repositories/usuario-hor
 export class AssignHorarioUseCase {
   constructor(
     @Inject(IUsuarioHorarioRepository)
-    private readonly horarioRepo: IUsuarioHorarioRepository
+    private readonly horarioRepo: IUsuarioHorarioRepository,
   ) {}
 
   async asignarHorario(id: number, dto: AssignHorarioDto) {

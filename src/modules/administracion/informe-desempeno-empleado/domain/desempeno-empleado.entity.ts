@@ -18,4 +18,3 @@ export class DesempenoEmpleadoEntity {
     Object.assign(this, partial);
   }
 }
-

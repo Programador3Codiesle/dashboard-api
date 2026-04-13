@@ -4,10 +4,11 @@ import { FiltrosTiempoGestionCompras } from '../domain/tiempo-gestion-compras.re
 
 @Injectable()
 export class TiempoGestionComprasFacade {
-  constructor(private readonly listarUseCase: ListarTiempoGestionComprasUseCase) {}
+  constructor(
+    private readonly listarUseCase: ListarTiempoGestionComprasUseCase,
+  ) {}
 
   listar(filtros: FiltrosTiempoGestionCompras) {
     return this.listarUseCase.execute(filtros);
   }
 }
-

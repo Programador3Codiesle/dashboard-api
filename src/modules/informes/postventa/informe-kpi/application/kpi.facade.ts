@@ -9,4 +9,3 @@ export class KpiFacade {
     return this.obtenerKpiUseCase.execute();
   }
 }
-

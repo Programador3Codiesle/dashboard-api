@@ -261,7 +261,9 @@ export class CotizadorFacade {
 
   // Ejecución Cotizado vs Facturado
 
-  async getEjecucionResumen(params: EjecucionFiltroParams): Promise<EjecucionResumenResponse> {
+  async getEjecucionResumen(
+    params: EjecucionFiltroParams,
+  ): Promise<EjecucionResumenResponse> {
     return this.getEjecucionResumenUC.execute(params);
   }
 
@@ -390,9 +392,7 @@ export class CotizadorFacade {
     return this.getEdicionClasesUC.execute(tablaKey);
   }
 
-  async getEdicionFiltroOpciones(
-    req: FiltroOpcionRequest,
-  ): Promise<string[]> {
+  async getEdicionFiltroOpciones(req: FiltroOpcionRequest): Promise<string[]> {
     return this.getEdicionFiltroOpcionesUC.execute(req);
   }
 
@@ -402,4 +402,3 @@ export class CotizadorFacade {
     return this.aplicarEdicionConfigUC.execute(req);
   }
 }
-

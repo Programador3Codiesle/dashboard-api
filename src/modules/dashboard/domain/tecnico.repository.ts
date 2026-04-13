@@ -41,4 +41,3 @@ export abstract class ITecnicoDashboardRepository {
     ano: number,
   ): Promise<NpsTecnicoMesRow[]>;
 }
-

@@ -8,9 +8,7 @@ import {
 import { EncuestaInternaRowEntity } from '../../domain/encuestas-internas.entity';
 
 @Injectable()
-export class EncuestasInternasPrismaRepository
-  implements IEncuestasInternasRepository
-{
+export class EncuestasInternasPrismaRepository implements IEncuestasInternasRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async obtener(
@@ -21,7 +19,7 @@ export class EncuestasInternasPrismaRepository
     const rows = await this.prisma.$queryRaw<
       {
         numero_orden: number;
-        fecha_ot: Date;
+        fecha_ot: Date | string;
         hora_ot: string;
         placa: string;
         nit: string;
@@ -31,7 +29,7 @@ export class EncuestasInternasPrismaRepository
         telefono_1: string | null;
         telefono_2: string | null;
         mail: string | null;
-        fecha_enc: Date;
+        fecha_enc: Date | string;
         pregunta1: string;
       }[]
     >(Prisma.sql`
@@ -64,7 +62,10 @@ export class EncuestasInternasPrismaRepository
         new EncuestaInternaRowEntity({
           numeroOrden: Number(r.numero_orden),
           bodega: r.descripcion,
-          fechaOt: r.fecha_ot instanceof Date ? r.fecha_ot.toISOString() : String(r.fecha_ot),
+          fechaOt:
+            r.fecha_ot instanceof Date
+              ? r.fecha_ot.toISOString()
+              : String(r.fecha_ot),
           horaOt: r.hora_ot,
           placa: r.placa,
           nit: r.nit,
@@ -73,10 +74,12 @@ export class EncuestasInternasPrismaRepository
           telefono1: r.telefono_1,
           telefono2: r.telefono_2,
           correo: r.mail,
-          fechaEncuesta: r.fecha_enc.toISOString(),
+          fechaEncuesta:
+            r.fecha_enc instanceof Date
+              ? r.fecha_enc.toISOString()
+              : String(r.fecha_enc),
           calificacion: r.pregunta1,
         }),
     );
   }
 }
-

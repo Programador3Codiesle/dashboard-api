@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  FiltrosIndicadorChecklist,
-} from '../domain/indicador-checklist.repository';
+import { FiltrosIndicadorChecklist } from '../domain/indicador-checklist.repository';
 import { ListarIndicadorChecklistUseCase } from './use-cases/listar-indicador-checklist.usecase';
 
 @Injectable()
@@ -12,4 +10,3 @@ export class InformeIndicadorChecklistFacade {
     return this.listarUC.execute(filtros);
   }
 }
-

@@ -19,4 +19,3 @@ import { TallaPersonalPrismaRepository } from './repositories/talla-personal.pri
   ],
 })
 export class InformeTallasPersonalModule {}
-

@@ -11,7 +11,9 @@ import { IndicadorChecklistEntity } from '../../domain/indicador-checklist.entit
 export class IndicadorChecklistPrismaRepository implements IIndicadorChecklistRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listar(filtros: FiltrosIndicadorChecklist): Promise<IndicadorChecklistEntity[]> {
+  async listar(
+    filtros: FiltrosIndicadorChecklist,
+  ): Promise<IndicadorChecklistEntity[]> {
     const tablas = [
       'swcrm_check_labor_calor',
       'swcrm_check_alineador',
@@ -37,7 +39,9 @@ export class IndicadorChecklistPrismaRepository implements IIndicadorChecklistRe
     }
 
     const where =
-      conditions.length > 0 ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}` : Prisma.empty;
+      conditions.length > 0
+        ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
+        : Prisma.empty;
 
     const sql = Prisma.sql`
       SELECT
@@ -54,9 +58,9 @@ export class IndicadorChecklistPrismaRepository implements IIndicadorChecklistRe
       (r) =>
         new IndicadorChecklistEntity({
           sede: r.sede ?? '',
-          numRegistros: r.numRegistros !== undefined ? Number(r.numRegistros) : 0,
+          numRegistros:
+            r.numRegistros !== undefined ? Number(r.numRegistros) : 0,
         }),
     );
   }
 }
-

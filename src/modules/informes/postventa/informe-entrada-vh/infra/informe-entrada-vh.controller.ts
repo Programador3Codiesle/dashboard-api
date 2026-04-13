@@ -6,10 +6,7 @@ export class InformeEntradaVhController {
   constructor(private readonly entradaVhFacade: EntradaVhFacade) {}
 
   @Get()
-  async obtener(
-    @Query('year') year: string,
-    @Query('month') month: string,
-  ) {
+  async obtener(@Query('year') year: string, @Query('month') month: string) {
     const parsedYear = Number(year);
     const parsedMonth = Number(month);
 
@@ -25,4 +22,3 @@ export class InformeEntradaVhController {
     });
   }
 }
-

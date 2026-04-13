@@ -3,9 +3,9 @@ import { IListaAusentismoRepository } from '../../domain/lista-ausentismo.reposi
 
 @Injectable()
 export class ObtenerAusentismosDiaActualUseCase {
-    constructor(private readonly repo: IListaAusentismoRepository) {}
+  constructor(private readonly repo: IListaAusentismoRepository) {}
 
-    async execute() {
-        return this.repo.obtenerDiaActual();
-    }
+  async execute() {
+    return this.repo.obtenerDiaActual();
+  }
 }

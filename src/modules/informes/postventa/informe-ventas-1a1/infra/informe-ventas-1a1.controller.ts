@@ -28,4 +28,3 @@ export class InformeVentas1a1Controller {
     });
   }
 }
-

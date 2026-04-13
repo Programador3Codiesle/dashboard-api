@@ -13,9 +13,10 @@ export class ListarChecklistPesvUseCase {
       throw new BadRequestException('Debe indicar rango de fechas');
     }
     if (!filtros.tipo) {
-      throw new BadRequestException('Debe indicar el tipo de checklist (carro o moto)');
+      throw new BadRequestException(
+        'Debe indicar el tipo de checklist (carro o moto)',
+      );
     }
     return this.repo.listar(filtros);
   }
 }
-

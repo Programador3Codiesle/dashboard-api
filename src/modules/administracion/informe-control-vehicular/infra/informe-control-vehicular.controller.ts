@@ -118,4 +118,3 @@ export class InformeControlVehicularController {
     res.send(csv);
   }
 }
-

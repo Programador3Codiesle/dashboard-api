@@ -1,7 +1,11 @@
 // Guard personalizado para rate limiting en auth
 import { Injectable, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ThrottlerGuard, ThrottlerModuleOptions, ThrottlerStorage } from '@nestjs/throttler';
+import {
+  ThrottlerGuard,
+  ThrottlerModuleOptions,
+  ThrottlerStorage,
+} from '@nestjs/throttler';
 
 @Injectable()
 export class ThrottlerAuthGuard extends ThrottlerGuard {
@@ -14,7 +18,6 @@ export class ThrottlerAuthGuard extends ThrottlerGuard {
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    return super.canActivate(context) as Promise<boolean>;
+    return super.canActivate(context);
   }
 }
-

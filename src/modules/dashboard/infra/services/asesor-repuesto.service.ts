@@ -45,41 +45,72 @@ export class AsesorRepuestoService {
       );
 
       let presupuesto = 0;
-        
-      if (nitUsuario === 91233925 && filasPresupuesto.length > 0) { //cadena ramirez fernando antonio
+
+      if (nitUsuario === 91233925 && filasPresupuesto.length > 0) {
+        //cadena ramirez fernando antonio
         presupuesto = Number(filasPresupuesto[0].rptos_colision);
-      } else if (nitUsuario === 13719442 && filasPresupuesto.length > 0) {  //castro blanco luis eduardo
+      } else if (nitUsuario === 13719442 && filasPresupuesto.length > 0) {
+        //castro blanco luis eduardo
         presupuesto = Number(filasPresupuesto[0].mostrador);
-        
-      } else if (nitUsuario === 1098685926 && filasPresupuesto.length > 0) { //quiñonez navas diego alonso
-        let rptos_mto_preventivo = Number(filasPresupuesto[0].rptos_mto_preventivo);
-        let rptos_mto_correctivo = Number(filasPresupuesto[0].rptos_mto_correctivo);
-        let rptos_garantia = Number(filasPresupuesto[0].rptos_garantia);
-        let rptos_retorno = Number(filasPresupuesto[0].rptos_retorno);
-        let rptos_colision = Number(filasPresupuesto[0].rptos_colision);
-        let mostrador = Number(filasPresupuesto[0].mostrador);
-      
-        presupuesto = rptos_mto_preventivo + rptos_mto_correctivo + rptos_garantia + rptos_retorno + rptos_colision  + mostrador;
-        
-      } else if (nitUsuario === 91354375 && filasPresupuesto.length > 0) { //abril ramirez leonardo
-        let rptos_mto_preventivo = Number(filasPresupuesto[0].rptos_mto_preventivo);
-        let rptos_mto_correctivo = Number(filasPresupuesto[0].rptos_mto_correctivo);
-        let rptos_garantia = Number(filasPresupuesto[0].rptos_garantia);
-        let rptos_retorno = Number(filasPresupuesto[0].rptos_retorno);
-        let rptos_colision = Number(filasPresupuesto[0].rptos_colision);
-  
-        presupuesto = rptos_mto_preventivo + rptos_mto_correctivo + rptos_garantia + rptos_retorno + rptos_colision ;
-      } else if (nitUsuario === 91536848 && filasPresupuesto.length > 0) {  //lopez juan manuel
-        let rptos_mto_preventivo = Number(filasPresupuesto[0].rptos_mto_preventivo);
-        let rptos_mto_correctivo = Number(filasPresupuesto[0].rptos_mto_correctivo);
-        let rptos_garantia = Number(filasPresupuesto[0].rptos_garantia);
-        let rptos_retorno = Number(filasPresupuesto[0].rptos_retorno);
-        let rptos_colision = Number(filasPresupuesto[0].rptos_colision);
-        let mostrador = Number(filasPresupuesto[0].mostrador);
+      } else if (nitUsuario === 1098685926 && filasPresupuesto.length > 0) {
+        //quiñonez navas diego alonso
+        const rptos_mto_preventivo = Number(
+          filasPresupuesto[0].rptos_mto_preventivo,
+        );
+        const rptos_mto_correctivo = Number(
+          filasPresupuesto[0].rptos_mto_correctivo,
+        );
+        const rptos_garantia = Number(filasPresupuesto[0].rptos_garantia);
+        const rptos_retorno = Number(filasPresupuesto[0].rptos_retorno);
+        const rptos_colision = Number(filasPresupuesto[0].rptos_colision);
+        const mostrador = Number(filasPresupuesto[0].mostrador);
 
-        presupuesto = rptos_mto_preventivo + rptos_mto_correctivo + rptos_garantia + rptos_retorno + rptos_colision + mostrador;
+        presupuesto =
+          rptos_mto_preventivo +
+          rptos_mto_correctivo +
+          rptos_garantia +
+          rptos_retorno +
+          rptos_colision +
+          mostrador;
+      } else if (nitUsuario === 91354375 && filasPresupuesto.length > 0) {
+        //abril ramirez leonardo
+        const rptos_mto_preventivo = Number(
+          filasPresupuesto[0].rptos_mto_preventivo,
+        );
+        const rptos_mto_correctivo = Number(
+          filasPresupuesto[0].rptos_mto_correctivo,
+        );
+        const rptos_garantia = Number(filasPresupuesto[0].rptos_garantia);
+        const rptos_retorno = Number(filasPresupuesto[0].rptos_retorno);
+        const rptos_colision = Number(filasPresupuesto[0].rptos_colision);
+
+        presupuesto =
+          rptos_mto_preventivo +
+          rptos_mto_correctivo +
+          rptos_garantia +
+          rptos_retorno +
+          rptos_colision;
+      } else if (nitUsuario === 91536848 && filasPresupuesto.length > 0) {
+        //lopez juan manuel
+        const rptos_mto_preventivo = Number(
+          filasPresupuesto[0].rptos_mto_preventivo,
+        );
+        const rptos_mto_correctivo = Number(
+          filasPresupuesto[0].rptos_mto_correctivo,
+        );
+        const rptos_garantia = Number(filasPresupuesto[0].rptos_garantia);
+        const rptos_retorno = Number(filasPresupuesto[0].rptos_retorno);
+        const rptos_colision = Number(filasPresupuesto[0].rptos_colision);
+        const mostrador = Number(filasPresupuesto[0].mostrador);
+
+        presupuesto =
+          rptos_mto_preventivo +
+          rptos_mto_correctivo +
+          rptos_garantia +
+          rptos_retorno +
+          rptos_colision +
+          mostrador;
       }
-
 
       if (presupuesto > 0) {
         presupuestosSede.push({
@@ -90,18 +121,19 @@ export class AsesorRepuestoService {
     }
 
     const nomUsu = sedesRows[0]?.nombres ?? '';
-    
-    const resumenActual: NonNullable<DashboardAsesorRepDto['resumen_actual']> = [];
-      let totalVendidoGlobal = 0;
-      
+
+    const resumenActual: NonNullable<DashboardAsesorRepDto['resumen_actual']> =
+      [];
+    let totalVendidoGlobal = 0;
+
     for (const asesor of ASESORES) {
       if (asesor.nombre !== nomUsu) continue;
 
       // Buscar la sede real según la descripción del usuario; si no se encuentra, usar la sede del asesor.
-      const sedeLabel = sedesRows[0]?.descripcion ?? `Sede ${sedesRows[0]?.idsede}`;
+      const sedeLabel =
+        sedesRows[0]?.descripcion ?? `Sede ${sedesRows[0]?.idsede}`;
       const sedeLabel2 = asesor.sede;
-   
-     
+
       const pushFila = (params: {
         ventaNeta: number;
         margenBruto: number;
@@ -154,31 +186,48 @@ export class AsesorRepuestoService {
             const utilidadBruta = ventaNeta * (margen / 100);
             const comision = 12.0;
             const valorComision = utilidadBruta * (comision / 100);
-            pushFila({ ventaNeta, margenBruto: margen, utilidadBruta, comision, valorComision });
+            pushFila({
+              ventaNeta,
+              margenBruto: margen,
+              utilidadBruta,
+              comision,
+              valorComision,
+            });
           } else if (sedeLabel2 === 'TALLER' && dataTall) {
             const ventaNeta = dataTall.venta_neta;
             const margen = dataTall.margen;
             const utilidadBruta = ventaNeta * (margen / 100);
             const comision = 8.0;
             const valorComision = utilidadBruta * (comision / 100);
-            pushFila({ ventaNeta, margenBruto: margen, utilidadBruta, comision, valorComision });
+            pushFila({
+              ventaNeta,
+              margenBruto: margen,
+              utilidadBruta,
+              comision,
+              valorComision,
+            });
           }
           break;
         }
         case 'CASTRO BLANCO LUIS EDUARDO': {
-          const dataMos =
-            await this.asesorRepo.getComisionRepMostradorLuisE(
-              asesor.nombre,
-              mes,
-              ano,
-            );
+          const dataMos = await this.asesorRepo.getComisionRepMostradorLuisE(
+            asesor.nombre,
+            mes,
+            ano,
+          );
           if (dataMos) {
             const ventaNeta = dataMos.venta_neta;
             const margen = dataMos.margen;
             const utilidadBruta = ventaNeta * (margen / 100);
             const comision = 10.0;
             const valorComision = utilidadBruta * (comision / 100);
-            pushFila({ ventaNeta, margenBruto: margen, utilidadBruta, comision, valorComision });
+            pushFila({
+              ventaNeta,
+              margenBruto: margen,
+              utilidadBruta,
+              comision,
+              valorComision,
+            });
           }
           break;
         }
@@ -199,14 +248,26 @@ export class AsesorRepuestoService {
             const utilidadBruta = ventaNeta * (margen / 100);
             const comision = 12.0;
             const valorComision = utilidadBruta * (comision / 100);
-            pushFila({ ventaNeta, margenBruto: margen, utilidadBruta, comision, valorComision });
+            pushFila({
+              ventaNeta,
+              margenBruto: margen,
+              utilidadBruta,
+              comision,
+              valorComision,
+            });
           } else if (sedeLabel === 'TALLER' && dataTall) {
             const ventaNeta = dataTall.venta_neta;
             const margen = dataTall.margen;
             const utilidadBruta = ventaNeta * (margen / 100);
             const comision = 4.0;
             const valorComision = utilidadBruta * (comision / 100);
-            pushFila({ ventaNeta, margenBruto: margen, utilidadBruta, comision, valorComision });
+            pushFila({
+              ventaNeta,
+              margenBruto: margen,
+              utilidadBruta,
+              comision,
+              valorComision,
+            });
           }
           break;
         }
@@ -310,7 +371,7 @@ export class AsesorRepuestoService {
           }
           break;
         }
-          case 'CADENA RAMIREZ FERNANDO ANTONIO': {
+        case 'CADENA RAMIREZ FERNANDO ANTONIO': {
           const dataMos = await this.asesorRepo.getComisionRepMostrador(
             asesor.nombre,
             mes,
@@ -430,20 +491,21 @@ export class AsesorRepuestoService {
         case 'OCHOA RUEDA JHON FREDDY': {
           const dataMosSinMayor =
             await this.asesorRepo.getComisionRepMostradorSinMayor(
-            asesor.nombre,
-            mes,
-            ano,
-          );
+              asesor.nombre,
+              mes,
+              ano,
+            );
           const dataMayor = await this.asesorRepo.getComisionRepMostradosMayor(
             asesor.nombre,
             mes,
             ano,
           );
-          const dataAceite = await this.asesorRepo.getComisionRepMostradosAceite(
-            asesor.nombre,
-            mes,
-            ano,
-          );
+          const dataAceite =
+            await this.asesorRepo.getComisionRepMostradosAceite(
+              asesor.nombre,
+              mes,
+              ano,
+            );
           if (sedeLabel === 'CHEVROPARTES MAYOR' && dataMayor) {
             const ventaNeta = dataMayor.venta_neta;
             const margen = dataMayor.margen;
@@ -461,7 +523,10 @@ export class AsesorRepuestoService {
               comisionVariable: comisionV,
               valorComisionVariable: valorComisionV,
             });
-          } else if (sedeLabel === 'CHEVROPARTES MOSTRADOR' && dataMosSinMayor) {
+          } else if (
+            sedeLabel === 'CHEVROPARTES MOSTRADOR' &&
+            dataMosSinMayor
+          ) {
             const ventaNeta = dataMosSinMayor.venta_neta;
             const margen = dataMosSinMayor.margen;
             const utilidadBruta = ventaNeta * (margen / 100);
@@ -531,7 +596,8 @@ export class AsesorRepuestoService {
       dia_festivo: diaFestivo,
       id_usu: idUsu,
       sedes: sedesParaResponse,
-      presupuestos_sede: presupuestosSede.length > 0 ? presupuestosSede : undefined,
+      presupuestos_sede:
+        presupuestosSede.length > 0 ? presupuestosSede : undefined,
       resumen_actual: resumenActual.length > 0 ? resumenActual : undefined,
       total_vendido_global: totalVendidoGlobal || undefined,
     };

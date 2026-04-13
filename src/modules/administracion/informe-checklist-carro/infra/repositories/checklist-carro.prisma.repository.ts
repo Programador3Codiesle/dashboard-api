@@ -15,7 +15,9 @@ export class ChecklistCarroPrismaRepository implements IChecklistCarroRepository
    * Misma consulta que legacy `AdministracionCodiesel::get_empleados_jefes($nit_jefe)`.
    * NITs de empleados subordinados para filtrar `doc_conductor`.
    */
-  private async obtenerNitsSubordinadosPorNitJefe(nitJefe: string): Promise<string[]> {
+  private async obtenerNitsSubordinadosPorNitJefe(
+    nitJefe: string,
+  ): Promise<string[]> {
     const rows = await this.prisma.$queryRaw<{ nit: unknown }[]>`
       SELECT DISTINCT emp.nit AS nit
       FROM postv_jefes j
@@ -122,11 +124,16 @@ export class ChecklistCarroPrismaRepository implements IChecklistCarroRepository
     await this.aplicarFiltrosPorPerfilLegacy(conditions, filtros);
 
     const where =
-      conditions.length > 0 ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}` : Prisma.empty;
+      conditions.length > 0
+        ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
+        : Prisma.empty;
 
     const limiteRaw = filtros.limite ?? 10;
     const paginaRaw = filtros.pagina ?? 1;
-    const limit = Math.min(Math.max(Math.floor(Number(limiteRaw)) || 10, 1), 100);
+    const limit = Math.min(
+      Math.max(Math.floor(Number(limiteRaw)) || 10, 1),
+      100,
+    );
     const page = Math.max(Math.floor(Number(paginaRaw)) || 1, 1);
     const offset = (page - 1) * limit;
 
@@ -234,4 +241,3 @@ export class ChecklistCarroPrismaRepository implements IChecklistCarroRepository
     return { items, total };
   }
 }
-

@@ -7,9 +7,7 @@ import {
 } from '../../domain/cotizador-repuestos-no-disp.repository';
 
 @Injectable()
-export class CotizadorRepuestosNoDispPrismaRepository
-  implements ICotizadorRepuestosNoDispRepository
-{
+export class CotizadorRepuestosNoDispPrismaRepository implements ICotizadorRepuestosNoDispRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getRepuestosNoDisponibles(

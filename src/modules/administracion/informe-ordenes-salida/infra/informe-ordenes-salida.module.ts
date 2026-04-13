@@ -21,4 +21,3 @@ import { OrdenSalidaPrismaRepository } from './repositories/orden-salida.prisma.
   ],
 })
 export class InformeOrdenesSalidaModule {}
-

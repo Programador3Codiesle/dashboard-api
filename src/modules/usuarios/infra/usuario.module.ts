@@ -7,20 +7,20 @@ import { PrismaService } from '../../../core/infra/prisma/prisma.service';
 
 // Contratos del dominio (interfaces abstractas)
 import {
-    IUsuarioCoreRepository,
-    IUsuarioEmpresaRepository,
-    IUsuarioJefeRepository,
-    IUsuarioSedeRepository,
-    IUsuarioHorarioRepository,
+  IUsuarioCoreRepository,
+  IUsuarioEmpresaRepository,
+  IUsuarioJefeRepository,
+  IUsuarioSedeRepository,
+  IUsuarioHorarioRepository,
 } from '../domain/repositories';
 
 // Implementaciones de infraestructura (Prisma)
 import {
-    UsuarioCoreRepository,
-    UsuarioEmpresaRepository,
-    UsuarioJefeRepository,
-    UsuarioSedeRepository,
-    UsuarioHorarioRepository,
+  UsuarioCoreRepository,
+  UsuarioEmpresaRepository,
+  UsuarioJefeRepository,
+  UsuarioSedeRepository,
+  UsuarioHorarioRepository,
 } from './repositories';
 
 // Use Cases
@@ -35,11 +35,11 @@ import { GetUsuariosUseCase } from '../application/use-cases/get-usuarios.usecas
 
 /**
  * Módulo de Usuarios - Clean Architecture + DDD
- * 
+ *
  * Implementa el principio de Inversión de Dependencias (DIP):
  * - Los Use Cases dependen de interfaces abstractas (dominio)
  * - Las implementaciones concretas (Prisma) se inyectan en tiempo de ejecución
- * 
+ *
  * Repositorios especializados (SRP):
  * - IUsuarioCoreRepository: CRUD básico de usuarios
  * - IUsuarioEmpresaRepository: Gestión de empresas
@@ -48,58 +48,58 @@ import { GetUsuariosUseCase } from '../application/use-cases/get-usuarios.usecas
  * - IUsuarioHorarioRepository: Gestión de horarios
  */
 @Module({
-    imports: [],
-    controllers: [UsuarioController],
-    providers: [
-        PrismaService,
+  imports: [],
+  controllers: [UsuarioController],
+  providers: [
+    PrismaService,
 
-        // Inyección de dependencias basada en contratos (DIP - Dependency Inversion Principle)
-        {
-            provide: IUsuarioCoreRepository,
-            useClass: UsuarioCoreRepository,
-        },
-        {
-            provide: IUsuarioEmpresaRepository,
-            useClass: UsuarioEmpresaRepository,
-        },
-        {
-            provide: IUsuarioJefeRepository,
-            useClass: UsuarioJefeRepository,
-        },
-        {
-            provide: IUsuarioSedeRepository,
-            useClass: UsuarioSedeRepository,
-        },
-        {
-            provide: IUsuarioHorarioRepository,
-            useClass: UsuarioHorarioRepository,
-        },
+    // Inyección de dependencias basada en contratos (DIP - Dependency Inversion Principle)
+    {
+      provide: IUsuarioCoreRepository,
+      useClass: UsuarioCoreRepository,
+    },
+    {
+      provide: IUsuarioEmpresaRepository,
+      useClass: UsuarioEmpresaRepository,
+    },
+    {
+      provide: IUsuarioJefeRepository,
+      useClass: UsuarioJefeRepository,
+    },
+    {
+      provide: IUsuarioSedeRepository,
+      useClass: UsuarioSedeRepository,
+    },
+    {
+      provide: IUsuarioHorarioRepository,
+      useClass: UsuarioHorarioRepository,
+    },
 
-        // Services
-        UsuarioService,
+    // Services
+    UsuarioService,
 
-        // Mappers
-        UsuarioMapper,
+    // Mappers
+    UsuarioMapper,
 
-        // Use Cases
-        UsuarioFacade,
-        CreateUsuarioUseCase,
-        UpdateUsuarioUseCase,
-        AssignSedeUseCase,
-        AssignJefeUseCase,
-        AssignHorarioUseCase,
-        AssignEmpresaUseCase,
-        GetUsuariosUseCase,
-    ],
-    exports: [
-        UsuarioService,
-        UsuarioFacade,
-        // Exportar contratos para uso en otros módulos
-        IUsuarioCoreRepository,
-        IUsuarioEmpresaRepository,
-        IUsuarioJefeRepository,
-        IUsuarioSedeRepository,
-        IUsuarioHorarioRepository,
-    ],
+    // Use Cases
+    UsuarioFacade,
+    CreateUsuarioUseCase,
+    UpdateUsuarioUseCase,
+    AssignSedeUseCase,
+    AssignJefeUseCase,
+    AssignHorarioUseCase,
+    AssignEmpresaUseCase,
+    GetUsuariosUseCase,
+  ],
+  exports: [
+    UsuarioService,
+    UsuarioFacade,
+    // Exportar contratos para uso en otros módulos
+    IUsuarioCoreRepository,
+    IUsuarioEmpresaRepository,
+    IUsuarioJefeRepository,
+    IUsuarioSedeRepository,
+    IUsuarioHorarioRepository,
+  ],
 })
 export class UsuarioModule {}

@@ -5,11 +5,14 @@ import { IReglamentoInternoRepository } from '../domain/reglamento-interno.repos
 import { ReglamentoInternoTrabajoRepository } from './repositories/reglamiento-interno-trabajo.repository';
 
 @Module({
-    controllers: [ReglamentoInternoController],
-    providers: [
-        ReglamentoInternoFacade,
-        { provide: IReglamentoInternoRepository, useClass: ReglamentoInternoTrabajoRepository },
-    ],
-    exports: [ReglamentoInternoFacade],
+  controllers: [ReglamentoInternoController],
+  providers: [
+    ReglamentoInternoFacade,
+    {
+      provide: IReglamentoInternoRepository,
+      useClass: ReglamentoInternoTrabajoRepository,
+    },
+  ],
+  exports: [ReglamentoInternoFacade],
 })
-export class ReglamentoInternoModule { }
+export class ReglamentoInternoModule {}

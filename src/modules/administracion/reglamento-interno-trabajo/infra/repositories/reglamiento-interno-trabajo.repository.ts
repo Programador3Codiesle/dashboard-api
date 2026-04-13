@@ -10,9 +10,8 @@ import { IReglamentoInternoRepository } from '../../domain/reglamento-interno.re
  */
 @Injectable()
 export class ReglamentoInternoTrabajoRepository implements IReglamentoInternoRepository {
-    obtenerRutaArchivo(): string {
-        // Mantener la misma ruta utilizada previamente en la fachada
-        return '/reglamento/reglamento-interno-trabajo.pdf';
-    }
+  obtenerRutaArchivo(): string {
+    // Mantener la misma ruta utilizada previamente en la fachada
+    return '/reglamento/reglamento-interno-trabajo.pdf';
+  }
 }
-

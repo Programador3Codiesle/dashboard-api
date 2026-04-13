@@ -2,7 +2,7 @@
  * Contrato del Repositorio de Usuario - Operaciones Core
  * Define las operaciones CRUD básicas y gestión de perfiles
  */
-import { UsuarioEntity, PerfilesEntity } from "../usuario.entity";
+import { UsuarioEntity, PerfilesEntity } from '../usuario.entity';
 
 export abstract class IUsuarioCoreRepository {
   /**
@@ -33,17 +33,24 @@ export abstract class IUsuarioCoreRepository {
   /**
    * Resetear la contraseña de un usuario
    */
-  abstract resetPassword(id: number, encryptedPassword: string): Promise<{ success: boolean; message: string }>;
+  abstract resetPassword(
+    id: number,
+    encryptedPassword: string,
+  ): Promise<{ success: boolean; message: string }>;
 
   /**
    * Deshabilitar un usuario
    */
-  abstract deshabilitar(id: number): Promise<{ success: boolean; message: string }>;
+  abstract deshabilitar(
+    id: number,
+  ): Promise<{ success: boolean; message: string }>;
 
   /**
    * Habilitar un usuario
    */
-  abstract habilitar(id: number): Promise<{ success: boolean; message: string }>;
+  abstract habilitar(
+    id: number,
+  ): Promise<{ success: boolean; message: string }>;
 
   /**
    * Listar usuarios que pueden ser jefes
@@ -68,7 +75,9 @@ export abstract class IUsuarioCoreRepository {
   /**
    * Crear un nuevo usuario
    */
-  abstract crearUsuario(data: any): Promise<{ success: boolean; message: string }>;
+  abstract crearUsuario(
+    data: any,
+  ): Promise<{ success: boolean; message: string }>;
 
   /**
    * Ejecutar una transacción

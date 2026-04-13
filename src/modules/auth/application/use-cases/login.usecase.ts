@@ -5,11 +5,13 @@ import { LoginDto } from '../../application/dto/login.dto';
 
 @Injectable()
 export class LoginUseCase {
-    constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
-
-    async execute(dto: LoginDto) {
-        const user = await this.authService.validateUser(dto.nit_usuario, dto.password);
-        return this.authService.login(user);
-    }
+  async execute(dto: LoginDto) {
+    const user = await this.authService.validateUser(
+      dto.nit_usuario,
+      dto.password,
+    );
+    return this.authService.login(user);
+  }
 }

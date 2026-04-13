@@ -1,7 +1,7 @@
 import { Controller, Get } from '@nestjs/common';
 import { TallasPersonalFacade } from '../application/tallas-personal.facade';
 
-@Controller('informe-tallas-personal')
+@Controller('informes/informe-tallas-personal')
 export class InformeTallasPersonalController {
   constructor(private readonly facade: TallasPersonalFacade) {}
 
@@ -10,4 +10,3 @@ export class InformeTallasPersonalController {
     return this.facade.listar();
   }
 }
-

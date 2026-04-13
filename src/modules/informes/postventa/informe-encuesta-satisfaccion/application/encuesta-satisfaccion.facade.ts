@@ -1,7 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  FiltrosEncuestaSatisfaccion,
-} from '../domain/encuesta-satisfaccion.repository';
+import { FiltrosEncuestaSatisfaccion } from '../domain/encuesta-satisfaccion.repository';
 import { EncuestaSatisfaccionResumenEntity } from '../domain/encuesta-satisfaccion.entity';
 import { ListarEncuestaSatisfaccionUseCase } from './use-cases/listar-encuesta-satisfaccion.usecase';
 
@@ -17,4 +15,3 @@ export class EncuestaSatisfaccionFacade {
     return this.listarEncuestaSatisfaccion.execute(filtros);
   }
 }
-

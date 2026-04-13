@@ -4,4 +4,3 @@
 export abstract class IComprasDashboardRepository {
   abstract getCantSolicitudesCompras(estados: string): Promise<{ n: number }>;
 }
-

@@ -12,9 +12,7 @@ export interface AdicionalesLivianosInitResponse {
 
 @Injectable()
 export class GetAdicionalesLivianosInitUseCase {
-  constructor(
-    private readonly repo: ICotizadorAdicionalesLivianosRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorAdicionalesLivianosRepository) {}
 
   async execute(): Promise<AdicionalesLivianosInitResponse> {
     const [clases, adicionales] = await Promise.all([
@@ -25,4 +23,3 @@ export class GetAdicionalesLivianosInitUseCase {
     return { clases, adicionales };
   }
 }
-

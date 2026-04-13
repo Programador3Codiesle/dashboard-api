@@ -10,9 +10,7 @@ export interface DeleteRepuestoAdicionalLivianoDTO {
 
 @Injectable()
 export class DeleteRepuestoAdicionalLivianosUseCase {
-  constructor(
-    private readonly repo: ICotizadorAdicionalesLivianosRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorAdicionalesLivianosRepository) {}
 
   async execute(dto: DeleteRepuestoAdicionalLivianoDTO): Promise<void> {
     if (!dto.seq || !dto.codigo || !dto.adicionalId) {
@@ -31,4 +29,3 @@ export class DeleteRepuestoAdicionalLivianosUseCase {
     );
   }
 }
-

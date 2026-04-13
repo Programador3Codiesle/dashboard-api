@@ -10,7 +10,7 @@ export class AssignSedeDto {
 export class responseSedeDto {
   @ApiProperty({ example: 1, description: 'ID de la sede' })
   id!: number;
-  
+
   @ApiProperty({ example: 'Bucaramanga', description: 'Nombre de la sede' })
   nombre?: string;
 }

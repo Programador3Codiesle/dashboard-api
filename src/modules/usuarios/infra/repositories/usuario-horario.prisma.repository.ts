@@ -2,11 +2,11 @@
  * Repositorio de Usuario - Gestión de Horarios
  * Implementa IUsuarioHorarioRepository siguiendo Clean Architecture
  */
-import { Injectable, NotFoundException } from "@nestjs/common";
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
-import { HorarioEntity } from "../../domain/usuario.entity";
-import { AssignHorarioDto } from "../../application/dto/assign-horario.dto";
-import { IUsuarioHorarioRepository } from "../../domain/repositories/usuario-horario.repository";
+import { HorarioEntity } from '../../domain/usuario.entity';
+import { AssignHorarioDto } from '../../application/dto/assign-horario.dto';
+import { IUsuarioHorarioRepository } from '../../domain/repositories/usuario-horario.repository';
 
 @Injectable()
 export class UsuarioHorarioRepository implements IUsuarioHorarioRepository {
@@ -24,7 +24,9 @@ export class UsuarioHorarioRepository implements IUsuarioHorarioRepository {
 
     // Validar que se encontró un resultado
     if (!results || results.length === 0) {
-      throw new NotFoundException(`Horario no encontrado para el usuario con ID ${idUsuario}`);
+      throw new NotFoundException(
+        `Horario no encontrado para el usuario con ID ${idUsuario}`,
+      );
     }
 
     const item = results[0];
@@ -50,7 +52,10 @@ export class UsuarioHorarioRepository implements IUsuarioHorarioRepository {
   /**
    * Asignar un horario a un usuario
    */
-  async assignHorario(idUsuario: number, dto: AssignHorarioDto): Promise<HorarioEntity> {
+  async assignHorario(
+    idUsuario: number,
+    dto: AssignHorarioDto,
+  ): Promise<HorarioEntity> {
     // Insertar la relación usuario-horario
     await this.prisma.$executeRaw`
       INSERT INTO postv_horarios_empleados (nit_empleado, sede, hora_ent_sem_am, hora_sal_sem_am, hora_ent_sem_pm, hora_sal_sem_pm, hora_ent_am_viernes, hora_sal_am_viernes, hora_ent_viernes_pm, hora_sal_viernes, hora_ent_fds, hora_sal_fds)
@@ -58,20 +63,22 @@ export class UsuarioHorarioRepository implements IUsuarioHorarioRepository {
     `;
 
     // Obtener los datos del horario para retornarlos
-    const horarioData = await this.prisma.$queryRaw<Array<{
-      nit_empleado: number;
-      sede: string;
-      hora_ent_sem_am: string;
-      hora_sal_sem_am: string;
-      hora_ent_sem_pm: string;
-      hora_sal_sem_pm: string;
-      hora_ent_am_viernes: string;
-      hora_sal_am_viernes: string;
-      hora_ent_viernes_pm: string;
-      hora_sal_viernes: string;
-      hora_ent_fds: string;
-      hora_sal_fds: string;
-    }>>`
+    const horarioData = await this.prisma.$queryRaw<
+      Array<{
+        nit_empleado: number;
+        sede: string;
+        hora_ent_sem_am: string;
+        hora_sal_sem_am: string;
+        hora_ent_sem_pm: string;
+        hora_sal_sem_pm: string;
+        hora_ent_am_viernes: string;
+        hora_sal_am_viernes: string;
+        hora_ent_viernes_pm: string;
+        hora_sal_viernes: string;
+        hora_ent_fds: string;
+        hora_sal_fds: string;
+      }>
+    >`
       SELECT nit_empleado, sede, hora_ent_sem_am, hora_sal_sem_am, hora_ent_sem_pm, hora_sal_sem_pm, hora_ent_am_viernes, hora_sal_am_viernes, hora_ent_viernes_pm, hora_sal_viernes, hora_ent_fds, hora_sal_fds
       FROM postv_horarios_empleados
       WHERE nit_empleado = ${idUsuario}
@@ -83,7 +90,10 @@ export class UsuarioHorarioRepository implements IUsuarioHorarioRepository {
   /**
    * Actualizar el horario de un usuario
    */
-  async updateHorario(idUsuario: number, dto: AssignHorarioDto): Promise<HorarioEntity> {
+  async updateHorario(
+    idUsuario: number,
+    dto: AssignHorarioDto,
+  ): Promise<HorarioEntity> {
     // Actualizar la relación usuario-horario
     await this.prisma.$executeRaw`
       UPDATE postv_horarios_empleados
@@ -95,20 +105,22 @@ export class UsuarioHorarioRepository implements IUsuarioHorarioRepository {
     `;
 
     // Obtener los datos del horario para retornarlos
-    const horarioData = await this.prisma.$queryRaw<Array<{
-      nit_empleado: number;
-      sede: string;
-      hora_ent_sem_am: string;
-      hora_sal_sem_am: string;
-      hora_ent_sem_pm: string;
-      hora_sal_sem_pm: string;
-      hora_ent_am_viernes: string;
-      hora_sal_am_viernes: string;
-      hora_ent_viernes_pm: string;
-      hora_sal_viernes: string;
-      hora_ent_fds: string;
-      hora_sal_fds: string;
-    }>>`
+    const horarioData = await this.prisma.$queryRaw<
+      Array<{
+        nit_empleado: number;
+        sede: string;
+        hora_ent_sem_am: string;
+        hora_sal_sem_am: string;
+        hora_ent_sem_pm: string;
+        hora_sal_sem_pm: string;
+        hora_ent_am_viernes: string;
+        hora_sal_am_viernes: string;
+        hora_ent_viernes_pm: string;
+        hora_sal_viernes: string;
+        hora_ent_fds: string;
+        hora_sal_fds: string;
+      }>
+    >`
       SELECT nit_empleado, sede, hora_ent_sem_am, hora_sal_sem_am, hora_ent_sem_pm, hora_sal_sem_pm, hora_ent_am_viernes, hora_sal_am_viernes, hora_ent_viernes_pm, hora_sal_viernes, hora_ent_fds, hora_sal_fds
       FROM postv_horarios_empleados
       WHERE nit_empleado = ${idUsuario}

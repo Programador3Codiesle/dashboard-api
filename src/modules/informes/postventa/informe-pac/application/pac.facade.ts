@@ -10,4 +10,3 @@ export class PacFacade {
     return this.obtenerPac.execute();
   }
 }
-

@@ -19,4 +19,3 @@ import { EntradaVhFacade } from '../application/entrada-vh.facade';
   ],
 })
 export class InformeEntradaVhModule {}
-

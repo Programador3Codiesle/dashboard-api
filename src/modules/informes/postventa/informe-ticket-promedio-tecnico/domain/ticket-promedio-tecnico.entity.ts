@@ -18,4 +18,3 @@ export class TicketPromedioTecnicoRowEntity {
     Object.assign(this, props);
   }
 }
-

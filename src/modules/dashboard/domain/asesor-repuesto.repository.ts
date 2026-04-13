@@ -48,4 +48,3 @@ export abstract class IAsesorRepuestoDashboardRepository {
     nombreVendedor: string,
   ): Promise<ComisionRepRow | null>;
 }
-

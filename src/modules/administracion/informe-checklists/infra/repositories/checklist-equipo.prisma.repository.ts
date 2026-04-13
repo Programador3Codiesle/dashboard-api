@@ -11,7 +11,9 @@ import { ChecklistEquipoEntity } from '../../domain/checklist-equipo.entity';
 export class ChecklistEquipoPrismaRepository implements IChecklistEquipoRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listar(filtros: FiltrosChecklistEquipo): Promise<ChecklistEquipoEntity[]> {
+  async listar(
+    filtros: FiltrosChecklistEquipo,
+  ): Promise<ChecklistEquipoEntity[]> {
     const tablas: Prisma.Sql[] = [
       Prisma.sql`swcrm_check_labor_calor`,
       Prisma.sql`swcrm_check_alineador`,
@@ -45,10 +47,8 @@ export class ChecklistEquipoPrismaRepository implements IChecklistEquipoReposito
       `;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows = await this.prisma.$queryRaw<any[]>(sql);
 
     return rows.map((r) => new ChecklistEquipoEntity(r));
   }
 }
-

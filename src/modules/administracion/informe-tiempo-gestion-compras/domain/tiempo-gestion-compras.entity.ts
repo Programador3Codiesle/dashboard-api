@@ -13,4 +13,3 @@ export class TiempoGestionComprasEntity {
     Object.assign(this, partial);
   }
 }
-

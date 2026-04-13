@@ -19,4 +19,3 @@ import { InformeChecklistMotoController } from './informe-checklist-moto.control
   ],
 })
 export class InformeChecklistMotoModule {}
-

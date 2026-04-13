@@ -5,9 +5,7 @@ import { EncuestaSatisfaccionResumenEntity } from '../domain/encuesta-satisfacci
 
 @Controller('informes/postventa/encuesta-satisfaccion')
 export class InformeEncuestaSatisfaccionController {
-  constructor(
-    private readonly encuestaFacade: EncuestaSatisfaccionFacade,
-  ) {}
+  constructor(private readonly encuestaFacade: EncuestaSatisfaccionFacade) {}
 
   @Get()
   listar(
@@ -32,4 +30,3 @@ export class InformeEncuestaSatisfaccionController {
     return this.encuestaFacade.listar(filtros);
   }
 }
-

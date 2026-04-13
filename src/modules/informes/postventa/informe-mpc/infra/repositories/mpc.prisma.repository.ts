@@ -104,4 +104,3 @@ export class MpcPrismaRepository implements IMpcRepository {
     }
   }
 }
-

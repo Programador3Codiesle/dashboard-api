@@ -31,4 +31,3 @@ export class NpsTecnicoRowEntity {
     this.mesNombre = props.mesNombre;
   }
 }
-

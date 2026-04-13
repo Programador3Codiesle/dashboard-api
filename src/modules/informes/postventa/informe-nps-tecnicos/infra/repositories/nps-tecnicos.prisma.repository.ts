@@ -173,4 +173,3 @@ export class NpsTecnicosPrismaRepository implements INpsTecnicosRepository {
     return nombres[mes - 1];
   }
 }
-

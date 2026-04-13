@@ -17,9 +17,7 @@ import {
 } from '../../domain/cotizador-adicionales-livianos.repository';
 
 @Injectable()
-export class CotizadorAdicionalesLivianosPrismaRepository
-  implements ICotizadorAdicionalesLivianosRepository
-{
+export class CotizadorAdicionalesLivianosPrismaRepository implements ICotizadorAdicionalesLivianosRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async getClasesAdicionales(): Promise<ClaseAdicionalLiviano[]> {
@@ -76,9 +74,7 @@ export class CotizadorAdicionalesLivianosPrismaRepository
       whereParts.push(Prisma.sql`r.adicional = ${filtros.adicionalId}`);
     }
     if (filtros.clases && filtros.clases.length > 0) {
-      whereParts.push(
-        Prisma.sql`r.clase IN (${Prisma.join(filtros.clases)})`,
-      );
+      whereParts.push(Prisma.sql`r.clase IN (${Prisma.join(filtros.clases)})`);
     }
 
     const whereSql =
@@ -129,9 +125,7 @@ export class CotizadorAdicionalesLivianosPrismaRepository
       whereParts.push(Prisma.sql`r.adicional = ${filtros.adicionalId}`);
     }
     if (filtros.clases && filtros.clases.length > 0) {
-      whereParts.push(
-        Prisma.sql`r.clase IN (${Prisma.join(filtros.clases)})`,
-      );
+      whereParts.push(Prisma.sql`r.clase IN (${Prisma.join(filtros.clases)})`);
     }
 
     const whereSql =
@@ -203,7 +197,9 @@ export class CotizadorAdicionalesLivianosPrismaRepository
 
       for (const clase of clases) {
         for (const r of repuestos) {
-          const existsRows = await this.prisma.$queryRaw<{ cantidad: number }[]>`
+          const existsRows = await this.prisma.$queryRaw<
+            { cantidad: number }[]
+          >`
             SELECT COUNT(*) AS cantidad
             FROM dbo.postv_reptos_adicionales
             WHERE codigo = ${r.codigo}
@@ -230,7 +226,9 @@ export class CotizadorAdicionalesLivianosPrismaRepository
         }
 
         for (const m of manoObra) {
-          const existsRows = await this.prisma.$queryRaw<{ cantidad: number }[]>`
+          const existsRows = await this.prisma.$queryRaw<
+            { cantidad: number }[]
+          >`
             SELECT COUNT(*) AS cantidad
             FROM dbo.postv_mo_adicionales
             WHERE operacion = ${m.operacion}
@@ -448,4 +446,3 @@ export class CotizadorAdicionalesLivianosPrismaRepository
     }
   }
 }
-

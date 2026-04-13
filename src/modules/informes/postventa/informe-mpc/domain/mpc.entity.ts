@@ -13,4 +13,3 @@ export class MpcInformeRowEntity {
     Object.assign(this, partial);
   }
 }
-

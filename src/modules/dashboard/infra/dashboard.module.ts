@@ -36,24 +36,42 @@ import { IGerenciaDashboardRepository } from '../domain/gerencia.repository';
   providers: [
     GetDashboardUseCase,
     // Repositorios especializados
-    { provide: IDashboardCommonRepository, useClass: DashboardCommonPrismaRepository },
-    { provide: ITecnicoDashboardRepository, useClass: DashboardTecnicoPrismaRepository },
+    {
+      provide: IDashboardCommonRepository,
+      useClass: DashboardCommonPrismaRepository,
+    },
+    {
+      provide: ITecnicoDashboardRepository,
+      useClass: DashboardTecnicoPrismaRepository,
+    },
     {
       provide: IAsesorRepuestoDashboardRepository,
       useClass: DashboardAsesorRepPrismaRepository,
     },
-    { provide: IJefeTallerDashboardRepository, useClass: DashboardJefeTallerPrismaRepository },
+    {
+      provide: IJefeTallerDashboardRepository,
+      useClass: DashboardJefeTallerPrismaRepository,
+    },
     {
       provide: IAdministracionDashboardRepository,
       useClass: DashboardAdministracionPrismaRepository,
     },
-    { provide: IAgenteCCDashboardRepository, useClass: DashboardAgenteCCPrismaRepository },
-    { provide: IComprasDashboardRepository, useClass: DashboardComprasPrismaRepository },
+    {
+      provide: IAgenteCCDashboardRepository,
+      useClass: DashboardAgenteCCPrismaRepository,
+    },
+    {
+      provide: IComprasDashboardRepository,
+      useClass: DashboardComprasPrismaRepository,
+    },
     {
       provide: IMantenimientoDashboardRepository,
       useClass: DashboardMantenimientoPrismaRepository,
     },
-    { provide: IGerenciaDashboardRepository, useClass: DashboardGerenciaPrismaRepository },
+    {
+      provide: IGerenciaDashboardRepository,
+      useClass: DashboardGerenciaPrismaRepository,
+    },
     PrismaService,
     JefeTallerService,
     TecnicoService,

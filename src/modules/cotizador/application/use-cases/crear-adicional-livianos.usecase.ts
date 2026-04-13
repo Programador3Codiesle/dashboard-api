@@ -7,9 +7,7 @@ export interface CrearAdicionalLivianoDTO {
 
 @Injectable()
 export class CrearAdicionalLivianosUseCase {
-  constructor(
-    private readonly repo: ICotizadorAdicionalesLivianosRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorAdicionalesLivianosRepository) {}
 
   async execute(dto: CrearAdicionalLivianoDTO): Promise<void> {
     const nombre = dto.nombre?.trim().toUpperCase();
@@ -28,4 +26,3 @@ export class CrearAdicionalLivianosUseCase {
     await this.repo.createAdicionalNombre(nombre);
   }
 }
-

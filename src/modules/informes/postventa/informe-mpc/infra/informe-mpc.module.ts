@@ -21,4 +21,3 @@ import { MpcFacade } from '../application/mpc.facade';
   ],
 })
 export class InformeMpcModule {}
-

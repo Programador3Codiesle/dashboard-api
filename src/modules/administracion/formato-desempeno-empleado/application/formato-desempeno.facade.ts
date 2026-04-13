@@ -5,16 +5,16 @@ import { CreateFormatoDesempenoDto } from './dto/create-formato-desempeno.dto';
 
 @Injectable()
 export class FormatoDesempenoFacade {
-    constructor(
-        private readonly crearFormatoUC: CrearFormatoDesempenoUseCase,
-        private readonly obtenerFormatoUC: ObtenerFormatoDesempenoUseCase
-    ) {}
+  constructor(
+    private readonly crearFormatoUC: CrearFormatoDesempenoUseCase,
+    private readonly obtenerFormatoUC: ObtenerFormatoDesempenoUseCase,
+  ) {}
 
-    crearFormato(dto: CreateFormatoDesempenoDto) {
-        return this.crearFormatoUC.execute(dto);
-    }
+  crearFormato(dto: CreateFormatoDesempenoDto) {
+    return this.crearFormatoUC.execute(dto);
+  }
 
-    obtenerFormato(empleadoId: number) {
-        return this.obtenerFormatoUC.execute(empleadoId);
-    }
+  obtenerFormato(empleadoId: number) {
+    return this.obtenerFormatoUC.execute(empleadoId);
+  }
 }

@@ -16,9 +16,7 @@ export interface CargarAdicionalLivianosDTO {
 
 @Injectable()
 export class CargarAdicionalLivianosUseCase {
-  constructor(
-    private readonly repo: ICotizadorAdicionalesLivianosRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorAdicionalesLivianosRepository) {}
 
   async execute(
     dto: CargarAdicionalLivianosDTO,
@@ -46,4 +44,3 @@ export class CargarAdicionalLivianosUseCase {
     );
   }
 }
-

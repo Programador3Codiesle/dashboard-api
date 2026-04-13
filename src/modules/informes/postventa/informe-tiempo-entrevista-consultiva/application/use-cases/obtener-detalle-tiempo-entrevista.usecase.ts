@@ -7,9 +7,7 @@ import { TiempoEntrevistaConsultivaDetalleRowEntity } from '../../domain/tiempo-
 
 @Injectable()
 export class ObtenerDetalleTiempoEntrevistaUseCase {
-  constructor(
-    private readonly repo: ITiempoEntrevistaConsultivaRepository,
-  ) {}
+  constructor(private readonly repo: ITiempoEntrevistaConsultivaRepository) {}
 
   async execute(
     bodega: number,
@@ -18,4 +16,3 @@ export class ObtenerDetalleTiempoEntrevistaUseCase {
     return this.repo.obtenerDetallePorBodega(bodega, filtros);
   }
 }
-

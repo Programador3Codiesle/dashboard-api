@@ -8,9 +8,7 @@ export interface UpdateAdicionalEstadoLivianoDTO {
 
 @Injectable()
 export class UpdateAdicionalEstadoLivianosUseCase {
-  constructor(
-    private readonly repo: ICotizadorAdicionalesLivianosRepository,
-  ) {}
+  constructor(private readonly repo: ICotizadorAdicionalesLivianosRepository) {}
 
   async execute(dto: UpdateAdicionalEstadoLivianoDTO): Promise<void> {
     if (!dto.id || dto.estado == null) {
@@ -24,4 +22,3 @@ export class UpdateAdicionalEstadoLivianosUseCase {
     await this.repo.updateAdicionalEstado(dto.id, dto.estado);
   }
 }
-

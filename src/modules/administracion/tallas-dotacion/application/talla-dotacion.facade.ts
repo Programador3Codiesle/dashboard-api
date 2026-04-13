@@ -5,16 +5,16 @@ import { UpdateTallaDotacionDto } from './dto/update-talla-dotacion.dto';
 
 @Injectable()
 export class TallaDotacionFacade {
-    constructor(
-        private readonly obtenerTallaUC: ObtenerTallaDotacionUseCase,
-        private readonly actualizarTallaUC: ActualizarTallaDotacionUseCase
-    ) {}
+  constructor(
+    private readonly obtenerTallaUC: ObtenerTallaDotacionUseCase,
+    private readonly actualizarTallaUC: ActualizarTallaDotacionUseCase,
+  ) {}
 
-    obtenerTallas(usuarioId: number, idEmpresa?: number) {
-        return this.obtenerTallaUC.execute(usuarioId, idEmpresa);
-    }
+  obtenerTallas(usuarioId: number, idEmpresa?: number) {
+    return this.obtenerTallaUC.execute(usuarioId, idEmpresa);
+  }
 
-    actualizarTallas(usuarioId: number, dto: UpdateTallaDotacionDto) {
-        return this.actualizarTallaUC.execute(usuarioId, dto);
-    }
+  actualizarTallas(usuarioId: number, dto: UpdateTallaDotacionDto) {
+    return this.actualizarTallaUC.execute(usuarioId, dto);
+  }
 }

@@ -21,8 +21,11 @@ export class InformeMpcController {
     const userId =
       req.user?.nit != null ? Number(req.user.nit) : req.user?.id_usuario;
 
-    await this.facade.cambiarEstadoCasoEspecial(body.placa, body.estado, userId);
+    await this.facade.cambiarEstadoCasoEspecial(
+      body.placa,
+      body.estado,
+      userId,
+    );
     return { ok: true };
   }
 }
-

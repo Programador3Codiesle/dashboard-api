@@ -12,16 +12,19 @@ import { IUsuarioCoreRepository } from '../../domain/repositories/usuario-core.r
 export class GetUsuariosUseCase {
   constructor(
     @Inject(IUsuarioCoreRepository)
-    private readonly coreRepo: IUsuarioCoreRepository
+    private readonly coreRepo: IUsuarioCoreRepository,
   ) {}
 
-  async execute(page?: number, limit?: number): Promise<GetUsuariosResponseDto[]> {
+  async execute(
+    page?: number,
+    limit?: number,
+  ): Promise<GetUsuariosResponseDto[]> {
     // Obtener datos con JOINs desde el Repository (paginación en BD)
     const usuarios = await this.coreRepo.findAll(page, limit);
 
     // Usar el Mapper para convertir Entity → DTO Response
-    return usuarios.map(usuario => 
-      UsuarioMapper.mapUsuariosResponse(usuario)
+    return usuarios.map((usuario) =>
+      UsuarioMapper.mapUsuariosResponse(usuario),
     );
   }
 }

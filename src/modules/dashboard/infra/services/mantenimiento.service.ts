@@ -5,9 +5,7 @@ import { DashboardInformeMtoDto } from '../../application/dto/dashboard-response
 
 @Injectable()
 export class MantenimientoService {
-  constructor(
-    private readonly commonRepo: IDashboardCommonRepository
-  ) {}
+  constructor(private readonly commonRepo: IDashboardCommonRepository) {}
 
   async buildInformeMto(
     nitUsuario: number,
@@ -26,7 +24,6 @@ export class MantenimientoService {
       fecha_actual: fechaActual,
       dia_festivo: diaFestivo,
       id_usu: idUsu,
-    
     };
   }
 }

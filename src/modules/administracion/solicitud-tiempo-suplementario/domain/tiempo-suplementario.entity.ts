@@ -4,20 +4,20 @@
  * a esta forma para la API y el calendario.
  */
 export class TiempoSuplementarioEntity {
-    id?: number;
-    empleado: number;
-    nombre_empleado?: string | null;
-    area: string;
-    cargo_emp?: string | null;
-    sede?: string | null;
-    fecha_ini: Date;
-    hora_ini?: string | null;
-    hora_fin?: string | null;
-    descripcion: string;
-    estado?: number | null;
-    id_empresa?: number | null;
+  id?: number;
+  empleado: number;
+  nombre_empleado?: string | null;
+  area: string;
+  cargo_emp?: string | null;
+  sede?: string | null;
+  fecha_ini: Date;
+  hora_ini?: string | null;
+  hora_fin?: string | null;
+  descripcion: string;
+  estado?: number | null;
+  id_empresa?: number | null;
 
-    constructor(partial: Partial<TiempoSuplementarioEntity>) {
-        Object.assign(this, partial);
-    }
+  constructor(partial: Partial<TiempoSuplementarioEntity>) {
+    Object.assign(this, partial);
+  }
 }

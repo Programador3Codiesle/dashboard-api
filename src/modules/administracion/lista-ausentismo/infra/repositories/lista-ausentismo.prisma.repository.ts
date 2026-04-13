@@ -5,15 +5,15 @@ import { ListaAusentismoEntity } from '../../domain/lista-ausentismo.entity';
 
 @Injectable()
 export class ListaAusentismoPrismaRepository implements IListaAusentismoRepository {
-    constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
 
-    async obtenerDiaActual(): Promise<ListaAusentismoEntity[]> {
-        try {
-            const hoy = new Date();
-            const fecha = hoy.toISOString().split('T')[0];
-            
-            // Optimizado: Usar $queryRaw con parámetro seguro
-            const results = await this.prisma.$queryRaw<any[]>`
+  async obtenerDiaActual(): Promise<ListaAusentismoEntity[]> {
+    try {
+      const hoy = new Date();
+      const fecha = hoy.toISOString().split('T')[0];
+
+      // Optimizado: Usar $queryRaw con parámetro seguro
+      const results = await this.prisma.$queryRaw<any[]>`
                 SELECT 
                     a.id_ausen, a.empleado, a.fecha_ini AS fecha, a.motivo,
                     t.nombres AS nombre
@@ -24,16 +24,19 @@ export class ListaAusentismoPrismaRepository implements IListaAusentismoReposito
                 ORDER BY a.hora_ini ASC
             `;
 
-            return results.map(r => new ListaAusentismoEntity({
-                id: BigInt(r.id_ausen),
-                empleado: r.empleado ? Number(r.empleado) : null,
-                nombre: r.nombre,
-                fecha: r.fecha ? new Date(r.fecha) : null,
-                motivo: r.motivo
-            }));
-        } catch (error) {
-            console.error('Error obteniendo ausentismos del día:', error);
-            return [];
-        }
+      return results.map(
+        (r) =>
+          new ListaAusentismoEntity({
+            id: BigInt(r.id_ausen),
+            empleado: r.empleado ? Number(r.empleado) : null,
+            nombre: r.nombre,
+            fecha: r.fecha ? new Date(r.fecha) : null,
+            motivo: r.motivo,
+          }),
+      );
+    } catch (error) {
+      console.error('Error obteniendo ausentismos del día:', error);
+      return [];
     }
+  }
 }

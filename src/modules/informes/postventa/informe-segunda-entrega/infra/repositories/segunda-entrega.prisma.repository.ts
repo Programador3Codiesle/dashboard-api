@@ -11,9 +11,7 @@ import {
 } from '../../domain/segunda-entrega.entity';
 
 @Injectable()
-export class SegundaEntregaPrismaRepository
-  implements ISegundaEntregaRepository
-{
+export class SegundaEntregaPrismaRepository implements ISegundaEntregaRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async listarResumen(
@@ -59,7 +57,13 @@ export class SegundaEntregaPrismaRepository
     `;
 
     const rows = await this.prisma.$queryRaw<
-      { anio: number; mes: number; dia: number; entregas: number; agendas: number }[]
+      {
+        anio: number;
+        mes: number;
+        dia: number;
+        entregas: number;
+        agendas: number;
+      }[]
     >(sql);
 
     return rows.map(
@@ -145,4 +149,3 @@ export class SegundaEntregaPrismaRepository
     );
   }
 }
-

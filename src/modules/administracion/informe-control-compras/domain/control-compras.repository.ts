@@ -7,4 +7,3 @@ export abstract class IControlComprasRepository {
     limite?: number | null,
   ): Promise<{ items: ControlComprasEntity[]; total: number }>;
 }
-

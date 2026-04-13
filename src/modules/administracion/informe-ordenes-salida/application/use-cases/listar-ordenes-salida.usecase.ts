@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import {
   FiltrosOrdenSalida,
   IOrdenSalidaRepository,
@@ -62,13 +66,17 @@ export class ListarOrdenesSalidaUseCase {
 
     const nitUsuario = filtros.nitUsuario?.trim();
     if (!nitUsuario || !jefesPermitidos.has(nitUsuario)) {
-      throw new ForbiddenException('No tiene permisos para acceder a este informe');
+      throw new ForbiddenException(
+        'No tiene permisos para acceder a este informe',
+      );
     }
 
-    if ((filtros.fechaIni && !filtros.fechaFin) || (!filtros.fechaIni && filtros.fechaFin)) {
+    if (
+      (filtros.fechaIni && !filtros.fechaFin) ||
+      (!filtros.fechaIni && filtros.fechaFin)
+    ) {
       throw new BadRequestException('Debe indicar ambas fechas');
     }
     return this.repo.listar(filtros);
   }
 }
-

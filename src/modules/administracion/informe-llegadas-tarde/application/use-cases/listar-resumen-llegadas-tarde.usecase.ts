@@ -12,4 +12,3 @@ export class ListarResumenLlegadasTardeUseCase {
     return this.repo.listarResumen(fechaInicio, fechaFin);
   }
 }
-

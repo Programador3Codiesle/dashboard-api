@@ -10,4 +10,3 @@ export class ListarMpcUseCase {
     return this.repo.listar();
   }
 }
-

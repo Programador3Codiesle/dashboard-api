@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../../core/infra/prisma/prisma.service';
-import {
-  IKpiRepository,
-} from '../../domain/kpi.repository';
+import { IKpiRepository } from '../../domain/kpi.repository';
 import {
   KpiResumenEntity,
   KpiSedeMensualEntity,
@@ -466,4 +464,3 @@ export class KpiPrismaRepository implements IKpiRepository {
     });
   }
 }
-

@@ -14,4 +14,3 @@ export class GetPesadosInitDataUseCase {
     return { clases };
   }
 }
-

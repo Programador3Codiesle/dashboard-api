@@ -1,7 +1,10 @@
-import { Injectable, Inject } from "@nestjs/common";
-import { responseSedeDto, AssignSedeDto } from "../../application/dto/assign-sede.dto";
-import { UsuarioMapper } from "../../presentation/mappers/usuario.mapper";
-import { IUsuarioSedeRepository } from "../../domain/repositories/usuario-sede.repository";
+import { Injectable, Inject } from '@nestjs/common';
+import {
+  responseSedeDto,
+  AssignSedeDto,
+} from '../../application/dto/assign-sede.dto';
+import { UsuarioMapper } from '../../presentation/mappers/usuario.mapper';
+import { IUsuarioSedeRepository } from '../../domain/repositories/usuario-sede.repository';
 
 /**
  * Use Case para gestión de Sedes
@@ -11,7 +14,7 @@ import { IUsuarioSedeRepository } from "../../domain/repositories/usuario-sede.r
 export class AssignSedeUseCase {
   constructor(
     @Inject(IUsuarioSedeRepository)
-    private readonly sedeRepo: IUsuarioSedeRepository
+    private readonly sedeRepo: IUsuarioSedeRepository,
   ) {}
 
   /** Ver sedes del usuario */

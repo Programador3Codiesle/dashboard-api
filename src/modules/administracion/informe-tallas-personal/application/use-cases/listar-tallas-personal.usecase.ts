@@ -9,4 +9,3 @@ export class ListarTallasPersonalUseCase {
     return this.repo.listar();
   }
 }
-

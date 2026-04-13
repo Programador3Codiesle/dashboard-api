@@ -1,7 +1,7 @@
 import { Controller, Get, Query } from '@nestjs/common';
 import { TiempoGestionComprasFacade } from '../application/tiempo-gestion-compras.facade';
 
-@Controller('informe-tiempo-gestion-compras')
+@Controller('informes/informe-tiempo-gestion-compras')
 export class InformeTiempoGestionComprasController {
   constructor(private readonly facade: TiempoGestionComprasFacade) {}
 
@@ -18,4 +18,3 @@ export class InformeTiempoGestionComprasController {
     });
   }
 }
-

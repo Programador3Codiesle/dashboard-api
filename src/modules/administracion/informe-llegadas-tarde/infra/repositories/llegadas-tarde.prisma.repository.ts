@@ -8,12 +8,21 @@ import {
 } from '../../domain/llegadas-tarde.repository';
 import { LlegadaTardeEntity } from '../../domain/llegada-tarde.entity';
 
+/** Evita cadenas ISO con zona horaria u hora que SQL Server no asigna bien a variables date. */
+function soloFechaSql(s: string): string {
+  const t = String(s).trim();
+  const m = t.match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : t.slice(0, 10);
+}
+
 @Injectable()
 export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async listar(filtros: FiltrosLlegadasTarde): Promise<LlegadaTardeEntity[]> {
-    const { sede, empleado, fechaInicio, fechaFin } = filtros;
+    const { sede, empleado } = filtros;
+    const fechaInicio = soloFechaSql(filtros.fechaInicio);
+    const fechaFin = soloFechaSql(filtros.fechaFin);
 
     const sql = Prisma.sql`
       DECLARE @fecha_ini date;
@@ -101,22 +110,22 @@ export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
                  e.Sede,
                  Dia,
                  i.fecha,
-                 horario_entrada_am = CASE WHEN dia = 'Sábado' THEN hora_ent_fds ELSE hora_ent_sem_am END,
-                 horario_salida_am = CASE
-                     WHEN dia = 'Viernes' THEN hora_sal_am_viernes
-                     WHEN dia = 'Sábado' THEN hora_sal_fds
-                     ELSE hora_sal_sem_am
-                 END,
-                 horario_entrada_pm = CASE
-                     WHEN dia = 'viernes' THEN hora_ent_viernes_pm
-                     WHEN dia = 'Sábado' THEN ''
-                     ELSE hora_ent_sem_pm
-                 END,
-                 horario_salida_pm = CASE
-                     WHEN dia = 'Viernes' THEN hora_sal_viernes
-                     WHEN dia = 'Sábado' THEN ''
-                     ELSE hora_sal_sem_pm
-                 END
+                horario_entrada_am = NULLIF(CASE WHEN dia = 'Sábado' THEN hora_ent_fds ELSE hora_ent_sem_am END, ''),
+                horario_salida_am = NULLIF(CASE
+                    WHEN dia = 'Viernes' THEN hora_sal_am_viernes
+                    WHEN dia = 'Sábado' THEN hora_sal_fds
+                    ELSE hora_sal_sem_am
+                END, ''),
+                horario_entrada_pm = NULLIF(CASE
+                    WHEN dia = 'Viernes' THEN hora_ent_viernes_pm
+                    WHEN dia = 'Sábado' THEN NULL
+                    ELSE hora_ent_sem_pm
+                END, ''),
+                horario_salida_pm = NULLIF(CASE
+                    WHEN dia = 'Viernes' THEN hora_sal_viernes
+                    WHEN dia = 'Sábado' THEN NULL
+                    ELSE hora_sal_sem_pm
+                END, '')
           FROM postv_horarios_empleados e
           LEFT JOIN v_registro_ingreso i
             ON e.nit_empleado = i.empleado
@@ -127,7 +136,7 @@ export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
         LEFT JOIN (
           SELECT empleado,
                  fecha,
-                 hora AS llegada_am
+                 NULLIF(hora, '') AS llegada_am
           FROM v_registro_ingreso
           WHERE CONVERT(DATE, fecha) BETWEEN CONVERT(DATE, @fecha_ini) AND CONVERT(DATE, @fecha_fin)
             AND accion = 'Ingreso'
@@ -137,7 +146,7 @@ export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
         LEFT JOIN (
           SELECT ri.empleado,
                  ri.fecha,
-                 salida_am = CASE WHEN hora2 IS NULL THEN hora ELSE hora2 END
+                 NULLIF(CASE WHEN hora2 IS NULL THEN hora ELSE hora2 END, '') AS salida_am
           FROM v_registro_ingreso ri
           LEFT JOIN v_4ingresos r
             ON ri.empleado = r.empleado AND ri.fecha = r.fecha
@@ -149,7 +158,7 @@ export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
         LEFT JOIN (
           SELECT empleado,
                  fecha,
-                 hora AS llegada_pm
+                 NULLIF(hora, '') AS llegada_pm
           FROM v_registro_ingreso
           WHERE CONVERT(DATE, fecha) BETWEEN CONVERT(DATE, @fecha_ini) AND CONVERT(DATE, @fecha_fin)
             AND accion = 'Ingreso'
@@ -162,7 +171,7 @@ export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
           UNION
           SELECT empleado,
                  fecha,
-                 hora3 AS hora
+                 NULLIF(hora3, '') AS llegada_pm
           FROM v_4ingresos
           WHERE CONVERT(DATE, fecha) BETWEEN CONVERT(DATE, @fecha_ini) AND CONVERT(DATE, @fecha_fin)
         ) lp
@@ -170,8 +179,8 @@ export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
         LEFT JOIN (
           SELECT empleado,
                  fecha_ini AS fecha,
-                 hora_ini AS inicio_ausentismo,
-                 hora_fin AS fin_ausentismo
+                 NULLIF(hora_ini, '') AS inicio_ausentismo,
+                 NULLIF(hora_fin, '') AS fin_ausentismo
           FROM postv_ausentismos
           WHERE CONVERT(DATE, fecha_ini) BETWEEN CONVERT(DATE, @fecha_ini) AND CONVERT(DATE, @fecha_fin)
         ) au
@@ -183,7 +192,6 @@ export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
       ORDER BY sede, empleado, fecha ASC
     `;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows = await this.prisma.$queryRaw<any[]>(sql);
 
     return rows.map(
@@ -207,6 +215,8 @@ export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
     fechaInicio: string,
     fechaFin: string,
   ): Promise<ResumenLlegadasTarde[]> {
+    const fi = soloFechaSql(fechaInicio);
+    const ff = soloFechaSql(fechaFin);
     const sql = Prisma.sql`
       SELECT l.nit,
              t.nombres,
@@ -214,13 +224,12 @@ export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
       FROM llegadas_tarde l
       INNER JOIN terceros t
         ON l.nit = t.nit
-      WHERE l.Fecha >= ${fechaInicio}
-        AND l.Fecha <= ${fechaFin}
+      WHERE l.Fecha >= ${fi}
+        AND l.Fecha <= ${ff}
       GROUP BY l.nit, t.nombres
       ORDER BY t.nombres
     `;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rows = await this.prisma.$queryRaw<any[]>(sql);
 
     return rows.map((r) => ({
@@ -230,4 +239,3 @@ export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
     }));
   }
 }
-

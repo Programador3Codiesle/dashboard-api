@@ -15,11 +15,11 @@ export class JefesResponseDto {
 }
 
 export class CreateJefeDto {
-    @IsString()
-    @ApiProperty({ example: '1234567890', description: 'NIT del jefe' })
-    nit!: string;
-    
-    @IsString()
-    @ApiProperty({ example: 'jefe@example.com', description: 'Email del jefe' })
-    email!: string;
+  @IsString()
+  @ApiProperty({ example: '1234567890', description: 'NIT del jefe' })
+  nit!: string;
+
+  @IsString()
+  @ApiProperty({ example: 'jefe@example.com', description: 'Email del jefe' })
+  email!: string;
 }
