@@ -15,8 +15,10 @@ export class UsuarioCoreRepository implements IUsuarioCoreRepository {
   /**
    * Listar todos los usuarios con paginación
    */
-  async findAll(page: number = 1, limit: number = 1500) {
+  async findAll(page: number = 1, limit: number = 1500, search?: string) {
     const offset = (page - 1) * limit;
+    const searchTerm = (search || '').trim();
+    const searchLike = `%${searchTerm}%`;
 
     const results = await this.prisma.$queryRaw<any[]>`
       SELECT
@@ -44,6 +46,14 @@ export class UsuarioCoreRepository implements IUsuarioCoreRepository {
       LEFT JOIN postv_horarios_empleados h ON CAST(h.nit_empleado AS DECIMAL(18,0)) = u.nit_usuario
       LEFT JOIN postv_empleados ps ON ps.nit_empleado=u.nit_usuario
       INNER JOIN postv_perfiles p ON p.id_perfil = u.perfil_postventa
+      WHERE (
+        ${searchTerm} = '' OR
+        t.nombres LIKE ${searchLike} OR
+        CAST(u.nit_usuario AS VARCHAR(20)) LIKE ${searchLike} OR
+        CAST(u.usuario AS VARCHAR(20)) LIKE ${searchLike} OR
+        p.nom_perfil LIKE ${searchLike} OR
+        ISNULL(h.sede, '') LIKE ${searchLike}
+      )
       GROUP BY
         u.id_usuario,
         ps.id_empleado,
@@ -60,6 +70,31 @@ export class UsuarioCoreRepository implements IUsuarioCoreRepository {
     `;
 
     return results.map(UsuarioMapper.mapUsuariosBD);
+  }
+
+  /**
+   * Contar total de usuarios activos/inactivos en tabla principal
+   */
+  async countAll(search?: string): Promise<number> {
+    const searchTerm = (search || '').trim();
+    const searchLike = `%${searchTerm}%`;
+
+    const result = await this.prisma.$queryRaw<Array<{ total: number }>>`
+      SELECT COUNT(1) AS total
+      FROM w_sist_usuarios u
+      INNER JOIN terceros t ON t.nit = u.nit_usuario
+      LEFT JOIN postv_horarios_empleados h ON CAST(h.nit_empleado AS DECIMAL(18,0)) = u.nit_usuario
+      INNER JOIN postv_perfiles p ON p.id_perfil = u.perfil_postventa
+      WHERE (
+        ${searchTerm} = '' OR
+        t.nombres LIKE ${searchLike} OR
+        CAST(u.nit_usuario AS VARCHAR(20)) LIKE ${searchLike} OR
+        CAST(u.usuario AS VARCHAR(20)) LIKE ${searchLike} OR
+        p.nom_perfil LIKE ${searchLike} OR
+        ISNULL(h.sede, '') LIKE ${searchLike}
+      )
+    `;
+    return Number(result[0]?.total ?? 0);
   }
 
   /**

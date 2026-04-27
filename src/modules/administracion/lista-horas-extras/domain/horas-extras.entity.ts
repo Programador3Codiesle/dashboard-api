@@ -6,6 +6,7 @@ export class HorasExtrasEntity {
   hora_ini?: string | null;
   hora_fin?: string | null;
   descripcion?: string | null;
+  autorizacion?: number | null;
 
   constructor(partial: Partial<HorasExtrasEntity>) {
     Object.assign(this, partial);

@@ -70,9 +70,8 @@ export class PanelNpsPrismaRepository implements IPanelNpsRepository {
     const mesTabla = await this.mesCalendarioActual();
     const mesesVentana = await this.ventanaMesesIndices();
     const tabla = await this.construirTablaResumen(mesActualRows, mesTabla);
-    const tecnicosPorSede = await this.construirTecnicosPorSedeMatriz(
-      mesesVentana,
-    );
+    const tecnicosPorSede =
+      await this.construirTecnicosPorSedeMatriz(mesesVentana);
 
     return new PanelNpsResumenEntity({
       mesesVentana,

@@ -70,7 +70,7 @@ export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
                    ELSE DATEDIFF(minute, horario_entrada_am, llegada_am)
                END,
                dif_entrada_pm = CASE
-                   WHEN (inicio_ausentismo IS NULL OR inicio_ausentismo <= '12:30')
+                   WHEN (inicio_ausentismo IS NULL OR inicio_ausentismo <= CAST('12:30' AS time))
                         AND salida_am IS NOT NULL AND llegada_pm IS NULL
                         THEN DATEDIFF(minute, horario_entrada_pm, horario_salida_pm)
                    WHEN inicio_ausentismo IS NULL
@@ -110,22 +110,22 @@ export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
                  e.Sede,
                  Dia,
                  i.fecha,
-                horario_entrada_am = NULLIF(CASE WHEN dia = 'Sábado' THEN hora_ent_fds ELSE hora_ent_sem_am END, ''),
-                horario_salida_am = NULLIF(CASE
+                horario_entrada_am = TRY_CONVERT(time, NULLIF(CASE WHEN dia = 'Sábado' THEN hora_ent_fds ELSE hora_ent_sem_am END, '')),
+                horario_salida_am = TRY_CONVERT(time, NULLIF(CASE
                     WHEN dia = 'Viernes' THEN hora_sal_am_viernes
                     WHEN dia = 'Sábado' THEN hora_sal_fds
                     ELSE hora_sal_sem_am
-                END, ''),
-                horario_entrada_pm = NULLIF(CASE
+                END, '')),
+                horario_entrada_pm = TRY_CONVERT(time, NULLIF(CASE
                     WHEN dia = 'Viernes' THEN hora_ent_viernes_pm
                     WHEN dia = 'Sábado' THEN NULL
                     ELSE hora_ent_sem_pm
-                END, ''),
-                horario_salida_pm = NULLIF(CASE
+                END, '')),
+                horario_salida_pm = TRY_CONVERT(time, NULLIF(CASE
                     WHEN dia = 'Viernes' THEN hora_sal_viernes
                     WHEN dia = 'Sábado' THEN NULL
                     ELSE hora_sal_sem_pm
-                END, '')
+                END, ''))
           FROM postv_horarios_empleados e
           LEFT JOIN v_registro_ingreso i
             ON e.nit_empleado = i.empleado
@@ -136,7 +136,7 @@ export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
         LEFT JOIN (
           SELECT empleado,
                  fecha,
-                 NULLIF(hora, '') AS llegada_am
+                 TRY_CONVERT(time, NULLIF(hora, '')) AS llegada_am
           FROM v_registro_ingreso
           WHERE CONVERT(DATE, fecha) BETWEEN CONVERT(DATE, @fecha_ini) AND CONVERT(DATE, @fecha_fin)
             AND accion = 'Ingreso'
@@ -146,7 +146,7 @@ export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
         LEFT JOIN (
           SELECT ri.empleado,
                  ri.fecha,
-                 NULLIF(CASE WHEN hora2 IS NULL THEN hora ELSE hora2 END, '') AS salida_am
+                 TRY_CONVERT(time, NULLIF(CASE WHEN hora2 IS NULL THEN hora ELSE hora2 END, '')) AS salida_am
           FROM v_registro_ingreso ri
           LEFT JOIN v_4ingresos r
             ON ri.empleado = r.empleado AND ri.fecha = r.fecha
@@ -158,7 +158,7 @@ export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
         LEFT JOIN (
           SELECT empleado,
                  fecha,
-                 NULLIF(hora, '') AS llegada_pm
+                 TRY_CONVERT(time, NULLIF(hora, '')) AS llegada_pm
           FROM v_registro_ingreso
           WHERE CONVERT(DATE, fecha) BETWEEN CONVERT(DATE, @fecha_ini) AND CONVERT(DATE, @fecha_fin)
             AND accion = 'Ingreso'
@@ -171,7 +171,7 @@ export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
           UNION
           SELECT empleado,
                  fecha,
-                 NULLIF(hora3, '') AS llegada_pm
+                 TRY_CONVERT(time, NULLIF(hora3, '')) AS llegada_pm
           FROM v_4ingresos
           WHERE CONVERT(DATE, fecha) BETWEEN CONVERT(DATE, @fecha_ini) AND CONVERT(DATE, @fecha_fin)
         ) lp
@@ -179,8 +179,8 @@ export class LlegadasTardePrismaRepository implements ILlegadasTardeRepository {
         LEFT JOIN (
           SELECT empleado,
                  fecha_ini AS fecha,
-                 NULLIF(hora_ini, '') AS inicio_ausentismo,
-                 NULLIF(hora_fin, '') AS fin_ausentismo
+                 TRY_CONVERT(time, NULLIF(hora_ini, '')) AS inicio_ausentismo,
+                 TRY_CONVERT(time, NULLIF(hora_fin, '')) AS fin_ausentismo
           FROM postv_ausentismos
           WHERE CONVERT(DATE, fecha_ini) BETWEEN CONVERT(DATE, @fecha_ini) AND CONVERT(DATE, @fecha_fin)
         ) au

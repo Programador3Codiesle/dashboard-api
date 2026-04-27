@@ -47,6 +47,7 @@ import { InformeVentas1a1Module } from './modules/informes/postventa/informe-ven
 import { InformeTiempoEntrevistaConsultivaModule } from './modules/informes/postventa/informe-tiempo-entrevista-consultiva/infra/informe-tiempo-entrevista-consultiva.module';
 import { InformeInventarioObsoletosModule } from './modules/informes/postventa/informe-inventario-obsoletos/infra/informe-inventario-obsoletos.module';
 import { InformeEncuestasInternasModule } from './modules/informes/postventa/informe-encuestas-internas/infra/informe-encuestas-internas.module';
+import { NominaModule } from './modules/nomina/nomina.module';
 
 @Module({
   imports: [
@@ -107,6 +108,7 @@ import { InformeEncuestasInternasModule } from './modules/informes/postventa/inf
     InformeTiempoEntrevistaConsultivaModule,
     InformeInventarioObsoletosModule,
     InformeEncuestasInternasModule,
+    NominaModule,
   ],
   controllers: [AppController],
   providers: [AppService],

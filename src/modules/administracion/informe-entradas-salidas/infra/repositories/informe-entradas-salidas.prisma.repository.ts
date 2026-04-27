@@ -7,6 +7,12 @@ import {
 } from '../../domain/informe-entradas-salidas.repository';
 import { InformeEntradasSalidasEntity } from '../../domain/informe-entradas-salidas.entity';
 
+function soloFechaSql(s: string): string {
+  const t = String(s ?? '').trim();
+  const m = t.match(/^(\d{4}-\d{2}-\d{2})/);
+  return m ? m[1] : t.slice(0, 10);
+}
+
 @Injectable()
 export class InformeEntradasSalidasPrismaRepository implements IInformeEntradasSalidasRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -14,11 +20,13 @@ export class InformeEntradasSalidasPrismaRepository implements IInformeEntradasS
   async listar(
     params: FiltrosEntradasSalidas,
   ): Promise<InformeEntradasSalidasEntity[]> {
-    const { sede, fechaIni, fechaFin, empleado } = params;
+    const { sede, empleado } = params;
+    const fechaIni = soloFechaSql(params.fechaIni);
+    const fechaFin = soloFechaSql(params.fechaFin);
 
     const conditions: Prisma.Sql[] = [];
 
-    // Rango de fechas obligatorio (igual que en filtros_horas_laborales del legacy)
+    // Igual al legacy: BETWEEN sobre CONVERT(DATE, i.fecha_hora)
     conditions.push(
       Prisma.sql`CONVERT(DATE, i.fecha_hora) BETWEEN CONVERT(DATE, ${fechaIni}) AND CONVERT(DATE, ${fechaFin})`,
     );

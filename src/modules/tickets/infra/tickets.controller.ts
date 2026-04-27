@@ -10,6 +10,7 @@ import {
   UploadedFile,
   BadRequestException,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { TicketFacade } from '../application/ticket.facade';
@@ -66,7 +67,11 @@ export class TicketController {
   }
 
   @Put(':id/responder')
-  addRespuesta(@Param('id') id: string, @Body() dto: reponderTicketDto) {
-    return this.facade.addRespuesta(+id, dto);
+  addRespuesta(
+    @Param('id') id: string,
+    @Body() dto: reponderTicketDto,
+    @Req() req: any,
+  ) {
+    return this.facade.addRespuesta(+id, dto, Number(req?.user?.nit));
   }
 }

@@ -1,6 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
-import { ITicketRepository } from '../../domain/ticket.repository';
+import {
+  ITicketRepository,
+  TicketEmailContext,
+} from '../../domain/ticket.repository';
 import {
   TicketEntity,
   RespuestaTicketEntity,
@@ -34,6 +37,13 @@ export class TicketPrismaRepository implements ITicketRepository {
           area: 'sistemas',
         },
       });
+      await this.prisma.$executeRaw`
+        UPDATE tickets
+        SET
+          sede = ${data.sede ?? ''},
+          extension = ${data.extension ?? null}
+        WHERE id_ticket = ${result.id_ticket}
+      `;
       // @ts-ignore
       return {
         status: true,
@@ -49,6 +59,8 @@ export class TicketPrismaRepository implements ITicketRepository {
           encargado_id: result.encargado ? Number(result.encargado) : undefined,
           anydesk: result.anydesk || undefined,
           archivo_url: result.img || undefined,
+          sede: data.sede || undefined,
+          extension: data.extension || undefined,
         }),
       };
     } catch (error) {
@@ -95,23 +107,40 @@ export class TicketPrismaRepository implements ITicketRepository {
   }
 
   async findById(id: number): Promise<TicketEntity | null> {
-    const result = await this.prisma.tickets.findUnique({
-      where: { id_ticket: id },
-    });
-    if (!result) return null;
-    // @ts-ignore
+    const result = await this.prisma.$queryRaw<any[]>`
+      SELECT TOP 1
+        tk.id_ticket,
+        tk.tipo_soporte,
+        tk.descripcion,
+        tk.prioridad,
+        tk.estado,
+        tk.fecha_creacion,
+        tk.usuario,
+        tk.encargado,
+        tk.anydesk,
+        tk.img,
+        tk.respuesta,
+        tk.sede,
+        tk.extension
+      FROM tickets tk
+      WHERE tk.id_ticket = ${id}
+    `;
+    const row = result[0];
+    if (!row) return null;
     return new TicketEntity({
-      id: Number(result.id_ticket),
-      tipo_soporte: result.tipo_soporte,
-      descripcion: result.descripcion || '',
-      prioridad: result.prioridad || '',
-      estado: result.estado,
-      fecha_creacion: result.fecha_creacion || new Date(),
-      usuario_id: Number(result.usuario),
-      encargado_id: result.encargado ? Number(result.encargado) : undefined,
-      anydesk: result.anydesk || undefined,
-      archivo_url: result.img || undefined,
-      respuestas: result.respuesta || undefined,
+      id: Number(row.id_ticket),
+      tipo_soporte: row.tipo_soporte,
+      descripcion: row.descripcion || '',
+      prioridad: row.prioridad || '',
+      estado: row.estado,
+      fecha_creacion: row.fecha_creacion || new Date(),
+      usuario_id: Number(row.usuario),
+      encargado_id: row.encargado ? Number(row.encargado) : undefined,
+      anydesk: row.anydesk || undefined,
+      archivo_url: row.img || undefined,
+      respuestas: row.respuesta || undefined,
+      sede: row.sede || undefined,
+      extension: row.extension || undefined,
     });
   }
 
@@ -125,7 +154,9 @@ export class TicketPrismaRepository implements ITicketRepository {
                 en.nombres AS nombre_encargado, 
                 us.nombres AS nombre_usuario, 
                 tk.fecha_creacion, 
-                tk.estado
+                tk.estado,
+                tk.sede,
+                tk.extension
             FROM tickets tk
             LEFT JOIN terceros us ON us.nit_real = tk.usuario
             LEFT JOIN terceros en ON en.nit_real = tk.encargado
@@ -151,6 +182,8 @@ export class TicketPrismaRepository implements ITicketRepository {
                 us.nombres AS nombre_usuario, 
                 tk.fecha_creacion, 
                 tk.estado,
+                tk.sede,
+                tk.extension,
                 STUFF((
                     SELECT ', ' + CAST(em2.idEmpresa AS VARCHAR(10))
                     FROM sw_empresa_usuario em2
@@ -183,7 +216,9 @@ export class TicketPrismaRepository implements ITicketRepository {
                 en.nombres AS nombre_encargado, 
                 us.nombres AS nombre_usuario, 
                 tk.fecha_creacion, 
-                tk.estado
+                tk.estado,
+                tk.sede,
+                tk.extension
             FROM tickets tk
             LEFT JOIN terceros us ON us.nit_real = tk.usuario
             LEFT JOIN terceros en ON en.nit_real = tk.encargado
@@ -241,5 +276,42 @@ export class TicketPrismaRepository implements ITicketRepository {
     });
     // @ts-ignore
     return results.map((r) => new RespuestaTicketEntity(r));
+  }
+
+  async getTicketEmailContext(
+    ticketId: number,
+  ): Promise<TicketEmailContext | null> {
+    const result = await this.prisma.$queryRaw<
+      Array<{
+        id_ticket: number;
+        descripcion: string | null;
+        respuesta: string | null;
+        correo_usuario: string | null;
+        correo_encargado: string | null;
+      }>
+    >`
+      SELECT TOP 1
+        tk.id_ticket,
+        tk.descripcion,
+        tk.respuesta,
+        cu.e_mail AS correo_usuario,
+        ce.e_mail AS correo_encargado
+      FROM tickets tk
+      LEFT JOIN CRM_contactos cu ON cu.nit = tk.usuario
+      LEFT JOIN CRM_contactos ce ON ce.nit = tk.encargado
+      WHERE tk.id_ticket = ${ticketId}
+      ORDER BY tk.fecha_creacion DESC
+    `;
+
+    const row = result[0];
+    if (!row) return null;
+
+    return {
+      id_ticket: Number(row.id_ticket),
+      descripcion: row.descripcion || 'Ticket sin asunto',
+      respuesta: row.respuesta,
+      correo_usuario: row.correo_usuario,
+      correo_encargado: row.correo_encargado,
+    };
   }
 }

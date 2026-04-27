@@ -29,6 +29,8 @@ export interface PacNpsExcelDetalleTecnicoRow {
   numero: number;
   nombre: string | null;
   placa: string | null;
+  marca: string | null;
+  familia: string | null;
   pregunta1: number | null;
   pregunta2: number | null;
   pregunta3: string | null;
@@ -42,6 +44,8 @@ export interface PacNpsExcelTodosTecnicosRow {
   numero: number;
   nombre: string | null;
   placa: string | null;
+  marca: string | null;
+  familia: string | null;
   pregunta1: number | null;
   pregunta2: number | null;
   pregunta3: string | null;

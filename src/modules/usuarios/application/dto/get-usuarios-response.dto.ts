@@ -81,3 +81,20 @@ export class GetUsuariosResponseDto {
   })
   updatedAt?: Date;
 }
+
+export class GetUsuariosPaginatedResponseDto {
+  @ApiProperty({ type: [GetUsuariosResponseDto] })
+  items!: GetUsuariosResponseDto[];
+
+  @ApiProperty({ example: 1250, description: 'Total de usuarios' })
+  total!: number;
+
+  @ApiProperty({ example: 1, description: 'Página actual' })
+  page!: number;
+
+  @ApiProperty({ example: 50, description: 'Cantidad por página' })
+  limit!: number;
+
+  @ApiProperty({ example: 25, description: 'Total de páginas' })
+  totalPages!: number;
+}

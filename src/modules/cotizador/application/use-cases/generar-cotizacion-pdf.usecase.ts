@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
+import { promises as fs } from 'fs';
+import * as path from 'path';
 import { ICotizadorInformesRepository } from '../../domain/cotizador-informes.repository';
 import {
   getBrandPdfConfig,
@@ -20,11 +22,38 @@ const PAGE_WIDTH = 595;
 const PAGE_HEIGHT = 842;
 const FONT_SIZE = 10;
 const ROW_HEIGHT = 16;
-const HEADER_BAR_HEIGHT = 32;
+const HEADER_BAR_HEIGHT = 64;
+
+const BRAND_HEADER_BANNERS: Record<number, string> = {
+  1: 'HEADER-Chevrolet.png',
+  2: 'HEADER-Dieselco.png',
+  3: 'HEADER-Mitsubishi.png',
+  4: 'HEADER-BYD.png',
+};
 
 @Injectable()
 export class GenerarCotizacionPdfUseCase {
   constructor(private readonly informesRepo: ICotizadorInformesRepository) {}
+
+  private async leerBannerHeader(idEmpresa?: number): Promise<Uint8Array | null> {
+    const filename = BRAND_HEADER_BANNERS[idEmpresa ?? 1] ?? BRAND_HEADER_BANNERS[1];
+    const basePath = path.resolve(
+      process.cwd(),
+      '..',
+      '..',
+      'Frontend',
+      'intranet-postventa',
+      'public',
+      'Banners',
+      'Cotizador',
+    );
+    const fullPath = path.join(basePath, filename);
+    try {
+      return await fs.readFile(fullPath);
+    } catch {
+      return null;
+    }
+  }
 
   async execute(params: GenerarCotizacionPdfParams): Promise<Buffer> {
     const { origen, idCotizacion, placa, idEmpresa } = params;
@@ -58,28 +87,40 @@ export class GenerarCotizacionPdfUseCase {
 
     let page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
 
-    // Franja superior tipo factura (marca)
-    page.drawRectangle({
-      x: 0,
-      y: PAGE_HEIGHT - HEADER_BAR_HEIGHT,
-      width: PAGE_WIDTH,
-      height: HEADER_BAR_HEIGHT,
-      color: rgb(c.primary.r, c.primary.g, c.primary.b),
-    });
-    page.drawText('COTIZACIÓN DE MANTENIMIENTO', {
-      x: MARGIN,
-      y: PAGE_HEIGHT - HEADER_BAR_HEIGHT + 10,
-      size: 12,
-      font: fontBold,
-      color: rgb(c.primaryText.r, c.primaryText.g, c.primaryText.b),
-    });
-    page.drawText(brand.nombre, {
-      x: PAGE_WIDTH - MARGIN - 80,
-      y: PAGE_HEIGHT - HEADER_BAR_HEIGHT + 10,
-      size: 11,
-      font: font,
-      color: rgb(c.primaryText.r, c.primaryText.g, c.primaryText.b),
-    });
+    // Header visual con banner por empresa.
+    const bannerHeader = await this.leerBannerHeader(idEmpresa);
+    if (bannerHeader) {
+      const pngBanner = await pdfDoc.embedPng(bannerHeader);
+      page.drawImage(pngBanner, {
+        x: 0,
+        y: PAGE_HEIGHT - HEADER_BAR_HEIGHT,
+        width: PAGE_WIDTH,
+        height: HEADER_BAR_HEIGHT,
+      });
+    } else {
+      // Fallback en caso de no encontrar el archivo del banner.
+      page.drawRectangle({
+        x: 0,
+        y: PAGE_HEIGHT - HEADER_BAR_HEIGHT,
+        width: PAGE_WIDTH,
+        height: HEADER_BAR_HEIGHT,
+        color: rgb(c.primary.r, c.primary.g, c.primary.b),
+      });
+      page.drawText('COTIZACIÓN DE MANTENIMIENTO', {
+        x: MARGIN,
+        y: PAGE_HEIGHT - HEADER_BAR_HEIGHT + 10,
+        size: 12,
+        font: fontBold,
+        color: rgb(c.primaryText.r, c.primaryText.g, c.primaryText.b),
+      });
+      page.drawText(brand.nombre, {
+        x: PAGE_WIDTH - MARGIN - 80,
+        y: PAGE_HEIGHT - HEADER_BAR_HEIGHT + 10,
+        size: 11,
+        font: font,
+        color: rgb(c.primaryText.r, c.primaryText.g, c.primaryText.b),
+      });
+    }
 
     // Punto de inicio del contenido principal.
     // Bajamos un poco más para que el bloque de bodega/número/fecha

@@ -1,4 +1,4 @@
-import { IsNumber, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
@@ -13,4 +13,13 @@ export class LoginDto {
     description: 'Contraseña del usuario (mínimo 6 caracteres)',
   })
   password: string;
+
+  @IsOptional()
+  @IsBoolean()
+  @ApiProperty({
+    example: true,
+    required: false,
+    description: 'Indica si la sesión debe persistir entre reinicios del navegador',
+  })
+  remember?: boolean;
 }

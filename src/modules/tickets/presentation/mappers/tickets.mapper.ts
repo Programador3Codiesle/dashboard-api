@@ -12,6 +12,8 @@ export class TicketsMapper {
       nombre_usuario: r.nombre_usuario,
       nombre_encargado: r.nombre_encargado,
       empresa: r.idEmpresas,
+      sede: r.sede || undefined,
+      extension: r.extension || undefined,
       // Campos que no vienen en esta query específica pero son parte de la entidad
       // Se pueden dejar undefined gracias al Partial del constructor, o asignar valores por defecto si se requiere
     });

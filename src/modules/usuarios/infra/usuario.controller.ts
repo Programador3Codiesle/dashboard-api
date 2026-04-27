@@ -58,14 +58,16 @@ export class UsuarioController {
     return this.usuarioFacade.listarPerfilUsuario(id);
   }
 
-  /** Listar usuarios - Con caché de 5 minutos. Query params: page, limit */
+  /** Listar usuarios (sin caché para evitar datos desactualizados tras mutaciones). Query params: page, limit, search */
   @Get()
-  @UseInterceptors(CacheInterceptor)
-  @CacheTTL(5 * 60 * 1000) // 5 minutos
-  listar(@Query('page') page?: string, @Query('limit') limit?: string) {
+  listar(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('search') search?: string,
+  ) {
     const p = page ? parseInt(page, 10) : 1;
-    const l = limit ? parseInt(limit, 10) : 1500;
-    return this.usuarioFacade.listar(p, l);
+    const l = limit ? parseInt(limit, 10) : 10;
+    return this.usuarioFacade.listar(p, l, search);
   }
 
   /** Ver sedes del usuario */

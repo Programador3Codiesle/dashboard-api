@@ -34,8 +34,8 @@ export class UsuarioFacade {
   ) {}
 
   /** Listar usuarios (paginación: page, limit) */
-  async listar(page?: number, limit?: number) {
-    return this.getUsuariosUC.execute(page, limit);
+  async listar(page?: number, limit?: number, search?: string) {
+    return this.getUsuariosUC.execute(page, limit, search);
   }
 
   /** Crear usuario */

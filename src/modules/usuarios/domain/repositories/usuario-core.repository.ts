@@ -8,7 +8,16 @@ export abstract class IUsuarioCoreRepository {
   /**
    * Listar todos los usuarios con paginación
    */
-  abstract findAll(page?: number, limit?: number): Promise<UsuarioEntity[]>;
+  abstract findAll(
+    page?: number,
+    limit?: number,
+    search?: string,
+  ): Promise<UsuarioEntity[]>;
+
+  /**
+   * Contar total de usuarios (para paginación backend)
+   */
+  abstract countAll(search?: string): Promise<number>;
 
   /**
    * Actualizar datos de un usuario

@@ -28,9 +28,7 @@ function parseFechaYm(fecha: string | undefined): {
   return { filtros: { anio, mes }, fechaParam: fecha };
 }
 
-function parseBodegaOpcional(
-  bodega: string | undefined,
-): number | undefined {
+function parseBodegaOpcional(bodega: string | undefined): number | undefined {
   if (bodega === undefined || bodega === null || bodega === '') {
     return undefined;
   }

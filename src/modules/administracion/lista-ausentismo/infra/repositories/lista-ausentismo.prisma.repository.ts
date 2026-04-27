@@ -16,6 +16,9 @@ export class ListaAusentismoPrismaRepository implements IListaAusentismoReposito
       const results = await this.prisma.$queryRaw<any[]>`
                 SELECT 
                     a.id_ausen, a.empleado, a.fecha_ini AS fecha, a.motivo,
+                    a.hora_ini AS hora_inicio,
+                    a.hora_fin AS hora_fin,
+                    a.autorizacion,
                     t.nombres AS nombre
                 FROM postv_ausentismos a
                 LEFT JOIN terceros t ON t.nit_real = a.empleado
@@ -32,6 +35,12 @@ export class ListaAusentismoPrismaRepository implements IListaAusentismoReposito
             nombre: r.nombre,
             fecha: r.fecha ? new Date(r.fecha) : null,
             motivo: r.motivo,
+            horaInicio: r.hora_inicio ?? null,
+            horaFin: r.hora_fin ?? null,
+            autorizacion:
+              r.autorizacion !== undefined && r.autorizacion !== null
+                ? Number(r.autorizacion)
+                : null,
           }),
       );
     } catch (error) {

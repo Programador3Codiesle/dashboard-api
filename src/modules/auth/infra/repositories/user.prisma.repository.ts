@@ -7,6 +7,73 @@ import { User } from '../../domain/user.entity';
 export class UserPrismaRepository implements IUserRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  async findEmpresasByNit(nit_usuario: number): Promise<number[]> {
+    const empresas = await this.prisma.$queryRaw<Array<{ idEmpresa: number }>>`
+      SELECT idEmpresa
+      FROM sw_empresa_usuario
+      WHERE idUsuario = CAST(${nit_usuario} AS DECIMAL(18,0))
+        AND estado = 1
+      ORDER BY idEmpresa
+    `;
+
+    return empresas
+      .map((item) => Number(item.idEmpresa))
+      .filter((id) => !Number.isNaN(id));
+  }
+
+  async findMenusByPerfil(perfil: number): Promise<number[]> {
+    const menus = await this.prisma.$queryRaw<Array<{ id_menu: number }>>`
+      SELECT m.id_menu
+      FROM postv_menu_perfil mp
+      INNER JOIN postv_menus m ON m.id_menu = mp.menu
+      WHERE mp.perfil = ${perfil}
+        AND m.vista_menu = 'a'
+      ORDER BY m.id_menu
+    `;
+
+    return menus
+      .map((item) => Number(item.id_menu))
+      .filter((id) => !Number.isNaN(id));
+  }
+
+  async findSubmenusByPerfil(perfil: number): Promise<number[]> {
+    const submenus = await this.prisma.$queryRaw<Array<{ id_submenu: number }>>`
+      SELECT s.id_submenu
+      FROM postv_submenu_perfiles sp
+      INNER JOIN postv_submenu s ON s.id_submenu = sp.submenu
+      WHERE sp.perfil = ${perfil}
+      ORDER BY s.id_submenu
+    `;
+
+    return submenus
+      .map((item) => Number(item.id_submenu))
+      .filter((id) => !Number.isNaN(id));
+  }
+
+  async findTrimenusByPerfil(perfil: number): Promise<number[]> {
+    const trimenus = await this.prisma.$queryRaw<Array<{ id_trimenu: number }>>`
+      SELECT DISTINCT CAST(t.id_trimenu AS INT) AS id_trimenu
+      FROM postv_trimenu_perfil tp
+      INNER JOIN postv_trimenu t ON t.id_trimenu = tp.id_trimenu
+      WHERE tp.id_perfil = ${perfil}
+      ORDER BY id_trimenu
+    `;
+
+    return trimenus
+      .map((item) => Number(item.id_trimenu))
+      .filter((id) => !Number.isNaN(id));
+  }
+
+  async findNombrePerfilById(perfil: number): Promise<string | null> {
+    const rows = await this.prisma.$queryRaw<Array<{ nom_perfil: string }>>`
+      SELECT TOP 1 nom_perfil
+      FROM postv_perfiles
+      WHERE id_perfil = ${perfil}
+    `;
+    const nom = rows[0]?.nom_perfil;
+    return typeof nom === 'string' && nom.trim() ? nom.trim() : null;
+  }
+
   async findByEmail(nit_usuario: number): Promise<User | null> {
     // Optimizado: Una sola query con JOIN en lugar de 2 queries separadas (N+1)
     const results = await this.prisma.$queryRaw<any[]>`

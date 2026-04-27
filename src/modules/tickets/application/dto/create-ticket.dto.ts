@@ -5,6 +5,7 @@ import {
   IsDate,
   IsNumber,
   IsArray,
+  IsNotEmpty,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -17,11 +18,26 @@ export class CreateTicketDto {
   @ApiProperty({ example: 'Anydesk', description: 'Anydesk' })
   anydesk?: string;
   @IsString()
+  @IsNotEmpty()
   @ApiProperty({
     example: 'Descripcion del ticket',
     description: 'Descripcion del ticket',
   })
   descripcion: string;
+  @IsString()
+  @ApiProperty({
+    example: 'Girón',
+    description: 'Sede del ticket (obligatoria)',
+  })
+  sede: string;
+  @IsOptional()
+  @IsString()
+  @ApiProperty({
+    example: '1234',
+    description: 'Extensión telefónica (opcional)',
+    required: false,
+  })
+  extension?: string;
   @IsOptional()
   @IsString()
   @ApiProperty({ example: 'Archivo url', description: 'Archivo url' })

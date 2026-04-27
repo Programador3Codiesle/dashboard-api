@@ -10,6 +10,7 @@ export class TicketEntity {
   usuario_id: number;
   nombre_usuario: string;
   area: string;
+  sede?: string;
 
   // Opcionales: Pueden ser null o no existir en ciertos momentos
   anydesk?: string;
@@ -17,6 +18,7 @@ export class TicketEntity {
   encargado_id?: number;
   nombre_encargado?: string;
   respuestas?: string;
+  extension?: string;
 
   constructor(partial: Partial<TicketEntity>) {
     Object.assign(this, partial);

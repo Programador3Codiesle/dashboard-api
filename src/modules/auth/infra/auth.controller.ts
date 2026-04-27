@@ -8,6 +8,7 @@ import {
   Res,
   UnauthorizedException,
 } from '@nestjs/common';
+import { CookieOptions } from 'express';
 import { Throttle } from '@nestjs/throttler';
 import { ThrottlerAuthGuard } from './throttler-auth.guard';
 import { LoginDto } from '../application/dto/login.dto';
@@ -31,11 +32,55 @@ export class AuthController {
     private readonly authService: AuthService,
   ) {}
 
+  private getRefreshCookieOptions(
+    isProduction: boolean,
+    rememberSession: boolean,
+  ): CookieOptions {
+    if (!rememberSession) {
+      return {
+        httpOnly: true,
+        secure: isProduction,
+        sameSite: 'lax',
+        path: '/',
+      };
+    }
+
+    return {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+      path: '/',
+    };
+  }
+
+  private getRememberCookieOptions(
+    isProduction: boolean,
+    rememberSession: boolean,
+  ): CookieOptions {
+    const baseOptions: CookieOptions = {
+      httpOnly: false,
+      secure: isProduction,
+      sameSite: 'lax',
+      path: '/',
+    };
+
+    if (rememberSession) {
+      return {
+        ...baseOptions,
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 días
+      };
+    }
+
+    return baseOptions;
+  }
+
   @Post('login')
   async login(
     @Body() dto: LoginDto,
     @Res({ passthrough: true }) res: Response,
   ) {
+    const rememberSession = dto.remember ?? false;
     const { user, accessToken, refreshToken } =
       await this.loginUseCase.execute(dto);
 
@@ -50,13 +95,16 @@ export class AuthController {
       path: '/',
     });
 
-    res.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
-      maxAge: 8 * 60 * 60 * 1000, // 8 horas
-      path: '/',
-    });
+    res.cookie(
+      'refresh_token',
+      refreshToken,
+      this.getRefreshCookieOptions(isProduction, rememberSession),
+    );
+    res.cookie(
+      'remember_session',
+      rememberSession ? '1' : '0',
+      this.getRememberCookieOptions(isProduction, rememberSession),
+    );
 
     // El frontend solo necesita los datos de usuario
     return { user };
@@ -79,6 +127,7 @@ export class AuthController {
     @Res({ passthrough: true }) res: Response,
   ) {
     const refreshToken = req.cookies?.['refresh_token'];
+    const rememberSession = req.cookies?.['remember_session'] === '1';
 
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token no encontrado');
@@ -101,13 +150,16 @@ export class AuthController {
       path: '/',
     });
 
-    res.cookie('refresh_token', newRefreshToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: 'lax',
-      maxAge: 8 * 60 * 60 * 1000,
-      path: '/',
-    });
+    res.cookie(
+      'refresh_token',
+      newRefreshToken,
+      this.getRefreshCookieOptions(isProduction, rememberSession),
+    );
+    res.cookie(
+      'remember_session',
+      rememberSession ? '1' : '0',
+      this.getRememberCookieOptions(isProduction, rememberSession),
+    );
 
     return { ok: true };
   }
@@ -140,6 +192,14 @@ export class AuthController {
 
     res.cookie('refresh_token', '', {
       httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax',
+      maxAge: 0,
+      path: '/',
+    });
+
+    res.cookie('remember_session', '', {
+      httpOnly: false,
       secure: isProduction,
       sameSite: 'lax',
       maxAge: 0,

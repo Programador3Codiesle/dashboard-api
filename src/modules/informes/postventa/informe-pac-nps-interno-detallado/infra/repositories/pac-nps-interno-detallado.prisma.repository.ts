@@ -262,18 +262,23 @@ export class PacNpsInternoDetalladoPrismaRepository implements IPacNpsInternoDet
         te.numero,
         ISNULL(NULLIF(pc.nombres, ''), c.nombres) AS nombre,
         pes.placa,
+        r.des_marca AS marca,
+        f.descripcion AS familia,
         pes.pregunta1,
         pes.pregunta2,
         pes.pregunta3,
         pes.pregunta4,
         pes.pregunta5
       FROM postv_encuesta_satisfaccion_qr pes
-      INNER JOIN referencias_imp r
+      INNER JOIN v_vh_vehiculos r
         ON pes.placa = r.placa
-      INNER JOIN v_ultima_entrada_taller_datos uet
-        ON r.codigo = uet.uetd_serie
+      INNER JOIN vh_modelo m
+        ON r.modelo = m.modelo
+      INNER JOIN vh_familias f
+        ON m.familia = f.familia
       INNER JOIN tall_encabeza_orden te
-        ON uet.uetd_numero = te.numero
+        ON te.serie = r.codigo
+        AND te.numero = pes.numero_orden
       INNER JOIN terceros t
         ON te.vendedor = t.nit
       INNER JOIN terceros c
@@ -302,14 +307,20 @@ export class PacNpsInternoDetalladoPrismaRepository implements IPacNpsInternoDet
           te.numero,
           ISNULL(NULLIF(pc.nombres, ''), c.nombres) AS nombre,
           pes.placa,
+          r.des_marca AS marca,
+          f.descripcion AS familia,
           pes.pregunta1,
           pes.pregunta2,
           pes.pregunta3,
           pes.pregunta4,
           pes.pregunta5
         FROM postv_encuesta_satisfaccion_qr pes
-        INNER JOIN referencias_imp r
+        INNER JOIN v_vh_vehiculos r
           ON pes.placa = r.placa
+        INNER JOIN vh_modelo m
+          ON r.modelo = m.modelo
+        INNER JOIN vh_familias f
+          ON m.familia = f.familia
         INNER JOIN tall_encabeza_orden te
           ON te.serie = r.codigo
           AND te.numero = pes.numero_orden
@@ -333,14 +344,20 @@ export class PacNpsInternoDetalladoPrismaRepository implements IPacNpsInternoDet
         te.numero,
         ISNULL(NULLIF(pc.nombres, ''), c.nombres) AS nombre,
         pes.placa,
+        r.des_marca AS marca,
+        f.descripcion AS familia,
         pes.pregunta1,
         pes.pregunta2,
         pes.pregunta3,
         pes.pregunta4,
         pes.pregunta5
       FROM postv_encuesta_satisfaccion_qr pes
-      INNER JOIN referencias_imp r
+      INNER JOIN v_vh_vehiculos r
         ON pes.placa = r.placa
+      INNER JOIN vh_modelo m
+        ON r.modelo = m.modelo
+      INNER JOIN vh_familias f
+        ON m.familia = f.familia
       INNER JOIN tall_encabeza_orden te
         ON te.serie = r.codigo
         AND te.numero = pes.numero_orden

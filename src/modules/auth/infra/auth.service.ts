@@ -106,6 +106,22 @@ export class AuthService {
     // Hashear el refresh token y guardarlo
     const refreshHash = await bcrypt.hash(refreshToken, 10);
     await this.userRepo.updateRefreshToken(user.id, refreshHash);
+    const empresasAsignadas = await this.userRepo.findEmpresasByNit(
+      user.nit_usuario,
+    );
+    const perfil = Number(user.perfil_postventa);
+    const menusPermitidos = Number.isNaN(perfil)
+      ? []
+      : await this.userRepo.findMenusByPerfil(perfil);
+    const submenusPermitidos = Number.isNaN(perfil)
+      ? []
+      : await this.userRepo.findSubmenusByPerfil(perfil);
+    const trimenusPermitidos = Number.isNaN(perfil)
+      ? []
+      : await this.userRepo.findTrimenusByPerfil(perfil);
+    const nomPerfil = Number.isNaN(perfil)
+      ? null
+      : await this.userRepo.findNombrePerfilById(perfil);
 
     return {
       user: {
@@ -113,6 +129,11 @@ export class AuthService {
         nit_usuario: user.nit_usuario,
         perfil_postventa: user.perfil_postventa,
         nombre_usuario: user.nombre_usuario,
+        nom_perfil: nomPerfil ?? undefined,
+        empresas_asignadas: empresasAsignadas,
+        menus_permitidos: menusPermitidos,
+        submenus_permitidos: submenusPermitidos,
+        trimenus_permitidos: trimenusPermitidos,
       },
       accessToken,
       refreshToken,

@@ -17,7 +17,7 @@ export class HorasExtrasPrismaRepository implements IHorasExtrasRepository {
       const results = await this.prisma.$queryRaw<any[]>`
                 SELECT 
                     a.id_solicitud, a.nit_empleado, a.fecha_ini AS fecha, 
-                    a.hora_ini, a.hora_fin, a.descripcion,
+                    a.hora_ini, a.hora_fin, a.descripcion, a.autorizacion,
                     t.nombres AS nombre_empleado
                 FROM postv_solicitud_hora_extra a
                 LEFT JOIN terceros t ON t.nit_real = a.nit_empleado
@@ -35,6 +35,10 @@ export class HorasExtrasPrismaRepository implements IHorasExtrasRepository {
             hora_ini: r.hora_ini,
             hora_fin: r.hora_fin,
             descripcion: r.descripcion,
+            autorizacion:
+              r.autorizacion !== undefined && r.autorizacion !== null
+                ? Number(r.autorizacion)
+                : null,
           }),
       );
     } catch (error) {

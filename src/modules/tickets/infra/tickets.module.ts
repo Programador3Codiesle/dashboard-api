@@ -8,8 +8,10 @@ import { ResponderTicketUseCase } from '../application/use-cases/responder-ticke
 import { ITicketRepository } from '../domain/ticket.repository';
 import { TicketPrismaRepository } from './repositories/ticket.prisma.repository';
 import { PrismaService } from '../../../core/infra/prisma/prisma.service';
+import { EmailModule } from '../../../core/infra/email/email.module';
 
 @Module({
+  imports: [EmailModule],
   controllers: [TicketController],
   providers: [
     TicketFacade,

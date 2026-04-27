@@ -1,5 +1,13 @@
 import { TicketEntity, RespuestaTicketEntity } from './ticket.entity';
 
+export type TicketEmailContext = {
+  id_ticket: number;
+  descripcion: string;
+  respuesta: string | null;
+  correo_usuario: string | null;
+  correo_encargado: string | null;
+};
+
 export abstract class ITicketRepository {
   abstract create(
     data: Partial<TicketEntity>,
@@ -21,4 +29,7 @@ export abstract class ITicketRepository {
     data: Partial<RespuestaTicketEntity>,
   ): Promise<{ status: boolean; message: string }>;
   abstract getRespuestas(ticketId: number): Promise<RespuestaTicketEntity[]>;
+  abstract getTicketEmailContext(
+    ticketId: number,
+  ): Promise<TicketEmailContext | null>;
 }
