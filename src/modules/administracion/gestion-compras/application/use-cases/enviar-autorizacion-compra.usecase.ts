@@ -15,7 +15,7 @@ export class EnviarAutorizacionCompraUseCase {
   ) {}
 
   private baseUrl(): string {
-    const url = this.config.get<string>('APP_URL') ?? 'http://localhost:3000';
+    const url = this.config.get<string>('APP_URL') ?? 'http://localhost:4000';
     return url.endsWith('/') ? url.slice(0, -1) : url;
   }
 
