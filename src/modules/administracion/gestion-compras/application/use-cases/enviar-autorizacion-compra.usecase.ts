@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { getAppBaseUrl } from '../../../../../core/config/env-urls';
 import { IGestionCompraRepository } from '../../domain/gestion-compra.repository';
 import { EnviarAutorizacionCompraDto } from '../dto/enviar-autorizacion-compra.dto';
 import { EmailService } from '../../../../../core/infra/email/email.service';
@@ -15,8 +16,7 @@ export class EnviarAutorizacionCompraUseCase {
   ) {}
 
   private baseUrl(): string {
-    const url = this.config.get<string>('APP_URL') ?? 'http://localhost:4000';
-    return url.endsWith('/') ? url.slice(0, -1) : url;
+    return getAppBaseUrl(this.config);
   }
 
   async execute(solicitudId: bigint, dto: EnviarAutorizacionCompraDto) {

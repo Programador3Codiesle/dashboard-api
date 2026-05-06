@@ -1,4 +1,9 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.resolve(process.cwd(), '.env') });
+require('dotenv').config({
+  path: path.resolve(process.cwd(), '.env.local'),
+  override: true,
+});
 
 const connectionString = process.env.DATABASE_URL;
 

@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { getPublicEmailBaseUrl } from '../../../../core/config/env-urls';
 import { EmailService } from '../../../../core/infra/email/email.service';
 import { ICotizadorInformesRepository } from '../../domain/cotizador-informes.repository';
 import { GenerarCotizacionPdfUseCase } from './generar-cotizacion-pdf.usecase';
@@ -9,6 +11,7 @@ export class EnviarEmailCotizacionLivianosUseCase {
     private readonly emailService: EmailService,
     private readonly informesRepo: ICotizadorInformesRepository,
     private readonly generarCotizacionPdfUC: GenerarCotizacionPdfUseCase,
+    private readonly config: ConfigService,
   ) {}
 
   async execute(params: {
@@ -82,12 +85,7 @@ export class EnviarEmailCotizacionLivianosUseCase {
     }
 
     // Construimos la URL pública al PDF para el enlace "Descargar cotización".
-    const baseUrl =
-      process.env.APP_PUBLIC_URL ??
-      process.env.FRONTEND_URL ??
-      process.env.BACKEND_PUBLIC_URL ??
-      '';
-    const normalizedBaseUrl = baseUrl ? baseUrl.replace(/\/+$/, '') : '';
+    const normalizedBaseUrl = getPublicEmailBaseUrl(this.config);
 
     let pdfUrl = `${normalizedBaseUrl}/cotizador/informe-cotizaciones/pdf?origen=livianos&idCotizacion=${encodeURIComponent(
       String(idCotizacion),

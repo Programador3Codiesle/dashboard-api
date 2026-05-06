@@ -53,6 +53,7 @@ import { NominaModule } from './modules/nomina/nomina.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: ['.env.local', '.env'],
     }),
     // Caché en memoria para endpoints de lectura frecuente
     CacheModule.register({

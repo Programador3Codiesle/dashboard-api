@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { getAppBaseUrl } from '../../config/env-urls';
 import * as jwt from 'jsonwebtoken';
 
 export type TipoAutorizacion =
@@ -27,7 +28,7 @@ export class TokenRespuestaService {
 
   constructor(private readonly config: ConfigService) {
     this.secret = this.config.get<string>('JWT_RESPUESTA_SECRET') ?? '';
-    this.appUrl = this.config.get<string>('APP_URL') ?? 'http://localhost:3001';
+    this.appUrl = getAppBaseUrl(this.config);
   }
 
   /**
