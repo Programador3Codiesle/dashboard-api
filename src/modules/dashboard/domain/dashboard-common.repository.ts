@@ -21,7 +21,11 @@ export abstract class IDashboardCommonRepository {
   abstract diasFestivos(fecha: string): Promise<number>;
   abstract getMesAnoActual(): Promise<{ mes: number; ano: number } | null>;
 
-  abstract getSedesUser(nitUsuario: number): Promise<SedesUserRow[]>;
+  /** Sedes asignadas al usuario; si `idEmpresa` está definido, solo bodegas en `bodegas_empresa` para esa empresa. */
+  abstract getSedesUser(
+    nitUsuario: number,
+    idEmpresa?: number,
+  ): Promise<SedesUserRow[]>;
 
   abstract getVentasBod(
     sedesIds: string,

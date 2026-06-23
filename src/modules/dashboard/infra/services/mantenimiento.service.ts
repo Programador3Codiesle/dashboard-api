@@ -12,8 +12,12 @@ export class MantenimientoService {
     fechaActual: string,
     diaFestivo: number,
     idUsu: string,
+    idEmpresa?: number,
   ): Promise<DashboardInformeMtoDto> {
-    const sedesRows = await this.commonRepo.getSedesUser(nitUsuario);
+    const sedesRows = await this.commonRepo.getSedesUser(
+      nitUsuario,
+      idEmpresa,
+    );
     const sedesMto = sedesRows
       .map((r) => r.idsede)
       .join(',')

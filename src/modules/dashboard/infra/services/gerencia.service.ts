@@ -11,6 +11,7 @@ export class GerenciaService {
     fechaActual: string,
     diaFestivo: number,
     idUsu: string,
+    idEmpresa?: number,
   ): Promise<DashboardGerenciaDto> {
     const admin = await this.administracionService.buildAdmin(
       nitUsuario,
@@ -18,6 +19,7 @@ export class GerenciaService {
       diaFestivo,
       idUsu,
       22,
+      idEmpresa,
     );
     return {
       variant: 'gerencia',

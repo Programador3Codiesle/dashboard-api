@@ -49,8 +49,27 @@ export class DashboardCommonPrismaRepository implements IDashboardCommonReposito
     return r ? { mes: Number(r.mes), ano: Number(r.ano) } : null;
   }
 
-  async getSedesUser(nitUsuario: number): Promise<SedesUserRow[]> {
-    const rows = await this.prisma.$queryRaw<any[]>`
+  async getSedesUser(
+    nitUsuario: number,
+    idEmpresa?: number,
+  ): Promise<SedesUserRow[]> {
+    const rows =
+      idEmpresa != null && Number.isFinite(idEmpresa)
+        ? await this.prisma.$queryRaw<any[]>`
+      SELECT DISTINCT
+        usede.idsede,
+        t.nombres,
+        b.descripcion,
+        CONVERT(VARCHAR, usede.idsede) AS idsede_v
+      FROM sw_usuariosede usede
+      INNER JOIN w_sist_usuarios su ON usede.idusuario = su.id_usuario
+      INNER JOIN terceros t ON t.nit_real = su.nit_usuario
+      INNER JOIN bodegas b ON usede.idsede = b.bodega
+      INNER JOIN bodegas_empresa be
+        ON be.id_bodega = usede.idsede AND be.id_empresa = ${idEmpresa}
+      WHERE t.nit_real = ${nitUsuario}
+    `
+        : await this.prisma.$queryRaw<any[]>`
       SELECT usede.idsede, t.nombres, b.descripcion, CONVERT(VARCHAR, usede.idsede) AS idsede_v
       FROM sw_usuariosede usede
       INNER JOIN w_sist_usuarios su ON usede.idusuario = su.id_usuario

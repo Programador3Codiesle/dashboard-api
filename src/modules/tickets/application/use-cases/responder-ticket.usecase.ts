@@ -40,21 +40,19 @@ export class ResponderTicketUseCase {
 
     const result = await this.repo.addRespuesta(ticketId, dataRespuesta);
 
-    // Best-effort: no bloquea la respuesta del ticket si falla el correo
+    // Best-effort: el correo no debe bloquear la respuesta HTTP (SMTP puede tardar mucho).
     if (result.status) {
-      try {
-        await this.sendRespuestaEmail(
-          ticketId,
-          responderNit,
-          ticket.encargado_id,
-          dto.estado,
-        );
-      } catch (error) {
+      void this.sendRespuestaEmail(
+        ticketId,
+        responderNit,
+        ticket.encargado_id,
+        dto.estado,
+      ).catch((error) => {
         console.error(
           `Error enviando correo de respuesta para ticket ${ticketId}:`,
           error,
         );
-      }
+      });
     }
 
     return result;

@@ -35,12 +35,14 @@ export class JefeTallerService {
     fechaActual: string,
     diaFestivo: number,
     idUsu: string,
+    idEmpresa?: number,
   ): Promise<DashboardJefeTallerDto> {
-    const date = await this.commonRepo.getMesAnoActual();
+    const [date, sedesRows] = await Promise.all([
+      this.commonRepo.getMesAnoActual(),
+      this.commonRepo.getSedesUser(nitUsuario, idEmpresa),
+    ]);
     const mes = date?.mes ?? new Date().getMonth() + 1;
     const ano = date?.ano ?? new Date().getFullYear();
-
-    const sedesRows = await this.commonRepo.getSedesUser(nitUsuario);
     const sedesIds = sedesRows.map((r) => r.idsede).join(', ');
     const sedesUsu = sedesIds.trim() ? sedesIds.replace(/,\s*$/, '') : '';
 
@@ -49,7 +51,10 @@ export class JefeTallerService {
       toTot = 0,
       totalV = 0,
       totalHoras = 0;
-    const ventasBod = await this.commonRepo.getVentasBod(sedesUsu, mes, ano);
+    const [ventasBod, npsRows] = await Promise.all([
+      this.commonRepo.getVentasBod(sedesUsu, mes, ano),
+      this.commonRepo.getDataNpsInternoSedesMes(sedesUsu),
+    ]);
     if (ventasBod) {
       toMo = ventasBod.MO;
       toRep = ventasBod.rptos;
@@ -59,7 +64,6 @@ export class JefeTallerService {
     }
 
     let npsInt = 0;
-    const npsRows = await this.commonRepo.getDataNpsInternoSedesMes(sedesUsu);
     for (const key of npsRows) {
       const toEnc = (key.enc9a10 ?? 0) + (key.enc0a6 ?? 0) + (key.enc7a8 ?? 0);
       if (toEnc > 0) {
@@ -110,12 +114,32 @@ export class JefeTallerService {
       let objectiveNpsIntCurrent = 0;
       let objectiveNpsGMIntCurrent = 0;
 
-      for (let m = mes; m >= 1; m--) {
-        const ventasGraf = await this.commonRepo.getVentasBodGraf(
-          idsede,
-          m,
-          ano,
-        );
+      const sedeNameGm = mapSedeIdToSedeNameGm(idsede);
+
+      const monthIndices = Array.from({ length: mes }, (_, i) => mes - i);
+      const monthBlocks = await Promise.all(
+        monthIndices.map((m) => {
+          const mesNom = m >= 1 && m <= 12 ? MESES_NOM[m] : '';
+          return (async () => {
+            const [ventasGraf, npsIntGraf, npsGmGraf] = await Promise.all([
+              this.commonRepo.getVentasBodGraf(idsede, m, ano),
+              this.commonRepo.getNpsIntBodGraf(idsede, m, ano),
+              sedeNameGm
+                ? this.commonRepo.getNpsByBodGmGraf(sedeNameGm, m, ano)
+                : Promise.resolve(null),
+            ]);
+            return { m, mesNom, ventasGraf, npsIntGraf, npsGmGraf };
+          })();
+        }),
+      );
+
+      for (const {
+        m,
+        mesNom,
+        ventasGraf,
+        npsIntGraf,
+        npsGmGraf,
+      } of monthBlocks) {
         if (ventasGraf) {
           if (m === mes) {
             totalVentaManoObraCurrent = ventasGraf.MO;
@@ -138,12 +162,6 @@ export class JefeTallerService {
           });
         }
 
-        const npsIntGraf = await this.commonRepo.getNpsIntBodGraf(
-          idsede,
-          m,
-          ano,
-        );
-        const mesNom = m >= 1 && m <= 12 ? MESES_NOM[m] : '';
         if (npsIntGraf) {
           const toEnc =
             (npsIntGraf.enc0a6 ?? 0) +
@@ -165,13 +183,7 @@ export class JefeTallerService {
         }
         objetiveNps.push({ label: mesNom, y: 80 });
 
-        const sedeNameGm = mapSedeIdToSedeNameGm(idsede);
         if (sedeNameGm) {
-          const npsGmGraf = await this.commonRepo.getNpsByBodGmGraf(
-            sedeNameGm,
-            m,
-            ano,
-          );
           if (npsGmGraf) {
             const toEncGm =
               (npsGmGraf.enc0a6 ?? 0) +

@@ -40,6 +40,7 @@ export class GetDashboardUseCase {
     idsede?: number,
     mes?: number,
     ano?: number,
+    idEmpresa?: number,
   ): Promise<DashboardResponseDto> {
     const perfilNum = typeof perfil === 'string' ? Number(perfil) : perfil;
     const fechaRow = await this.commonRepo.getFecha();
@@ -53,6 +54,7 @@ export class GetDashboardUseCase {
         fechaActual,
         diaFestivo,
         userId,
+        idEmpresa,
       );
     }
     if (perfilNum === PERFIL_INFORME_TECNICOS) {
@@ -63,6 +65,7 @@ export class GetDashboardUseCase {
         userId,
         mes,
         ano,
+        idEmpresa,
       );
     }
     if (perfilNum === PERFIL_AGENTE_CC) {
@@ -79,6 +82,7 @@ export class GetDashboardUseCase {
         fechaActual,
         diaFestivo,
         userId,
+        idEmpresa,
       );
     }
     if (perfilNum === PERFIL_COMPRAS) {
@@ -91,6 +95,7 @@ export class GetDashboardUseCase {
         diaFestivo,
         userId,
         idsede,
+        idEmpresa,
       );
     }
     if (PERFIL_GERENCIA.includes(perfilNum)) {
@@ -99,6 +104,7 @@ export class GetDashboardUseCase {
         fechaActual,
         diaFestivo,
         userId,
+        idEmpresa,
       );
     }
     return this.administracionService.buildAdmin(
@@ -107,6 +113,7 @@ export class GetDashboardUseCase {
       diaFestivo,
       userId,
       perfilNum,
+      idEmpresa,
     );
   }
 }

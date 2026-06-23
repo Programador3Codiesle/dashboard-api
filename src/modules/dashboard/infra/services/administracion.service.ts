@@ -21,6 +21,7 @@ export class AdministracionService {
     diaFestivo: number,
     idUsu: string,
     perfilNum: number,
+    idEmpresa?: number,
   ): Promise<DashboardAdminDto> {
     const base: DashboardAdminDto = {
       variant: 'admin',
@@ -28,6 +29,11 @@ export class AdministracionService {
       dia_festivo: diaFestivo,
       id_usu: idUsu,
     };
+
+    // Contenido legacy (Codiesel): no aplica a otras empresas hasta tener consultas equivalentes.
+    if (idEmpresa != null && idEmpresa !== 1) {
+      return base;
+    }
 
     const grafSedes = await this.commonRepo.getGrafSedes();
     base.graf_sedes = grafSedes.length > 0 ? grafSedes : undefined;

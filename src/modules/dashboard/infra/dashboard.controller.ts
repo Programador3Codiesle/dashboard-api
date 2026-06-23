@@ -14,6 +14,7 @@ export class DashboardController {
     @Query('idsede') idsede?: string,
     @Query('mes') mes?: string,
     @Query('ano') ano?: string,
+    @Query('empresa') empresa?: string,
   ) {
     const user = (req as any).user as {
       sub: string;
@@ -27,6 +28,14 @@ export class DashboardController {
       idsede != null && idsede !== '' ? Number(idsede) : undefined;
     const mesNum = mes != null && mes !== '' ? Number(mes) : undefined;
     const anoNum = ano != null && ano !== '' ? Number(ano) : undefined;
+    const empresaNum =
+      empresa != null && empresa !== ''
+        ? Number(empresa)
+        : undefined;
+    const idEmpresaNum =
+      empresaNum != null && Number.isFinite(empresaNum) && empresaNum > 0
+        ? empresaNum
+        : undefined;
     return this.getDashboardUseCase.execute(
       userId,
       nitUsuario,
@@ -34,6 +43,7 @@ export class DashboardController {
       idsedeNum,
       mesNum,
       anoNum,
+      idEmpresaNum,
     );
   }
 }
