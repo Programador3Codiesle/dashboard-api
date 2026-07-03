@@ -60,18 +60,74 @@ export class EmailService {
       };
     }
 
+    const payload = this.applyDevRedirect(params);
+
     try {
       await this.transporter.sendMail({
         from: this.from,
-        to: params.to,
-        bcc: params.bcc,
-        subject: params.subject,
-        html: params.html,
-        attachments: params.attachments,
+        to: payload.to,
+        bcc: payload.bcc,
+        subject: payload.subject,
+        html: payload.html,
+        attachments: payload.attachments,
       });
       return { ok: true };
     } catch (e: any) {
       return { ok: false, error: e?.message ?? 'Error enviando correo' };
     }
+  }
+
+  /** En desarrollo redirige todos los correos al buzón de pruebas. */
+  private applyDevRedirect(params: SendEmailParams): SendEmailParams {
+    if (!this.isModoPruebasCorreo()) {
+      return params;
+    }
+
+    const devInbox = this.correoPruebas();
+    const destinatariosOriginales = [
+      ...params.to,
+      ...(params.bcc ?? []).map((b) => `(bcc) ${b}`),
+    ].join(', ');
+
+    const aviso = `<p style="font-family:sans-serif;font-size:12px;color:#666;margin:0 0 12px;">
+      <strong>[MODO DESARROLLO]</strong> Destinatarios originales: ${this.escapeHtml(destinatariosOriginales)}
+    </p>`;
+
+    const subject = params.subject.startsWith('[DEV]')
+      ? params.subject
+      : `[DEV] ${params.subject}`;
+
+    return {
+      ...params,
+      to: [devInbox],
+      bcc: undefined,
+      subject,
+      html: params.html.includes('[MODO DESARROLLO]') || params.html.includes('[MODO PRUEBAS]')
+        ? params.html
+        : `${aviso}${params.html}`,
+    };
+  }
+
+  private isModoPruebasCorreo(): boolean {
+    const flag = this.config.get<string>('EMAIL_MODO_PRUEBAS');
+    if (flag === 'false' || flag === '0') return false;
+    if (flag === 'true' || flag === '1') return true;
+    return process.env.NODE_ENV !== 'production';
+  }
+
+  private correoPruebas(): string {
+    return (
+      this.config.get<string>('EMAIL_DEV_OVERRIDE')?.trim() ||
+      this.config.get<string>('MPVI_CORREO_PRUEBAS')?.trim() ||
+      'programador3@codiesel.co'
+    );
+  }
+
+  private escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
   }
 }
