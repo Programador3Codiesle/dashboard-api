@@ -8,6 +8,11 @@ import { MpviFirmaModule } from './mpvi/mpvi-firma/infra/mpvi-firma.module';
 import { EntradaVehiculoModule } from './entrada-vehiculo/infra/entrada-vehiculo.module';
 import { EstadoTallerModule } from './estado-taller/infra/estado-taller.module';
 import { InformeOtAbiertasModule } from './informe-ot-abiertas/infra/informe-ot-abiertas.module';
+import { InformePosiblesRetornosModule } from './informe-posibles-retornos/infra/informe-posibles-retornos.module';
+import { PygAsesoresRepuestosModule } from './pyg-asesores-repuestos/infra/pyg-asesores-repuestos.module';
+import { PygTecnicosModule } from './pyg-tecnicos/infra/pyg-tecnicos.module';
+import { PosiblesRetornosModule } from './posibles-retornos/infra/posibles-retornos.module';
+import { PresupuestoModule } from './presupuesto/infra/presupuesto.module';
 
 @Module({
   imports: [
@@ -20,6 +25,11 @@ import { InformeOtAbiertasModule } from './informe-ot-abiertas/infra/informe-ot-
     EntradaVehiculoModule,
     EstadoTallerModule,
     InformeOtAbiertasModule,
+    InformePosiblesRetornosModule,
+    PygAsesoresRepuestosModule,
+    PygTecnicosModule,
+    PosiblesRetornosModule,
+    PresupuestoModule,
   ],
 })
 export class TallerModule {}

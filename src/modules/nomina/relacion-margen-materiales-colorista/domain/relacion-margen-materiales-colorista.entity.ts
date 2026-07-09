@@ -32,4 +32,3 @@ export class RelacionMargenMaterialesColoristaResponseEntity {
     Object.assign(this, props);
   }
 }
-

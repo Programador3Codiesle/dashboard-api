@@ -22,11 +22,15 @@ export class ObtenerPanelUseCase {
     const byPlaca = !!placaNorm && placaNorm.length >= 6;
 
     if (byPlaca) {
-      const [citaPlaca, citasSinOt, vehiculosSinCita] = await Promise.all([
-        this.repo.getCitasEntradaVhPlaca(bodegaIds, placaNorm!),
-        this.repo.getVhSinOtPlaca(bodegaIds, placaNorm!),
-        this.repo.getVhSinCitaPlaca(bodegaIds, placaNorm!),
-      ]);
+      const citaPlaca = await this.repo.getCitasEntradaVhPlaca(
+        bodegaIds,
+        placaNorm,
+      );
+      const citasSinOt = await this.repo.getVhSinOtPlaca(bodegaIds, placaNorm);
+      const vehiculosSinCita = await this.repo.getVhSinCitaPlaca(
+        bodegaIds,
+        placaNorm,
+      );
 
       return {
         sedes,
@@ -41,13 +45,11 @@ export class ObtenerPanelUseCase {
       };
     }
 
-    const [citasRaw, citasAtendidasRaw, citasSinOt, vehiculosSinCita] =
-      await Promise.all([
-        this.repo.getCitasEntradaVh(bodegaIds),
-        this.repo.getCitasEntradaVhAtendidas(bodegaIds),
-        this.repo.getVhSinOt(bodegaIds),
-        this.repo.getVhSinCita(bodegaIds),
-      ]);
+    const citasRaw = await this.repo.getCitasEntradaVh(bodegaIds);
+    const citasAtendidasRaw =
+      await this.repo.getCitasEntradaVhAtendidas(bodegaIds);
+    const citasSinOt = await this.repo.getVhSinOt(bodegaIds);
+    const vehiculosSinCita = await this.repo.getVhSinCita(bodegaIds);
 
     return {
       sedes,

@@ -15,7 +15,10 @@ import {
 } from '../../../../../core/infra/pdf/pdf-document.helper';
 import { IMpviCotizacionRepository } from '../domain/mpvi-cotizacion.repository';
 import { buildTablaServicio } from './helpers/mpvi-tabla.builder';
-import type { MpviTablaServicio, MpviTablaServicioFila } from './helpers/mpvi.types';
+import type {
+  MpviTablaServicio,
+  MpviTablaServicioFila,
+} from './helpers/mpvi.types';
 
 export interface GenerarMpviPdfParams {
   idCotizacion: number;
@@ -78,11 +81,21 @@ export class GenerarMpviPdfUseCase {
     page.drawText(nomBodega, { x: MARGIN, y, size: 12, font });
     y -= ROW_HEIGHT;
     if (cot.direccion) {
-      page.drawText(`Dirección: ${cot.direccion}`, { x: MARGIN, y, size: FONT_SIZE, font });
+      page.drawText(`Dirección: ${cot.direccion}`, {
+        x: MARGIN,
+        y,
+        size: FONT_SIZE,
+        font,
+      });
       y -= ROW_HEIGHT;
     }
     if (cot.telefono) {
-      page.drawText(`Telf: 607 ${cot.telefono}`, { x: MARGIN, y, size: FONT_SIZE, font });
+      page.drawText(`Telf: 607 ${cot.telefono}`, {
+        x: MARGIN,
+        y,
+        size: FONT_SIZE,
+        font,
+      });
       y -= ROW_HEIGHT;
     }
 
@@ -90,13 +103,33 @@ export class GenerarMpviPdfUseCase {
     const blockBottomY = y;
     y = getContentStartY();
     const idStr = String(cot.id).padStart(4, '0');
-    page.drawText(`Número cotización: ${idStr}`, { x: rightX, y, size: FONT_SIZE, font });
+    page.drawText(`Número cotización: ${idStr}`, {
+      x: rightX,
+      y,
+      size: FONT_SIZE,
+      font,
+    });
     y -= ROW_HEIGHT;
-    page.drawText(`Placa: ${cot.placa.toUpperCase()}`, { x: rightX, y, size: FONT_SIZE, font });
+    page.drawText(`Placa: ${cot.placa.toUpperCase()}`, {
+      x: rightX,
+      y,
+      size: FONT_SIZE,
+      font,
+    });
     y -= ROW_HEIGHT;
-    page.drawText(`N° Orden: ${cot.num_orden ?? '—'}`, { x: rightX, y, size: FONT_SIZE, font });
+    page.drawText(`N° Orden: ${cot.num_orden ?? '—'}`, {
+      x: rightX,
+      y,
+      size: FONT_SIZE,
+      font,
+    });
     y -= ROW_HEIGHT;
-    page.drawText(`Fecha: ${cot.fecha}`, { x: rightX, y, size: FONT_SIZE, font });
+    page.drawText(`Fecha: ${cot.fecha}`, {
+      x: rightX,
+      y,
+      size: FONT_SIZE,
+      font,
+    });
     y = blockBottomY - ROW_HEIGHT;
 
     const resultadoCliente = drawBrandTable(
@@ -104,7 +137,14 @@ export class GenerarMpviPdfUseCase {
       brand,
       'Cliente / Vehículo',
       ['Cliente', 'Celular', 'Correo', 'Placa'],
-      [[String(cot.nombre ?? ''), String(cot.celular), cot.correo, cot.placa.toUpperCase()]],
+      [
+        [
+          String(cot.nombre ?? ''),
+          String(cot.celular),
+          cot.correo,
+          cot.placa.toUpperCase(),
+        ],
+      ],
       [95, 70, 210, 70],
       y,
       { cellFontSize: 8, cellLineHeight: 10 },
@@ -227,14 +267,25 @@ export class GenerarMpviPdfUseCase {
       ? [34, 86, 24, 36, 94, 20, 20, 52, 50, 50]
       : [108, 112, 28, 68, 68, 48];
 
-    const filas = tabla.filas.map((fila) => this.filaToCells(fila, esVistaInterna));
+    const filas = tabla.filas.map((fila) =>
+      this.filaToCells(fila, esVistaInterna),
+    );
 
-    const result = drawBrandTable(ctx, brand, titulo, headers, filas, colWidths, startY, {
-      cellFontSize: 8,
-      cellLineHeight: 10,
-      cellPadding: 3,
-      moneyColumnIndices: esVistaInterna ? [7, 8] : [3, 4],
-    });
+    const result = drawBrandTable(
+      ctx,
+      brand,
+      titulo,
+      headers,
+      filas,
+      colWidths,
+      startY,
+      {
+        cellFontSize: 8,
+        cellLineHeight: 10,
+        cellPadding: 3,
+        moneyColumnIndices: esVistaInterna ? [7, 8] : [3, 4],
+      },
+    );
 
     const footer = drawBrandTableFooterTotals(
       { ...ctx, page: result.page },
@@ -252,11 +303,16 @@ export class GenerarMpviPdfUseCase {
     return footer;
   }
 
-  private filaToCells(fila: MpviTablaServicioFila, esVistaInterna: boolean): string[] {
+  private filaToCells(
+    fila: MpviTablaServicioFila,
+    esVistaInterna: boolean,
+  ): string[] {
     const operacion = fila.operacion || '—';
     const descripcion = fila.descripcion || '—';
-    const repuesto = fila.repuesto && fila.repuesto !== 'N/A' ? fila.repuesto : '—';
-    const referencia = fila.codRepuesto && fila.codRepuesto !== 'N/A' ? fila.codRepuesto : '—';
+    const repuesto =
+      fila.repuesto && fila.repuesto !== 'N/A' ? fila.repuesto : '—';
+    const referencia =
+      fila.codRepuesto && fila.codRepuesto !== 'N/A' ? fila.codRepuesto : '—';
     const autoriza = fila.autorizado ? 'Sí' : 'No';
     const disp = fila.disponible ? 'Sí' : 'No';
 

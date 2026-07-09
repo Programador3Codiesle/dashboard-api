@@ -25,7 +25,11 @@ export class InasistenciaPrismaRepository implements IInasistenciaRepository {
 
       // Evita timeouts de Prisma en rangos amplios: consultar por tramos semanales.
       const rangos = this.buildDateRanges(fechaInicio, fechaFinal, 7);
-      const acumulado: Array<{ documento: number | null; nombre: string; fecha: Date | null }> = [];
+      const acumulado: Array<{
+        documento: number | null;
+        nombre: string;
+        fecha: Date | null;
+      }> = [];
 
       for (const rango of rangos) {
         const parcial = await this.prisma.$queryRaw<any[]>`
@@ -72,7 +76,10 @@ export class InasistenciaPrismaRepository implements IInasistenciaRepository {
         );
       }
 
-      const dedup = new Map<string, { documento: number | null; nombre: string; fecha: Date | null }>();
+      const dedup = new Map<
+        string,
+        { documento: number | null; nombre: string; fecha: Date | null }
+      >();
       for (const item of acumulado) {
         const fechaKey = item.fecha
           ? `${item.fecha.getFullYear()}-${String(item.fecha.getMonth() + 1).padStart(2, '0')}-${String(item.fecha.getDate()).padStart(2, '0')}`
@@ -115,7 +122,8 @@ export class InasistenciaPrismaRepository implements IInasistenciaRepository {
     const end = toDate(fechaFinal);
     const ranges: Array<{ inicio: string; fin: string }> = [];
 
-    const safeChunkDays = Number.isFinite(chunkDays) && chunkDays > 0 ? chunkDays : 7;
+    const safeChunkDays =
+      Number.isFinite(chunkDays) && chunkDays > 0 ? chunkDays : 7;
     let cursor = new Date(start.getTime());
     while (cursor <= end) {
       const rangeEnd = new Date(cursor.getTime());

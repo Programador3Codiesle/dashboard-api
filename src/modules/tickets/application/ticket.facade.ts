@@ -37,7 +37,11 @@ export class TicketFacade {
   getTicket(id: number) {
     return this.getUC.getTicket(id);
   }
-  addRespuesta(ticketId: number, dto: reponderTicketDto, responderNit?: number) {
+  addRespuesta(
+    ticketId: number,
+    dto: reponderTicketDto,
+    responderNit?: number,
+  ) {
     return this.respondUC.execute(ticketId, dto, responderNit);
   }
   getRespuestas(ticketId: number) {

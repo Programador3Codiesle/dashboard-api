@@ -17,9 +17,7 @@ type RawRelacionRow = {
 };
 
 @Injectable()
-export class RelacionMargenMaterialesColoristaPrismaRepository
-  implements IRelacionMargenMaterialesColoristaRepository
-{
+export class RelacionMargenMaterialesColoristaPrismaRepository implements IRelacionMargenMaterialesColoristaRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async listar(
@@ -52,4 +50,3 @@ export class RelacionMargenMaterialesColoristaPrismaRepository
     });
   }
 }
-

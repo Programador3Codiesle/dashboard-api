@@ -29,7 +29,9 @@ export class MpviLinkService {
 
   generarToken(idCotizacion: number, op: number): string {
     if (!this.secret) {
-      throw new Error('JWT_MPVI_LINK_SECRET o JWT_RESPUESTA_SECRET no configurado');
+      throw new Error(
+        'JWT_MPVI_LINK_SECRET o JWT_RESPUESTA_SECRET no configurado',
+      );
     }
     const exp = Math.floor(Date.now() / 1000) + EXPIRACION_DIAS * 24 * 60 * 60;
     const payload: MpviLinkPayload = { idCotizacion, op, exp };
@@ -38,7 +40,9 @@ export class MpviLinkService {
 
   validarToken(token: string): MpviLinkDecodificado {
     if (!this.secret) {
-      throw new Error('JWT_MPVI_LINK_SECRET o JWT_RESPUESTA_SECRET no configurado');
+      throw new Error(
+        'JWT_MPVI_LINK_SECRET o JWT_RESPUESTA_SECRET no configurado',
+      );
     }
     try {
       const decoded = jwt.verify(token, this.secret, {

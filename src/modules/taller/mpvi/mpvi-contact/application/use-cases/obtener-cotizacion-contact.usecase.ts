@@ -10,22 +10,34 @@ export class ObtenerCotizacionContactUseCase {
       placa != null && placa.trim() !== '' ? placa.trim() : null;
     const cotizaciones = await this.repo.getCotizacionContact(placaNorm);
 
-    const rows = await Promise.all(
-      cotizaciones.map(async (key) => {
-        const creador = await this.repo.getCreadorCotizacion(key.id);
-        return {
-          id: key.id,
-          placa: key.placa,
-          nombre: key.nombre,
-          celular: key.celular,
-          correo: key.correo,
-          tecnico: creador?.nombres ?? '',
-          nota: key.nota ?? '',
-          fechaContacto: key.fecha_contacto,
-          diasRestantes: key.dias_restantes,
-        };
-      }),
-    );
+    const rows: Array<{
+      id: number;
+      placa: string;
+      nombre: string;
+      celular: string;
+      correo: string;
+      tecnico: string;
+      nota: string;
+      fechaContacto: string;
+      diasRestantes: number;
+    }> = [];
+    for (const key of cotizaciones) {
+      const creador = await this.repo.getCreadorCotizacion(key.id);
+      rows.push({
+        id: key.id,
+        placa: key.placa,
+        nombre: key.nombre,
+        celular: key.celular,
+        correo: key.correo,
+        tecnico: creador?.nombres ?? '',
+        nota: String(key.nota ?? ''),
+        fechaContacto:
+          key.fecha_contacto instanceof Date
+            ? key.fecha_contacto.toISOString()
+            : String(key.fecha_contacto ?? ''),
+        diasRestantes: Number(key.dias_restantes ?? 0),
+      });
+    }
 
     return { cotizaciones: rows };
   }

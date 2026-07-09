@@ -12,7 +12,6 @@ import {
   DashboardMantenimientoPrismaRepository,
   DashboardGerenciaPrismaRepository,
 } from './repositories';
-import { PrismaService } from '../../../core/infra/prisma/prisma.service';
 import { JefeTallerService } from './services/jefe-taller.service';
 import { TecnicoService } from './services/tecnico.service';
 import { AdministracionService } from './services/administracion.service';
@@ -72,7 +71,6 @@ import { IGerenciaDashboardRepository } from '../domain/gerencia.repository';
       provide: IGerenciaDashboardRepository,
       useClass: DashboardGerenciaPrismaRepository,
     },
-    PrismaService,
     JefeTallerService,
     TecnicoService,
     AdministracionService,

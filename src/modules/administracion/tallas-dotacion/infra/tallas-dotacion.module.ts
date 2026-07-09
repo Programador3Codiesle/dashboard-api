@@ -5,7 +5,6 @@ import { ObtenerTallaDotacionUseCase } from '../application/use-cases/obtener-ta
 import { ActualizarTallaDotacionUseCase } from '../application/use-cases/actualizar-talla-dotacion.usecase';
 import { ITallaDotacionRepository } from '../domain/talla-dotacion.repository';
 import { TallaDotacionPrismaRepository } from './repositories/talla-dotacion.prisma.repository';
-import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
   controllers: [TallasDotacionController],
@@ -17,7 +16,6 @@ import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
       provide: ITallaDotacionRepository,
       useClass: TallaDotacionPrismaRepository,
     },
-    PrismaService,
   ],
   exports: [TallaDotacionFacade],
 })

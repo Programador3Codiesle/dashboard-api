@@ -6,7 +6,6 @@ import { ObtenerEvaluacionPorIdUseCase } from '../application/use-cases/obtener-
 import { CalificarEmpleadoUseCase } from '../application/use-cases/calificar-empleado.usecase';
 import { IEvaluacionDesempenoRepository } from '../domain/repositories/evaluacion-desempeno.repository';
 import { EvaluacionDesempenoPrismaRepository } from './repositories/evaluacion-desempeno.prisma.repository';
-import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
   controllers: [EvaluacionDesempenoController],
@@ -19,7 +18,6 @@ import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
       provide: IEvaluacionDesempenoRepository,
       useClass: EvaluacionDesempenoPrismaRepository,
     },
-    PrismaService,
   ],
   exports: [EvaluacionDesempenoFacade],
 })

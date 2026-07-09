@@ -19,4 +19,3 @@ export class NominaDirectorFlotasDetalleEntity {
     Object.assign(this, props);
   }
 }
-

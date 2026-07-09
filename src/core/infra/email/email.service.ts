@@ -102,9 +102,11 @@ export class EmailService {
       to: [devInbox],
       bcc: undefined,
       subject,
-      html: params.html.includes('[MODO DESARROLLO]') || params.html.includes('[MODO PRUEBAS]')
-        ? params.html
-        : `${aviso}${params.html}`,
+      html:
+        params.html.includes('[MODO DESARROLLO]') ||
+        params.html.includes('[MODO PRUEBAS]')
+          ? params.html
+          : `${aviso}${params.html}`,
     };
   }
 

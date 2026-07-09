@@ -11,4 +11,3 @@ export abstract class IRelacionMargenMaterialesColoristaRepository {
     filtros: FiltrosRelacionMargenMaterialesColorista,
   ): Promise<RelacionMargenMaterialColoristaEntity[]>;
 }
-

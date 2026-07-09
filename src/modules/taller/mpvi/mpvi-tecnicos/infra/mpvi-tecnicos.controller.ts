@@ -40,7 +40,10 @@ export class MpviTecnicosController {
   }
 
   @Post('guardar')
-  guardarDatos(@Body() dto: GuardarDatosDto, @Req() req: { user?: { sub?: number } }) {
+  guardarDatos(
+    @Body() dto: GuardarDatosDto,
+    @Req() req: { user?: { sub?: number } },
+  ) {
     const idUser = Number(req.user?.sub ?? 0);
     return this.facade.guardarDatos(dto, idUser);
   }

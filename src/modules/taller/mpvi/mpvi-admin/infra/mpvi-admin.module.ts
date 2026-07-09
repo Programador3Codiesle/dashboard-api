@@ -7,7 +7,6 @@ import { ListarCatalogoMpviUseCase } from '../application/use-cases/listar-catal
 import { GuardarElementoCatalogoUseCase } from '../application/use-cases/guardar-elemento-catalogo.usecase';
 import { IMpviCatalogoRepository } from '../domain/mpvi-catalogo.repository';
 import { MpviCatalogoPrismaRepository } from './repositories/mpvi-catalogo.prisma.repository';
-import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
 
 @Module({
   controllers: [MpviAdminController],
@@ -21,7 +20,6 @@ import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
       provide: IMpviCatalogoRepository,
       useClass: MpviCatalogoPrismaRepository,
     },
-    PrismaService,
   ],
   exports: [IMpviCatalogoRepository, MpviAdminFacade],
 })

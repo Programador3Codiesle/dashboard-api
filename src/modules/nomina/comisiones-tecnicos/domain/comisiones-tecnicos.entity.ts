@@ -37,4 +37,3 @@ export class DetalleComisionTecnicoEntity {
     Object.assign(this, props);
   }
 }
-

@@ -15,4 +15,3 @@ export class ListarNominaDirectorFlotasPrincipalUseCase {
     return this.repository.listarPrincipal(filtro);
   }
 }
-

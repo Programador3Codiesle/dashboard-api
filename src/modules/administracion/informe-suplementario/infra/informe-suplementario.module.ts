@@ -5,7 +5,6 @@ import { ListarTiempoSuplementarioUseCase } from '../application/use-cases/lista
 import { ExportarTiempoSuplementarioExcelUseCase } from '../application/use-cases/exportar-tiempo-suplementario-excel.usecase';
 import { IInformeTiempoSuplementarioRepository } from '../domain/informe-tiempo-suplementario.repository';
 import { InformeTiempoSuplementarioPrismaRepository } from './repositories/informe-tiempo-suplementario.prisma.repository';
-import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
   controllers: [InformeSuplementarioController],
@@ -17,7 +16,6 @@ import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
       provide: IInformeTiempoSuplementarioRepository,
       useClass: InformeTiempoSuplementarioPrismaRepository,
     },
-    PrismaService,
   ],
   exports: [InformeSuplementarioFacade],
 })

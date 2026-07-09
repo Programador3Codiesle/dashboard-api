@@ -4,7 +4,6 @@ import { ListaHorasExtrasFacade } from '../application/lista-horas-extras.facade
 import { ObtenerHorasExtrasDiaActualUseCase } from '../application/use-cases/obtener-horas-extras-dia-actual.usecase';
 import { IHorasExtrasRepository } from '../domain/horas-extras.repository';
 import { HorasExtrasPrismaRepository } from './repositories/horas-extras.prisma.repository';
-import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
   controllers: [ListaHorasExtrasController],
@@ -12,7 +11,6 @@ import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
     ListaHorasExtrasFacade,
     ObtenerHorasExtrasDiaActualUseCase,
     { provide: IHorasExtrasRepository, useClass: HorasExtrasPrismaRepository },
-    PrismaService,
   ],
   exports: [ListaHorasExtrasFacade],
 })

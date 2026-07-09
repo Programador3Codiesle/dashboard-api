@@ -29,9 +29,7 @@ export class DashboardController {
     const mesNum = mes != null && mes !== '' ? Number(mes) : undefined;
     const anoNum = ano != null && ano !== '' ? Number(ano) : undefined;
     const empresaNum =
-      empresa != null && empresa !== ''
-        ? Number(empresa)
-        : undefined;
+      empresa != null && empresa !== '' ? Number(empresa) : undefined;
     const idEmpresaNum =
       empresaNum != null && Number.isFinite(empresaNum) && empresaNum > 0
         ? empresaNum

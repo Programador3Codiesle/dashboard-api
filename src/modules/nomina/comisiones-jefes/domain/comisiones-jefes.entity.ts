@@ -49,4 +49,3 @@ export class ValidacionBonosJefeEntity {
     Object.assign(this, props);
   }
 }
-

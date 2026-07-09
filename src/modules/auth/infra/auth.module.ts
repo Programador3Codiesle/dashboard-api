@@ -14,7 +14,6 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './auth.strategy';
 import { JwtAuthGuard } from './jwt-auth.guard';
 import { UserPrismaRepository } from './repositories/user.prisma.repository';
-import { PrismaService } from '../../../core/infra/prisma/prisma.service';
 
 // Controller
 import { AuthController } from './auth.controller';
@@ -44,8 +43,6 @@ import { IUserRepository } from '../domain/user.repository';
   controllers: [AuthController],
 
   providers: [
-    PrismaService,
-
     // Rate limiting guard personalizado
     ThrottlerAuthGuard,
 

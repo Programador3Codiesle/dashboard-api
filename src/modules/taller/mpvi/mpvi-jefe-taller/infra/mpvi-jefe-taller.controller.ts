@@ -47,7 +47,11 @@ export class MpviJefeTallerController {
         ? Number(tipo)
         : 0;
     const idEmpresa = empresa ? Number(empresa) : undefined;
-    const buffer = await this.facade.imprimirMpvi(idCotizacion, pdfTipo, idEmpresa);
+    const buffer = await this.facade.imprimirMpvi(
+      idCotizacion,
+      pdfTipo,
+      idEmpresa,
+    );
     const suffix =
       pdfTipo === 1 ? 'tecnico' : pdfTipo === 2 ? 'bdc' : 'servicio';
     return new StreamableFile(buffer, {

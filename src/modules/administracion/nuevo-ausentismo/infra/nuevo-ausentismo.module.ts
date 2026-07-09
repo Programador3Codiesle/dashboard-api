@@ -5,7 +5,6 @@ import { CrearAusentismoUseCase } from '../application/use-cases/crear-ausentism
 import { ObtenerAusentismosCalendarioUseCase } from '../application/use-cases/obtener-ausentismos-calendario.usecase';
 import { INuevoAusentismoRepository } from '../domain/nuevo-ausentismo.repository';
 import { NuevoAusentismoPrismaRepository } from './repositories/nuevo-ausentismo.prisma.repository';
-import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import { EmailModule } from '../../../../core/infra/email/email.module';
 
 @Module({
@@ -19,7 +18,6 @@ import { EmailModule } from '../../../../core/infra/email/email.module';
       provide: INuevoAusentismoRepository,
       useClass: NuevoAusentismoPrismaRepository,
     },
-    PrismaService,
   ],
   exports: [NuevoAusentismoFacade, INuevoAusentismoRepository],
 })

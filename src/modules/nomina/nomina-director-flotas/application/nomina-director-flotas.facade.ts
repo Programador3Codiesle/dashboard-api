@@ -18,4 +18,3 @@ export class NominaDirectorFlotasFacade {
     return this.listarDetalleUseCase.execute(filtro);
   }
 }
-

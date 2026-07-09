@@ -226,13 +226,28 @@ export class CotizadorPesadosPrismaRepository implements ICotizadorPesadosReposi
     const grupoAC = 'ACDelco';
     const grupoGM = 'GM';
 
-    const [repuestosAC, repuestosGM, manoObraAC, manoObraGM] =
-      await Promise.all([
-        this.getRepuestosMtto({ clase, revision, bodega, grupo: grupoAC }),
-        this.getRepuestosMtto({ clase, revision, bodega, grupo: grupoGM }),
-        this.getManoObraGrupo({ clase, grupo: grupoAC, bodega }),
-        this.getManoObraGrupo({ clase, grupo: grupoGM, bodega }),
-      ]);
+    const repuestosAC = await this.getRepuestosMtto({
+      clase,
+      revision,
+      bodega,
+      grupo: grupoAC,
+    });
+    const repuestosGM = await this.getRepuestosMtto({
+      clase,
+      revision,
+      bodega,
+      grupo: grupoGM,
+    });
+    const manoObraAC = await this.getManoObraGrupo({
+      clase,
+      grupo: grupoAC,
+      bodega,
+    });
+    const manoObraGM = await this.getManoObraGrupo({
+      clase,
+      grupo: grupoGM,
+      bodega,
+    });
 
     const filtrarPorYear = (items: RepuestoMantenimientoPesados[]) =>
       items.filter((r) => yearModel >= r.ano_inicio && yearModel <= r.ano_fin);

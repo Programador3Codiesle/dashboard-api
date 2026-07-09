@@ -120,10 +120,8 @@ export class ConsultasRetencion720UseCase {
   }
 
   async assertSegmentoVsValido(filtro: string): Promise<void> {
-    const [a, b] = await Promise.all([
-      this.repo.listarSegmentosAutos(),
-      this.repo.listarSegmentosByC(),
-    ]);
+    const a = await this.repo.listarSegmentosAutos();
+    const b = await this.repo.listarSegmentosByC();
     const ok =
       filtro === 'Autos' ||
       filtro === 'B&C' ||

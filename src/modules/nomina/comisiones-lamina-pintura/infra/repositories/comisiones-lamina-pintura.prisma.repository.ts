@@ -49,9 +49,7 @@ type RawDetalle = {
 };
 
 @Injectable()
-export class ComisionesLaminaPinturaPrismaRepository
-  implements IComisionesLaminaPinturaRepository
-{
+export class ComisionesLaminaPinturaPrismaRepository implements IComisionesLaminaPinturaRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async listar(
@@ -239,7 +237,9 @@ export class ComisionesLaminaPinturaPrismaRepository
   ): Promise<TotalRepuestosSedeEntity> {
     const { desde, sede } = filtros;
 
-    const result = await this.prisma.$queryRaw<Array<{ Base_Rptos: number | null }>>(
+    const result = await this.prisma.$queryRaw<
+      Array<{ Base_Rptos: number | null }>
+    >(
       sede === 1
         ? Prisma.sql`
           select Base_Rptos=SUM(valor_niif)*-1 from movimiento
@@ -261,4 +261,3 @@ export class ComisionesLaminaPinturaPrismaRepository
     });
   }
 }
-

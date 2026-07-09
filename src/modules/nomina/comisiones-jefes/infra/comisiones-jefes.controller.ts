@@ -105,7 +105,9 @@ export class ComisionesJefesController {
       comboJefes,
       sede,
       utilidadSede:
-        utilidadSede != null && utilidadSede !== '' ? Number(utilidadSede) : null,
+        utilidadSede != null && utilidadSede !== ''
+          ? Number(utilidadSede)
+          : null,
       bonoNps: bonoNps === '1',
       bonoUtilidad: bonoUtilidad === '1',
       bonoNpsInterno: bonoNpsInterno === '1',
@@ -119,4 +121,3 @@ export class ComisionesJefesController {
     };
   }
 }
-

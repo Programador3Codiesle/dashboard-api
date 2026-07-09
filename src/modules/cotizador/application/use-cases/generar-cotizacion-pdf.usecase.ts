@@ -35,8 +35,11 @@ const BRAND_HEADER_BANNERS: Record<number, string> = {
 export class GenerarCotizacionPdfUseCase {
   constructor(private readonly informesRepo: ICotizadorInformesRepository) {}
 
-  private async leerBannerHeader(idEmpresa?: number): Promise<Uint8Array | null> {
-    const filename = BRAND_HEADER_BANNERS[idEmpresa ?? 1] ?? BRAND_HEADER_BANNERS[1];
+  private async leerBannerHeader(
+    idEmpresa?: number,
+  ): Promise<Uint8Array | null> {
+    const filename =
+      BRAND_HEADER_BANNERS[idEmpresa ?? 1] ?? BRAND_HEADER_BANNERS[1];
     const basePath = path.resolve(
       process.cwd(),
       '..',

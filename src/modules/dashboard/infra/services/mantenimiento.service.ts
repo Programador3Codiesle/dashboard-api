@@ -14,10 +14,7 @@ export class MantenimientoService {
     idUsu: string,
     idEmpresa?: number,
   ): Promise<DashboardInformeMtoDto> {
-    const sedesRows = await this.commonRepo.getSedesUser(
-      nitUsuario,
-      idEmpresa,
-    );
+    const sedesRows = await this.commonRepo.getSedesUser(nitUsuario, idEmpresa);
     const sedesMto = sedesRows
       .map((r) => r.idsede)
       .join(',')

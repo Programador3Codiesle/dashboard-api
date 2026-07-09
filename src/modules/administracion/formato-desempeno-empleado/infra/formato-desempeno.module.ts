@@ -5,7 +5,6 @@ import { CrearFormatoDesempenoUseCase } from '../application/use-cases/crear-for
 import { ObtenerFormatoDesempenoUseCase } from '../application/use-cases/obtener-formato-desempeno.usecase';
 import { IFormatoDesempenoRepository } from '../domain/formato-desempeno.repository';
 import { FormatoDesempenoPrismaRepository } from './repositories/formato-desempeno.prisma.repository';
-import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
   controllers: [FormatoDesempenoController],
@@ -17,7 +16,6 @@ import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
       provide: IFormatoDesempenoRepository,
       useClass: FormatoDesempenoPrismaRepository,
     },
-    PrismaService,
   ],
   exports: [FormatoDesempenoFacade],
 })

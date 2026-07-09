@@ -3,7 +3,6 @@ import { Module } from '@nestjs/common';
 import { UsuarioService } from './services/usuario.service';
 import { UsuarioController } from './usuario.controller';
 import { UsuarioMapper } from '../presentation/mappers/usuario.mapper';
-import { PrismaService } from '../../../core/infra/prisma/prisma.service';
 
 // Contratos del dominio (interfaces abstractas)
 import {
@@ -51,8 +50,6 @@ import { GetUsuariosUseCase } from '../application/use-cases/get-usuarios.usecas
   imports: [],
   controllers: [UsuarioController],
   providers: [
-    PrismaService,
-
     // Inyección de dependencias basada en contratos (DIP - Dependency Inversion Principle)
     {
       provide: IUsuarioCoreRepository,

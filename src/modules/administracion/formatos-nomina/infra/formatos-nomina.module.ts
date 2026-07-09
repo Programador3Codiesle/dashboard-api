@@ -4,7 +4,6 @@ import { FormatosNominaFacade } from '../application/formatos-nomina.facade';
 import { ObtenerFormatosUseCase } from '../application/use-cases/obtener-formatos.usecase';
 import { IFormatoNominaRepository } from '../domain/formato-nomina.repository';
 import { FormatoNominaPrismaRepository } from './repositories/formato-nomina.prisma.repository';
-import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
   controllers: [FormatosNominaController],
@@ -15,7 +14,6 @@ import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
       provide: IFormatoNominaRepository,
       useClass: FormatoNominaPrismaRepository,
     },
-    PrismaService,
   ],
   exports: [FormatosNominaFacade],
 })

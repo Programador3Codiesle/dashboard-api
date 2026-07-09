@@ -6,7 +6,6 @@ import { CrearOrdenSalidaUseCase } from '../application/use-cases/crear-orden-sa
 import { ObtenerTiposSalidaUseCase } from '../application/use-cases/obtener-tipos-salida.usecase';
 import { IOrdenSalidaRepository } from '../domain/orden-salida.repository';
 import { OrdenSalidaPrismaRepository } from './repositories/orden-salida.prisma.repository';
-import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
   controllers: [OrdenSalidaController],
@@ -16,7 +15,6 @@ import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
     CrearOrdenSalidaUseCase,
     ObtenerTiposSalidaUseCase,
     { provide: IOrdenSalidaRepository, useClass: OrdenSalidaPrismaRepository },
-    PrismaService,
   ],
   exports: [OrdenSalidaFacade],
 })

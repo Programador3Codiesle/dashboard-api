@@ -52,4 +52,3 @@ export class TotalRepuestosSedeEntity {
     Object.assign(this, props);
   }
 }
-

@@ -46,7 +46,11 @@ export class GuardarDatosUseCase {
       if (!datos || datos.trim() === '') continue;
 
       const manoObra = await this.repo.getValorManoObra(dto.bod, placa, datos);
-      const repuestos = await this.repo.getValorRepuestos(dto.bod, placa, datos);
+      const repuestos = await this.repo.getValorRepuestos(
+        dto.bod,
+        placa,
+        datos,
+      );
 
       const procesado = procesarDatosInsercion(
         manoObra,
@@ -116,7 +120,8 @@ export class GuardarDatosUseCase {
     }
 
     return {
-      ok: idCotizacion != null && arrRes.length > 0 && arrRes.every((n) => n > 0),
+      ok:
+        idCotizacion != null && arrRes.length > 0 && arrRes.every((n) => n > 0),
       idCotizacion: idCotizacion != null ? Number(idCotizacion) : null,
     };
   }

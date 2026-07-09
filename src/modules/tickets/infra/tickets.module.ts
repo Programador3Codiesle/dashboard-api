@@ -7,7 +7,6 @@ import { GetTicketsUseCase } from '../application/use-cases/get-tickets.usecase'
 import { ResponderTicketUseCase } from '../application/use-cases/responder-ticket.usecase';
 import { ITicketRepository } from '../domain/ticket.repository';
 import { TicketPrismaRepository } from './repositories/ticket.prisma.repository';
-import { PrismaService } from '../../../core/infra/prisma/prisma.service';
 import { EmailModule } from '../../../core/infra/email/email.module';
 
 @Module({
@@ -20,7 +19,6 @@ import { EmailModule } from '../../../core/infra/email/email.module';
     GetTicketsUseCase,
     ResponderTicketUseCase,
     { provide: ITicketRepository, useClass: TicketPrismaRepository },
-    PrismaService,
   ],
   exports: [TicketFacade],
 })

@@ -15,4 +15,3 @@ export class DetalleComisionesTecnicosUseCase {
     return this.repository.detalle(filtros);
   }
 }
-

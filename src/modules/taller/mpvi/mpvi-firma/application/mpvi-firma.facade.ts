@@ -16,10 +16,7 @@ export class MpviFirmaFacade {
     return this.validarTokenUC.execute(token);
   }
 
-  cargarFirma(
-    dto: CargarFirmaDto,
-    imgFirmaFile?: Express.Multer.File,
-  ) {
+  cargarFirma(dto: CargarFirmaDto, imgFirmaFile?: Express.Multer.File) {
     const llave = dto.llave || dto.token || '';
     return this.cargarFirmaUC.execute({
       opcion: dto.opcion,

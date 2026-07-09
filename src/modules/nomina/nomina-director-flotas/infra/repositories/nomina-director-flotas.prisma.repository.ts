@@ -23,9 +23,7 @@ type RawDetalle = {
 };
 
 @Injectable()
-export class NominaDirectorFlotasPrismaRepository
-  implements INominaDirectorFlotasRepository
-{
+export class NominaDirectorFlotasPrismaRepository implements INominaDirectorFlotasRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async listarPrincipal(
@@ -73,4 +71,3 @@ export class NominaDirectorFlotasPrismaRepository
     );
   }
 }
-

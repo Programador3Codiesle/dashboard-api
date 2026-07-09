@@ -38,10 +38,8 @@ export class GetEjecucionResumenUseCase {
     const desde = this.toYmd(params.dateStart);
     const hasta = this.toYmd(params.dateEnd);
 
-    const [resumen, totales] = await Promise.all([
-      this.repo.getResumen(desde, hasta, bodegas),
-      this.repo.getTotales(desde, hasta, bodegas),
-    ]);
+    const resumen = await this.repo.getResumen(desde, hasta, bodegas);
+    const totales = await this.repo.getTotales(desde, hasta, bodegas);
 
     return {
       resumen: resumen ?? {

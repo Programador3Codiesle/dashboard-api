@@ -7,7 +7,9 @@ import { ComisionLaminaPinturaEntity } from '../../domain/comisiones-lamina-pint
 
 @Injectable()
 export class ListarComisionesLaminaPinturaUseCase {
-  constructor(private readonly repository: IComisionesLaminaPinturaRepository) {}
+  constructor(
+    private readonly repository: IComisionesLaminaPinturaRepository,
+  ) {}
 
   execute(
     filtros: FiltrosComisionesLaminaPintura,
@@ -15,4 +17,3 @@ export class ListarComisionesLaminaPinturaUseCase {
     return this.repository.listar(filtros);
   }
 }
-

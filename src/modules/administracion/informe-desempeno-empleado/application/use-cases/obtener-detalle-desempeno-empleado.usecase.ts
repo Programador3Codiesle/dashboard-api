@@ -1,4 +1,8 @@
-import { Injectable, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { IDesempenoEmpleadoRepository } from '../../domain/desempeno-empleado.repository';
 
 @Injectable()
@@ -12,7 +16,9 @@ export class ObtenerDetalleDesempenoEmpleadoUseCase {
 
     const detalle = await this.repo.obtenerDetalle(id);
     if (!detalle) {
-      throw new NotFoundException('No se encontro el detalle de evaluacion solicitado.');
+      throw new NotFoundException(
+        'No se encontro el detalle de evaluacion solicitado.',
+      );
     }
 
     return detalle;

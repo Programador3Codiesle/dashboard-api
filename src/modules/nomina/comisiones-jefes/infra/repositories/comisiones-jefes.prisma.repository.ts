@@ -46,25 +46,101 @@ type RawBono = {
 };
 
 @Injectable()
-export class ComisionesJefesPrismaRepository
-  implements IComisionesJefesRepository
-{
+export class ComisionesJefesPrismaRepository implements IComisionesJefesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   private readonly arrayBonoNps = [
-    { CEDULA: '1095913265', SEDE: 'GASOLINA GIRON', 'BONO NPS': 250000, 'NPS INTERNO': 0, 'BONO UTILIDAD': 360000 },
-    { CEDULA: '1095913265', SEDE: 'DIESEL GIRON', 'BONO NPS': 250000, 'NPS INTERNO': 0, 'BONO UTILIDAD': 360000 },
-    { CEDULA: '1005051936', SEDE: 'GASOLINA GIRON', 'BONO NPS': 56250, 'NPS INTERNO': 56250, 'BONO UTILIDAD': 75000 },
-    { CEDULA: '1005051936', SEDE: 'DIESEL GIRON', 'BONO NPS': 56250, 'NPS INTERNO': 56250, 'BONO UTILIDAD': 75000 },
-    { CEDULA: '63368988', SEDE: 'COLISION GIRON', 'BONO NPS': 270000, 'NPS INTERNO': 0, 'BONO UTILIDAD': 360000 },
-    { CEDULA: '84109954', SEDE: 'BOCONO', 'BONO NPS': 250000, 'NPS INTERNO': 0, 'BONO UTILIDAD': 300000 },
-    { CEDULA: '1090449765', SEDE: 'COLISION BOCONO', 'BONO NPS': 220000, 'NPS INTERNO': 0, 'BONO UTILIDAD': 275000 },
-    { CEDULA: '91274670', SEDE: 'ROSITA', 'BONO NPS': 150000, 'NPS INTERNO': 0, 'BONO UTILIDAD': 200000 },
-    { CEDULA: '88309803', SEDE: 'BOCONO', 'BONO NPS': 112500, 'NPS INTERNO': 0, 'BONO UTILIDAD': 150000 },
-    { CEDULA: '37579713', SEDE: 'BARRANCA', 'BONO NPS': 75000, 'NPS INTERNO': 0, 'BONO UTILIDAD': 100000 },
-    { CEDULA: '91525308', SEDE: 'COLISION GIRON', 'BONO NPS': 150000, 'NPS INTERNO': 0, 'BONO UTILIDAD': 200000 },
-    { CEDULA: '1092358562', SEDE: 'COLISION BOCONO', 'BONO NPS': 120000, 'NPS INTERNO': 0, 'BONO UTILIDAD': 150000 },
-    { CEDULA: '1092355065', SEDE: 'BOCONO', 'BONO NPS': 250000, 'NPS INTERNO': 0, 'BONO UTILIDAD': 300000 },
+    {
+      CEDULA: '1095913265',
+      SEDE: 'GASOLINA GIRON',
+      'BONO NPS': 250000,
+      'NPS INTERNO': 0,
+      'BONO UTILIDAD': 360000,
+    },
+    {
+      CEDULA: '1095913265',
+      SEDE: 'DIESEL GIRON',
+      'BONO NPS': 250000,
+      'NPS INTERNO': 0,
+      'BONO UTILIDAD': 360000,
+    },
+    {
+      CEDULA: '1005051936',
+      SEDE: 'GASOLINA GIRON',
+      'BONO NPS': 56250,
+      'NPS INTERNO': 56250,
+      'BONO UTILIDAD': 75000,
+    },
+    {
+      CEDULA: '1005051936',
+      SEDE: 'DIESEL GIRON',
+      'BONO NPS': 56250,
+      'NPS INTERNO': 56250,
+      'BONO UTILIDAD': 75000,
+    },
+    {
+      CEDULA: '63368988',
+      SEDE: 'COLISION GIRON',
+      'BONO NPS': 270000,
+      'NPS INTERNO': 0,
+      'BONO UTILIDAD': 360000,
+    },
+    {
+      CEDULA: '84109954',
+      SEDE: 'BOCONO',
+      'BONO NPS': 250000,
+      'NPS INTERNO': 0,
+      'BONO UTILIDAD': 300000,
+    },
+    {
+      CEDULA: '1090449765',
+      SEDE: 'COLISION BOCONO',
+      'BONO NPS': 220000,
+      'NPS INTERNO': 0,
+      'BONO UTILIDAD': 275000,
+    },
+    {
+      CEDULA: '91274670',
+      SEDE: 'ROSITA',
+      'BONO NPS': 150000,
+      'NPS INTERNO': 0,
+      'BONO UTILIDAD': 200000,
+    },
+    {
+      CEDULA: '88309803',
+      SEDE: 'BOCONO',
+      'BONO NPS': 112500,
+      'NPS INTERNO': 0,
+      'BONO UTILIDAD': 150000,
+    },
+    {
+      CEDULA: '37579713',
+      SEDE: 'BARRANCA',
+      'BONO NPS': 75000,
+      'NPS INTERNO': 0,
+      'BONO UTILIDAD': 100000,
+    },
+    {
+      CEDULA: '91525308',
+      SEDE: 'COLISION GIRON',
+      'BONO NPS': 150000,
+      'NPS INTERNO': 0,
+      'BONO UTILIDAD': 200000,
+    },
+    {
+      CEDULA: '1092358562',
+      SEDE: 'COLISION BOCONO',
+      'BONO NPS': 120000,
+      'NPS INTERNO': 0,
+      'BONO UTILIDAD': 150000,
+    },
+    {
+      CEDULA: '1092355065',
+      SEDE: 'BOCONO',
+      'BONO NPS': 250000,
+      'NPS INTERNO': 0,
+      'BONO UTILIDAD': 300000,
+    },
   ];
 
   async listarComisiones(
@@ -257,7 +333,9 @@ export class ComisionesJefesPrismaRepository
     const year = now.getFullYear();
     const month = now.getMonth() + 1;
 
-    const rows = await this.prisma.$queryRaw<Array<{ nit: number; nombres: string }>>(
+    const rows = await this.prisma.$queryRaw<
+      Array<{ nit: number; nombres: string }>
+    >(
       Prisma.sql`
       SELECT pcj.nit, t.nombres
       FROM postv_comisiones_jefes pcj
@@ -306,8 +384,14 @@ export class ComisionesJefesPrismaRepository
   }
 
   async actualizarValores(input: UpdateValoresJefeInput) {
-    const { comboJefes, sede, utilidadSede, bonoNps, bonoNpsInterno, bonoUtilidad } =
-      input;
+    const {
+      comboJefes,
+      sede,
+      utilidadSede,
+      bonoNps,
+      bonoNpsInterno,
+      bonoUtilidad,
+    } = input;
     if (!comboJefes || !sede) {
       throw new BadRequestException(
         'Debe seleccionar un jefe y una sede, son campos obligatorios.',
@@ -326,7 +410,9 @@ export class ComisionesJefesPrismaRepository
 
     const { year, month } = this.getPreviousMonth();
     const nit = Number(comboJefes);
-    const existing = await this.prisma.$queryRaw<Array<{ nit: number }>>(Prisma.sql`
+    const existing = await this.prisma.$queryRaw<
+      Array<{ nit: number }>
+    >(Prisma.sql`
       SELECT nit
       FROM postv_comisiones_jefes
       WHERE nit = ${nit} AND anio = ${year} AND mes = ${month} AND sede = ${sede}
@@ -374,4 +460,3 @@ export class ComisionesJefesPrismaRepository
     return { year: now.getFullYear(), month: now.getMonth() + 1 };
   }
 }
-

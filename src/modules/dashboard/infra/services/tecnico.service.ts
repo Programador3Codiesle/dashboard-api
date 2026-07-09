@@ -24,10 +24,7 @@ export class TecnicoService {
     const mes = mesOverride ?? date?.mes ?? new Date().getMonth() + 1;
     const ano = anoOverride ?? date?.ano ?? new Date().getFullYear();
 
-    const sedesRows = await this.commonRepo.getSedesUser(
-      nitUsuario,
-      idEmpresa,
-    );
+    const sedesRows = await this.commonRepo.getSedesUser(nitUsuario, idEmpresa);
     const sedesUsu = sedesRows
       .map((r) => r.idsede)
       .join(',')

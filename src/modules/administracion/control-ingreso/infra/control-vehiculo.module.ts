@@ -7,7 +7,6 @@ import { ListarVehiculosUseCase } from '../application/use-cases/listar-vehiculo
 import { VehiculosModelosUseCase } from '../application/use-cases/vehiculos-modelos.use';
 import { IControlVehiculoRepository } from '../domain/control-vehiculo.repository';
 import { ControlVehiculoPrismaRepository } from './repositories/control-vehiculo.prisma.repository';
-import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import { ControlVehiculoMapper } from '../presentation/mappers/control-vehiculo.mapper';
 
 @Module({
@@ -22,7 +21,6 @@ import { ControlVehiculoMapper } from '../presentation/mappers/control-vehiculo.
       provide: IControlVehiculoRepository,
       useClass: ControlVehiculoPrismaRepository,
     },
-    PrismaService,
     ControlVehiculoMapper,
   ],
   exports: [ControlVehiculoFacade],

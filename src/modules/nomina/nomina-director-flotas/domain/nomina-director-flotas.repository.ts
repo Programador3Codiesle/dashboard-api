@@ -17,4 +17,3 @@ export abstract class INominaDirectorFlotasRepository {
     filtro: FiltroNominaDirectorFlotas,
   ): Promise<NominaDirectorFlotasDetalleEntity[]>;
 }
-

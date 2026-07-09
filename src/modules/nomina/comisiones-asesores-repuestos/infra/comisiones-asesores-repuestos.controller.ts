@@ -69,7 +69,9 @@ export class ComisionesAsesoresRepuestosController {
       throw new BadRequestException('El parámetro mes es obligatorio (1-12).');
     }
     if (!anoNum || anoNum < 2020) {
-      throw new BadRequestException('El parámetro ano es obligatorio y válido.');
+      throw new BadRequestException(
+        'El parámetro ano es obligatorio y válido.',
+      );
     }
 
     return this.facade.obtenerDetalle({

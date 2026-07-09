@@ -9,9 +9,7 @@ export abstract class IInformeOtAbiertasRepository {
     bodegaIds: number[],
   ): Promise<OrdenAbiertaInformeEntity[]>;
 
-  abstract getCountPorBodega(
-    bodegaIds: number[],
-  ): Promise<TotalBodegaEntity[]>;
+  abstract getCountPorBodega(bodegaIds: number[]): Promise<TotalBodegaEntity[]>;
 
   abstract getCountPorAsesor(bodegaId: number): Promise<AsesorOtCountEntity[]>;
 }

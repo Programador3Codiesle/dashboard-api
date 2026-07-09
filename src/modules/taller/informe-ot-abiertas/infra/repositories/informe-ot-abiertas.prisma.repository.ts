@@ -7,7 +7,10 @@ import {
   TotalBodegaEntity,
 } from '../../domain/informe-ot-abiertas.entity';
 import { IInformeOtAbiertasRepository } from '../../domain/informe-ot-abiertas.repository';
-import { toNum, toStr } from '../../../entrada-vehiculo/infra/repositories/shared.utils';
+import {
+  toNum,
+  toStr,
+} from '../../../entrada-vehiculo/infra/repositories/shared.utils';
 
 type OrdenRow = {
   numero: unknown;
@@ -82,9 +85,7 @@ export class InformeOtAbiertasPrismaRepository implements IInformeOtAbiertasRepo
     }));
   }
 
-  async getCountPorBodega(
-    bodegaIds: number[],
-  ): Promise<TotalBodegaEntity[]> {
+  async getCountPorBodega(bodegaIds: number[]): Promise<TotalBodegaEntity[]> {
     if (bodegaIds.length === 0) return [];
 
     const rows = await this.prisma.$queryRaw<BodegaCountRow[]>(Prisma.sql`

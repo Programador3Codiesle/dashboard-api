@@ -9,7 +9,10 @@ import {
   OrdenTallerAbiertaRowEntity,
   SedeUsuarioEntity,
 } from '../../domain/estado-taller.entity';
-import { toNum, toStr } from '../../../entrada-vehiculo/infra/repositories/shared.utils';
+import {
+  toNum,
+  toStr,
+} from '../../../entrada-vehiculo/infra/repositories/shared.utils';
 
 type OrdenRow = {
   bodega: unknown;
@@ -74,24 +77,30 @@ export class EstadoTallerPrismaRepository implements IEstadoTallerRepository {
 
   private async withTempUser<T>(
     userId: number,
-    fn: () => Promise<T>,
+    fn: (tx: Prisma.TransactionClient) => Promise<T>,
   ): Promise<T> {
-    await this.prisma.$executeRawUnsafe(
-      'CREATE TABLE temp_user (userId VARCHAR(50))',
-    );
-    try {
-      await this.prisma.$executeRaw`
-        INSERT INTO temp_user (userId) VALUES (${String(userId)})
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        IF OBJECT_ID('tempdb..#temp_user') IS NOT NULL
+          DROP TABLE #temp_user;
+        CREATE TABLE #temp_user (userId VARCHAR(50));
       `;
-      return await fn();
-    } finally {
-      await this.prisma.$executeRawUnsafe('DROP TABLE temp_user');
-    }
+      try {
+        await tx.$executeRaw`
+          INSERT INTO #temp_user (userId) VALUES (${String(userId)})
+        `;
+        return await fn(tx);
+      } finally {
+        await tx.$executeRaw`
+          IF OBJECT_ID('tempdb..#temp_user') IS NOT NULL
+            DROP TABLE #temp_user;
+        `;
+      }
+    });
   }
 
   private mapOrdenBase(row: OrdenRow): OrdenTallerAbiertaRowEntity {
-    const mesFact =
-      row.mes_fact_est == null ? null : toNum(row.mes_fact_est);
+    const mesFact = row.mes_fact_est == null ? null : toNum(row.mes_fact_est);
     return {
       bodega: toStr(row.bodega),
       numero: toNum(row.numero),
@@ -455,8 +464,8 @@ export class EstadoTallerPrismaRepository implements IEstadoTallerRepository {
     userId: number,
     data: Record<string, unknown>,
   ): Promise<boolean> {
-    return this.withTempUser(userId, async () => {
-      const result = await this.prisma.$executeRaw`
+    return this.withTempUser(userId, async (tx) => {
+      const result = await tx.$executeRaw`
         INSERT INTO postv_taller_estado_estimado (
           numero_orden,
           v_mano_obra_est,
@@ -481,7 +490,7 @@ export class EstadoTallerPrismaRepository implements IEstadoTallerRepository {
     numeroOrden: number,
     data: Record<string, unknown>,
   ): Promise<boolean> {
-    return this.withTempUser(userId, async () => {
+    return this.withTempUser(userId, async (tx) => {
       const sets: Prisma.Sql[] = [];
       if ('v_mano_obra_est' in data) {
         sets.push(Prisma.sql`v_mano_obra_est = ${data.v_mano_obra_est}`);
@@ -497,7 +506,7 @@ export class EstadoTallerPrismaRepository implements IEstadoTallerRepository {
       }
       if (sets.length === 0) return false;
 
-      const result = await this.prisma.$executeRaw`
+      const result = await tx.$executeRaw`
         UPDATE postv_taller_estado_estimado
         SET ${Prisma.join(sets, ', ')}
         WHERE numero_orden = ${numeroOrden}

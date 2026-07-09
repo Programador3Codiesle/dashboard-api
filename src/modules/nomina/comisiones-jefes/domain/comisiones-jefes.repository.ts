@@ -44,9 +44,7 @@ export abstract class IComisionesJefesRepository {
 
   abstract obtenerJefesPorSede(sede: string): Promise<JefePorSedeEntity[]>;
 
-  abstract checkValoresMesAnterior(
-    input: CheckValoresJefeInput,
-  ): Promise<{
+  abstract checkValoresMesAnterior(input: CheckValoresJefeInput): Promise<{
     data: ValidacionBonosJefeEntity[];
     bonoMatriz: Record<string, string | number> | null;
   }>;
@@ -55,4 +53,3 @@ export abstract class IComisionesJefesRepository {
     input: UpdateValoresJefeInput,
   ): Promise<{ updated: boolean; message: string }>;
 }
-

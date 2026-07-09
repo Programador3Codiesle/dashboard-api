@@ -121,10 +121,8 @@ export class InformeControlVehicularPrismaRepository implements IInformeControlV
       ${where}
     `;
 
-    const [rows, countRows] = await Promise.all([
-      this.prisma.$queryRaw<any[]>(selectSql),
-      this.prisma.$queryRaw<any[]>(countSql),
-    ]);
+    const rows = await this.prisma.$queryRaw<any[]>(selectSql);
+    const countRows = await this.prisma.$queryRaw<any[]>(countSql);
 
     const total = countRows.length > 0 ? Number(countRows[0].total) : 0;
 

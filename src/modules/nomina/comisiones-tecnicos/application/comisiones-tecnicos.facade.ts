@@ -21,4 +21,3 @@ export class ComisionesTecnicosFacade {
     return this.detalleUseCase.execute(filtros);
   }
 }
-

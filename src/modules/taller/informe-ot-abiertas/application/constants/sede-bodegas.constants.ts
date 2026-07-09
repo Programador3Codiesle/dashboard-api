@@ -16,7 +16,9 @@ export const SEDE_LABELS: Record<SedeKey, string> = {
   bocono: 'CUCUTA BOCONÓ',
 };
 
-export const TODAS_BODEGAS: number[] = SEDE_KEYS.flatMap((k) => SEDE_BODEGAS[k]);
+export const TODAS_BODEGAS: number[] = SEDE_KEYS.flatMap(
+  (k) => SEDE_BODEGAS[k],
+);
 
 export function isSedeKey(value: string): value is SedeKey {
   return (SEDE_KEYS as readonly string[]).includes(value);

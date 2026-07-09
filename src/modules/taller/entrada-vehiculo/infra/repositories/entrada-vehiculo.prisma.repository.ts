@@ -64,7 +64,8 @@ export class EntradaVehiculoPrismaRepository implements IEntradaVehiculoReposito
       fechaHoraIni: row.fecha_hora_ini,
       placa: toStr(row.placa),
       vehiculo: row.vh != null ? toStr(row.vh) : null,
-      nombreCliente: row.nombre_cliente != null ? toStr(row.nombre_cliente) : null,
+      nombreCliente:
+        row.nombre_cliente != null ? toStr(row.nombre_cliente) : null,
       nombreEncargado:
         row.nombre_encargado != null ? toStr(row.nombre_encargado) : null,
       descripcionBahia:

@@ -13,12 +13,10 @@ export class GetLivianosInitDataUseCase {
   constructor(private readonly repo: ICotizadorLivianosRepository) {}
 
   async execute(): Promise<LivianosInitData> {
-    const [clases, bodegas, adicionales, tiposRetorno] = await Promise.all([
-      this.repo.getClasesForm(),
-      this.repo.getBodegas(),
-      this.repo.getNameAdicionales(),
-      this.repo.getTiposRetornos(),
-    ]);
+    const clases = await this.repo.getClasesForm();
+    const bodegas = await this.repo.getBodegas();
+    const adicionales = await this.repo.getNameAdicionales();
+    const tiposRetorno = await this.repo.getTiposRetornos();
 
     return {
       clases,

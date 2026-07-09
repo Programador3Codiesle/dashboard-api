@@ -21,4 +21,3 @@ import { NominaDirectorFlotasFacade } from '../application/nomina-director-flota
   ],
 })
 export class NominaDirectorFlotasModule {}
-

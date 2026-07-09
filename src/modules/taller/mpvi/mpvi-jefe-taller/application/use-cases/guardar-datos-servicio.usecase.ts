@@ -53,9 +53,10 @@ export class GuardarDatosServicioUseCase {
       return { ok: true };
     }
 
-    let totalAutorizado =
+    const totalAutorizado =
       dto.op === 1
-        ? Number(resCotizacion.total_autorizado ?? 0) + Number(dto.totalAutorizado)
+        ? Number(resCotizacion.total_autorizado ?? 0) +
+          Number(dto.totalAutorizado)
         : Number(dto.totalAutorizado);
 
     await this.repo.actualizarCotizacionMpvi(

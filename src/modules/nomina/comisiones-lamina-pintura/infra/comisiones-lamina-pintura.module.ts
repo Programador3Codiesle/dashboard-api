@@ -23,4 +23,3 @@ import { ObtenerTotalRepuestosSedeUseCase } from '../application/use-cases/obten
   ],
 })
 export class ComisionesLaminaPinturaModule {}
-

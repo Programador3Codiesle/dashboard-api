@@ -31,12 +31,7 @@ export class ObtenerDatosUseCase {
         params.placa,
         params.urgentes,
       );
-      tablaU = buildTablaCotizacionTecnico(
-        manoObra,
-        repuestos,
-        cobrables,
-        'U',
-      );
+      tablaU = buildTablaCotizacionTecnico(manoObra, repuestos, cobrables, 'U');
     }
 
     if (params.recomendados && params.recomendados.trim() !== '') {
@@ -50,12 +45,7 @@ export class ObtenerDatosUseCase {
         params.placa,
         params.recomendados,
       );
-      tablaR = buildTablaCotizacionTecnico(
-        manoObra,
-        repuestos,
-        cobrables,
-        'R',
-      );
+      tablaR = buildTablaCotizacionTecnico(manoObra, repuestos, cobrables, 'R');
     }
 
     return { tablaU, tablaR };

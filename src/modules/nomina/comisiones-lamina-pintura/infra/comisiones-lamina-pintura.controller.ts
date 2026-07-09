@@ -70,9 +70,14 @@ export class ComisionesLaminaPinturaController {
 
   private validateDates(desde: string, hasta: string) {
     if (!desde || !hasta) {
-      throw new BadRequestException('Los parámetros desde y hasta son obligatorios.');
+      throw new BadRequestException(
+        'Los parámetros desde y hasta son obligatorios.',
+      );
     }
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(desde) || !/^\d{4}-\d{2}-\d{2}$/.test(hasta)) {
+    if (
+      !/^\d{4}-\d{2}-\d{2}$/.test(desde) ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(hasta)
+    ) {
       throw new BadRequestException(
         'Los parámetros desde y hasta deben tener formato YYYY-MM-DD.',
       );
@@ -82,4 +87,3 @@ export class ComisionesLaminaPinturaController {
     }
   }
 }
-

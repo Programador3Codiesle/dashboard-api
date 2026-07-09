@@ -15,10 +15,8 @@ export class GetAdicionalesPesadosInitUseCase {
   constructor(private readonly repo: ICotizadorAdicionalesPesadosRepository) {}
 
   async execute(): Promise<AdicionalesPesadosInitResponse> {
-    const [clases, adicionales] = await Promise.all([
-      this.repo.getClasesPesados(),
-      this.repo.getAdicionales(),
-    ]);
+    const clases = await this.repo.getClasesPesados();
+    const adicionales = await this.repo.getAdicionales();
 
     return { clases, adicionales };
   }

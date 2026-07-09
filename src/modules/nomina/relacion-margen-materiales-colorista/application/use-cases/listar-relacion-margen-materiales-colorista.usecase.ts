@@ -44,7 +44,8 @@ export class ListarRelacionMargenMaterialesColoristaUseCase {
     const margenTotal =
       totalValor > 0 ? ((totalValor - totalCosto) / totalValor) * 100 : 0;
 
-    const esCucuta = filtros.bodegas.includes(14) && filtros.bodegas.includes(22);
+    const esCucuta =
+      filtros.bodegas.includes(14) && filtros.bodegas.includes(22);
     const bono = this.calcularBono(margenTotal, esCucuta);
 
     return new RelacionMargenMaterialesColoristaResponseEntity({
@@ -65,4 +66,3 @@ export class ListarRelacionMargenMaterialesColoristaUseCase {
     return esCucuta ? 300000 : 500000;
   }
 }
-

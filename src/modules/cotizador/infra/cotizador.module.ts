@@ -53,7 +53,6 @@ import { CotizadorControlPrismaRepository } from './repositories/cotizador-contr
 import { CotizadorAdicionalesLivianosPrismaRepository } from './repositories/cotizador-adicionales-livianos.prisma.repository';
 import { CotizadorAdicionalesPesadosPrismaRepository } from './repositories/cotizador-adicionales-pesados.prisma.repository';
 import { CotizadorEdicionConfigPrismaRepository } from './repositories/cotizador-edicion-config.prisma.repository';
-import { PrismaService } from '../../../core/infra/prisma/prisma.service';
 import { EmailModule } from '../../../core/infra/email/email.module';
 import { EnviarEmailCotizacionLivianosUseCase } from '../application/use-cases/enviar-email-cotizacion-livianos.usecase';
 import { EnviarEmailCotizacionPesadosUseCase } from '../application/use-cases/enviar-email-cotizacion-pesados.usecase';
@@ -152,7 +151,6 @@ import { GenerarCotizacionPdfUseCase } from '../application/use-cases/generar-co
     GetAdicionalesLivianosModalUseCase,
     ActualizarEstadoCotizacionUseCase,
     GenerarCotizacionPdfUseCase,
-    PrismaService,
   ],
   exports: [CotizadorFacade],
 })

@@ -10,7 +10,6 @@ import { EnviarAutorizacionCompraUseCase } from '../application/use-cases/enviar
 import { ExportarComprasExcelUseCase } from '../application/use-cases/exportar-compras-excel.usecase';
 import { IGestionCompraRepository } from '../domain/gestion-compra.repository';
 import { GestionCompraPrismaRepository } from './repositories/gestion-compra.prisma.repository';
-import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import { EmailModule } from '../../../../core/infra/email/email.module';
 
 @Module({
@@ -29,7 +28,6 @@ import { EmailModule } from '../../../../core/infra/email/email.module';
       provide: IGestionCompraRepository,
       useClass: GestionCompraPrismaRepository,
     },
-    PrismaService,
   ],
   exports: [GestionCompraFacade, IGestionCompraRepository],
 })

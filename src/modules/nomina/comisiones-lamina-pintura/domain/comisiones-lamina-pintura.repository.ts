@@ -36,4 +36,3 @@ export abstract class IComisionesLaminaPinturaRepository {
     filtros: FiltrosTotalRepuestosSede,
   ): Promise<TotalRepuestosSedeEntity>;
 }
-

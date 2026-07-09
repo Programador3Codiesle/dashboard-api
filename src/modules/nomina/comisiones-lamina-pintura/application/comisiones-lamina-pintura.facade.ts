@@ -28,4 +28,3 @@ export class ComisionesLaminaPinturaFacade {
     return this.totalSedeUseCase.execute(filtros);
   }
 }
-

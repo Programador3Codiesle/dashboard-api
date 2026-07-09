@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { ObtenerPanelUseCase, ObtenerCitasProgramadasFechaUseCase } from './use-cases/obtener-panel.usecase';
+import {
+  ObtenerPanelUseCase,
+  ObtenerCitasProgramadasFechaUseCase,
+} from './use-cases/obtener-panel.usecase';
 import { MarcarEntradaUseCase } from './use-cases/marcar-entrada.usecase';
 import { RegistrarVehiculoSinCitaUseCase } from './use-cases/registrar-vehiculo-sin-cita.usecase';
 import { VehiculoSinCitaDto } from './dto/entrada-vehiculo.dto';

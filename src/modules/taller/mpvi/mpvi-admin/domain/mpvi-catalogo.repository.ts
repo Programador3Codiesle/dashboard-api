@@ -45,7 +45,10 @@ export abstract class IMpviCatalogoRepository {
   abstract getFamiliasVh(): Promise<CatalogoOption[]>;
   abstract getVehiculos(): Promise<CatalogoOption[]>;
   abstract getRepuestos(): Promise<CatalogoOption[]>;
-  abstract saveData(op: number, data: Record<string, unknown>): Promise<boolean | number>;
+  abstract saveData(
+    op: number,
+    data: Record<string, unknown>,
+  ): Promise<boolean | number>;
   abstract deleteDataTabla(tabla: number): Promise<void>;
   abstract almacenarDatosGmica(row: string[]): Promise<boolean>;
   abstract almacenarDatosRepuestos(row: string[]): Promise<boolean>;

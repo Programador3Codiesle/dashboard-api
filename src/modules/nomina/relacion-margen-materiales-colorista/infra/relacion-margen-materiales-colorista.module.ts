@@ -19,4 +19,3 @@ import { RelacionMargenMaterialesColoristaFacade } from '../application/relacion
   ],
 })
 export class RelacionMargenMaterialesColoristaModule {}
-

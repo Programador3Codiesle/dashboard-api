@@ -31,4 +31,3 @@ export class ComisionesJefesFacade {
     return this.repository.actualizarValores(input);
   }
 }
-

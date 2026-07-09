@@ -21,16 +21,15 @@ export class ObtenerInformeGeneralUseCase {
   async execute(): Promise<InformeGeneralEntity> {
     const ordenes = await this.repo.getOrdenesAbiertas(TODAS_BODEGAS);
 
-    const totalesSedes = await Promise.all(
-      SEDE_KEYS.map(async (sede) => {
-        const rows = await this.repo.getOrdenesAbiertas(SEDE_BODEGAS[sede]);
-        return {
-          sede,
-          label: SEDE_LABELS[sede],
-          total: rows.length,
-        };
-      }),
-    );
+    const totalesSedes: InformeGeneralEntity['totalesSedes'] = [];
+    for (const sede of SEDE_KEYS) {
+      const rows = await this.repo.getOrdenesAbiertas(SEDE_BODEGAS[sede]);
+      totalesSedes.push({
+        sede,
+        label: SEDE_LABELS[sede],
+        total: rows.length,
+      });
+    }
 
     return {
       totalesSedes,
@@ -51,10 +50,8 @@ export class ObtenerInformePorSedeUseCase {
     const sede: SedeKey = sedeParam;
     const bodegaIds = SEDE_BODEGAS[sede];
 
-    const [totalesBodegas, ordenes] = await Promise.all([
-      this.repo.getCountPorBodega(bodegaIds),
-      this.repo.getOrdenesAbiertas(bodegaIds),
-    ]);
+    const totalesBodegas = await this.repo.getCountPorBodega(bodegaIds);
+    const ordenes = await this.repo.getOrdenesAbiertas(bodegaIds);
 
     return {
       sede,

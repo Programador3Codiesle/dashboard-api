@@ -25,4 +25,3 @@ export abstract class IComisionesTecnicosRepository {
     filtros: FiltrosDetalleComisionesTecnicos,
   ): Promise<DetalleComisionTecnicoEntity[]>;
 }
-

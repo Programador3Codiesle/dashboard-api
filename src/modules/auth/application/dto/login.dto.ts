@@ -1,4 +1,10 @@
-import { IsBoolean, IsNumber, IsOptional, IsString, MinLength } from 'class-validator';
+import {
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class LoginDto {
@@ -19,7 +25,8 @@ export class LoginDto {
   @ApiProperty({
     example: true,
     required: false,
-    description: 'Indica si la sesión debe persistir entre reinicios del navegador',
+    description:
+      'Indica si la sesión debe persistir entre reinicios del navegador',
   })
   remember?: boolean;
 }

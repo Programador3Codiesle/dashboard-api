@@ -11,7 +11,9 @@ import { RelacionMargenMaterialesColoristaFacade } from '../application/relacion
 @Controller('nomina/relacion-margen-materiales-colorista')
 @UseGuards(JwtAuthGuard)
 export class RelacionMargenMaterialesColoristaController {
-  constructor(private readonly facade: RelacionMargenMaterialesColoristaFacade) {}
+  constructor(
+    private readonly facade: RelacionMargenMaterialesColoristaFacade,
+  ) {}
 
   @Get()
   async listar(@Query('mes') mes: string, @Query('sede') sede: string) {
@@ -37,4 +39,3 @@ export class RelacionMargenMaterialesColoristaController {
     );
   }
 }
-

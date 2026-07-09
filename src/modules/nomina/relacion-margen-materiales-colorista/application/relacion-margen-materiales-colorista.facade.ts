@@ -12,4 +12,3 @@ export class RelacionMargenMaterialesColoristaFacade {
     return this.listarUseCase.execute(filtros);
   }
 }
-

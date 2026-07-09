@@ -34,7 +34,11 @@ export class EstadoTallerFacade {
     return this.obtenerPanelUseCase.execute(nitUsuario, bodega, idEmpresa);
   }
 
-  obtenerTotalAbiertas(nitUsuario: number, bodega?: string, idEmpresa?: number) {
+  obtenerTotalAbiertas(
+    nitUsuario: number,
+    bodega?: string,
+    idEmpresa?: number,
+  ) {
     return this.obtenerTotalAbiertasUseCase.execute(
       nitUsuario,
       bodega,

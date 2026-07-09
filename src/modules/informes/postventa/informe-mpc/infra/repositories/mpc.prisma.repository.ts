@@ -61,46 +61,45 @@ export class MpcPrismaRepository implements IMpcRepository {
     estado: number,
     userId: number,
   ): Promise<void> {
-    try {
-      await this.prisma.$executeRaw`
-        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'temp_user' AND xtype = 'U')
-        BEGIN
-          CREATE TABLE temp_user (userId VARCHAR(50));
-        END
-      `;
-      await this.prisma.$executeRaw`DELETE FROM temp_user`;
-      await this.prisma.$executeRaw`
-        INSERT INTO temp_user (userId)
-        VALUES (${String(userId)})
+    await this.prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        IF OBJECT_ID('tempdb..#temp_user') IS NOT NULL
+          DROP TABLE #temp_user;
+        CREATE TABLE #temp_user (userId VARCHAR(50));
       `;
 
-      const existsRows = await this.prisma.$queryRaw<{ cantidad: number }[]>`
-        SELECT COUNT(*) AS cantidad
-        FROM postv_mpc_casos_especiales
-        WHERE placa = ${placa}
-      `;
-      const exists = (existsRows?.[0]?.cantidad ?? 0) > 0;
+      try {
+        await tx.$executeRaw`
+          INSERT INTO #temp_user (userId)
+          VALUES (${String(userId)})
+        `;
 
-      if (exists) {
-        await this.prisma.$executeRaw`
-          UPDATE postv_mpc_casos_especiales
-          SET estado = ${estado},
-              fecha_registro = CONVERT(VARCHAR(19), GETDATE(), 126)
+        const existsRows = await tx.$queryRaw<{ cantidad: number }[]>`
+          SELECT COUNT(*) AS cantidad
+          FROM postv_mpc_casos_especiales
           WHERE placa = ${placa}
         `;
-      } else {
-        await this.prisma.$executeRaw`
-          INSERT INTO postv_mpc_casos_especiales (placa, estado, fecha_registro)
-          VALUES (${placa}, 1, CONVERT(VARCHAR(19), GETDATE(), 126))
+        const exists = (existsRows?.[0]?.cantidad ?? 0) > 0;
+
+        if (exists) {
+          await tx.$executeRaw`
+            UPDATE postv_mpc_casos_especiales
+            SET estado = ${estado},
+                fecha_registro = CONVERT(VARCHAR(19), GETDATE(), 126)
+            WHERE placa = ${placa}
+          `;
+        } else {
+          await tx.$executeRaw`
+            INSERT INTO postv_mpc_casos_especiales (placa, estado, fecha_registro)
+            VALUES (${placa}, 1, CONVERT(VARCHAR(19), GETDATE(), 126))
+          `;
+        }
+      } finally {
+        await tx.$executeRaw`
+          IF OBJECT_ID('tempdb..#temp_user') IS NOT NULL
+            DROP TABLE #temp_user;
         `;
       }
-    } finally {
-      await this.prisma.$executeRaw`
-        IF EXISTS (SELECT * FROM sysobjects WHERE name = 'temp_user' AND xtype = 'U')
-        BEGIN
-          DROP TABLE temp_user;
-        END
-      `;
-    }
+    });
   }
 }

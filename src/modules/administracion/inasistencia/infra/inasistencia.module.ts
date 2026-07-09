@@ -5,7 +5,6 @@ import { ListarInasistenciasUseCase } from '../application/use-cases/listar-inas
 import { ExportarInasistenciasExcelUseCase } from '../application/use-cases/exportar-inasistencias-excel.usecase';
 import { IInasistenciaRepository } from '../domain/inasistencia.repository';
 import { InasistenciaPrismaRepository } from './repositories/inasistencia.prisma.repository';
-import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
 @Module({
   controllers: [InasistenciaController],
@@ -17,7 +16,6 @@ import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
       provide: IInasistenciaRepository,
       useClass: InasistenciaPrismaRepository,
     },
-    PrismaService,
   ],
   exports: [InasistenciaFacade],
 })

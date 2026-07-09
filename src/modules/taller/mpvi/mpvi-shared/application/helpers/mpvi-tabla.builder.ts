@@ -110,8 +110,7 @@ export function buildTablaCotizacionTecnico(
     totalR += toNum(row.total);
   }
 
-  const etiqueta =
-    tipo === 'U' ? 'URGENTE' : 'RECOMENDADO';
+  const etiqueta = tipo === 'U' ? 'URGENTE' : 'RECOMENDADO';
 
   return {
     filas,

@@ -23,9 +23,9 @@ export class SubirTablasAuxiliaresUseCase {
     const rows: string[][] = [];
     sheet.eachRow((row, rowNumber) => {
       if (rowNumber === 1) return;
-      const vals = (row.values as unknown[]).slice(1).map((v) =>
-        v == null ? '' : String(v),
-      );
+      const vals = (row.values as unknown[])
+        .slice(1)
+        .map((v) => (v == null ? '' : String(v)));
       if (vals.some((v) => v !== '')) {
         rows.push(vals);
       }

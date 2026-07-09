@@ -17,4 +17,3 @@ export class ObtenerDetalleComisionesAsesoresRepuestosUseCase {
     return this.repository.obtenerDetalle(filtros);
   }
 }
-

@@ -17,4 +17,3 @@ import { ComisionesJefesPrismaRepository } from './repositories/comisiones-jefes
   ],
 })
 export class ComisionesJefesModule {}
-

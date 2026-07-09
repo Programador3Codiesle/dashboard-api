@@ -20,10 +20,8 @@ export class ListarAdicionalesPesadosUseCase {
   async execute(
     filtros: FiltrosListaAdicionalesPesados,
   ): Promise<ListarAdicionalesPesadosResponse> {
-    const [repuestos, manoObra] = await Promise.all([
-      this.repo.listarRepuestos(filtros),
-      this.repo.listarManoObra(filtros),
-    ]);
+    const repuestos = await this.repo.listarRepuestos(filtros);
+    const manoObra = await this.repo.listarManoObra(filtros);
 
     return { repuestos, manoObra };
   }

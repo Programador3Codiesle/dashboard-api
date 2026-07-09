@@ -29,7 +29,8 @@ export type PdfDrawContext = {
 export async function readBrandHeaderBanner(
   idEmpresa?: number,
 ): Promise<Uint8Array | null> {
-  const filename = BRAND_HEADER_BANNERS[idEmpresa ?? 1] ?? BRAND_HEADER_BANNERS[1];
+  const filename =
+    BRAND_HEADER_BANNERS[idEmpresa ?? 1] ?? BRAND_HEADER_BANNERS[1];
   const basePath = path.resolve(
     process.cwd(),
     '..',
@@ -140,10 +141,16 @@ export function drawBrandTable(
 
   const drawColumnHeaders = () => {
     const headerLines = headers.map((header, index) =>
-      measureWrappedLines(header, ctx.fontBold, FONT_SIZE, scaledColWidths[index]),
+      measureWrappedLines(
+        header,
+        ctx.fontBold,
+        FONT_SIZE,
+        scaledColWidths[index],
+      ),
     );
     const headerRowHeight =
-      Math.max(...headerLines.map((lines) => lines.length), 1) * headerLineHeight +
+      Math.max(...headerLines.map((lines) => lines.length), 1) *
+        headerLineHeight +
       cellPadding * 2;
 
     ensureSpace(headerRowHeight + 20);
@@ -206,7 +213,10 @@ export function drawBrandTable(
     const rowHeight = maxLines * cellLineHeight + cellPadding * 2;
 
     if (y < MARGIN + rowHeight + 20) {
-      page = ctx.pdfDoc.addPage([PDF_LAYOUT.PAGE_WIDTH, PDF_LAYOUT.PAGE_HEIGHT]);
+      page = ctx.pdfDoc.addPage([
+        PDF_LAYOUT.PAGE_WIDTH,
+        PDF_LAYOUT.PAGE_HEIGHT,
+      ]);
       y = PDF_LAYOUT.PAGE_HEIGHT - MARGIN;
       drawColumnHeaders();
     }
@@ -273,7 +283,11 @@ function drawPdfAmountInColumn(
   font: PDFFont,
   fontSize: number,
   color: ReturnType<typeof rgb>,
-  options?: { paddingRight?: number; paddingLeft?: number; minFontSize?: number },
+  options?: {
+    paddingRight?: number;
+    paddingLeft?: number;
+    minFontSize?: number;
+  },
 ): void {
   const paddingRight = options?.paddingRight ?? 12;
   const paddingLeft = options?.paddingLeft ?? 2;
@@ -527,7 +541,10 @@ export function drawPdfParagraph(
   const lines = wrapPdfTextByWidth(text, ctx.font, FONT_SIZE, maxLineWidth);
   for (const line of lines) {
     if (y < MARGIN + 40) {
-      page = ctx.pdfDoc.addPage([PDF_LAYOUT.PAGE_WIDTH, PDF_LAYOUT.PAGE_HEIGHT]);
+      page = ctx.pdfDoc.addPage([
+        PDF_LAYOUT.PAGE_WIDTH,
+        PDF_LAYOUT.PAGE_HEIGHT,
+      ]);
       y = PDF_LAYOUT.PAGE_HEIGHT - MARGIN;
     }
     page.drawText(line, { x: MARGIN, y, size: FONT_SIZE, font: ctx.font });
@@ -551,7 +568,10 @@ export function drawPdfFooterNotes(
     const lines = wrapPdfTextByWidth(note, ctx.font, 9, maxLineWidth);
     for (const line of lines) {
       if (y < MARGIN + 40) {
-        page = ctx.pdfDoc.addPage([PDF_LAYOUT.PAGE_WIDTH, PDF_LAYOUT.PAGE_HEIGHT]);
+        page = ctx.pdfDoc.addPage([
+          PDF_LAYOUT.PAGE_WIDTH,
+          PDF_LAYOUT.PAGE_HEIGHT,
+        ]);
         y = PDF_LAYOUT.PAGE_HEIGHT - MARGIN;
       }
       page.drawText(line, { x: MARGIN, y, size: 9, font: ctx.font });

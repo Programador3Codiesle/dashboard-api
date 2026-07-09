@@ -9,8 +9,9 @@ import { ComisionTecnicoEntity } from '../../domain/comisiones-tecnicos.entity';
 export class ListarComisionesTecnicosUseCase {
   constructor(private readonly repository: IComisionesTecnicosRepository) {}
 
-  execute(filtros: FiltrosComisionesTecnicos): Promise<ComisionTecnicoEntity[]> {
+  execute(
+    filtros: FiltrosComisionesTecnicos,
+  ): Promise<ComisionTecnicoEntity[]> {
     return this.repository.listar(filtros);
   }
 }
-

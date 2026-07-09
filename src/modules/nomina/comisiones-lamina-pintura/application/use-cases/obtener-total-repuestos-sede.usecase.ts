@@ -7,7 +7,9 @@ import { TotalRepuestosSedeEntity } from '../../domain/comisiones-lamina-pintura
 
 @Injectable()
 export class ObtenerTotalRepuestosSedeUseCase {
-  constructor(private readonly repository: IComisionesLaminaPinturaRepository) {}
+  constructor(
+    private readonly repository: IComisionesLaminaPinturaRepository,
+  ) {}
 
   execute(
     filtros: FiltrosTotalRepuestosSede,
@@ -15,4 +17,3 @@ export class ObtenerTotalRepuestosSedeUseCase {
     return this.repository.obtenerTotalRepuestosSede(filtros);
   }
 }
-

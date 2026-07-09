@@ -49,6 +49,8 @@ import { InformeInventarioObsoletosModule } from './modules/informes/postventa/i
 import { InformeEncuestasInternasModule } from './modules/informes/postventa/informe-encuestas-internas/infra/informe-encuestas-internas.module';
 import { NominaModule } from './modules/nomina/nomina.module';
 import { TallerModule } from './modules/taller/taller.module';
+import { RepuestosModule } from './modules/repuestos/repuestos.module';
+import { ContactCenterModule } from './modules/contact-center/contact-center.module';
 
 @Module({
   imports: [
@@ -112,6 +114,8 @@ import { TallerModule } from './modules/taller/taller.module';
     InformeEncuestasInternasModule,
     NominaModule,
     TallerModule,
+    RepuestosModule,
+    ContactCenterModule,
   ],
   controllers: [AppController],
   providers: [AppService],

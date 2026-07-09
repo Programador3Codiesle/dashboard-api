@@ -1,4 +1,7 @@
-import type { OrdenTallerAbiertaEntity, OrdenTallerAbiertaRowEntity } from '../domain/estado-taller.entity';
+import type {
+  OrdenTallerAbiertaEntity,
+  OrdenTallerAbiertaRowEntity,
+} from '../domain/estado-taller.entity';
 
 const ESTADOS_ESPERA = new Set([
   'EN ESPERA DE  RTOS G.M.',

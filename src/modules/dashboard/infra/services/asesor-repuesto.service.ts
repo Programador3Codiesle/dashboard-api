@@ -19,10 +19,7 @@ export class AsesorRepuestoService {
     idsede?: number,
     idEmpresa?: number,
   ): Promise<DashboardAsesorRepDto> {
-    let sedesRows = await this.commonRepo.getSedesUser(
-      nitUsuario,
-      idEmpresa,
-    );
+    let sedesRows = await this.commonRepo.getSedesUser(nitUsuario, idEmpresa);
     const sedesParaResponse = sedesRows.map((r) => ({
       idsede: r.idsede,
       idsede_v: r.idsede_v ?? String(r.idsede),

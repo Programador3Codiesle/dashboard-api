@@ -36,7 +36,8 @@ export class SubirPlantillaMpviUseCase {
       const idxAlt2 = usaClase ? 11 : 10;
       const idxAlt3 = usaClase ? 12 : 11;
 
-      const clase = idxClase !== null ? String(cells[idxClase] ?? '').trim() : '';
+      const clase =
+        idxClase !== null ? String(cells[idxClase] ?? '').trim() : '';
       const idSistema = await this.repo.procesarSistema(
         String(cells[0] ?? '').toUpperCase(),
       );

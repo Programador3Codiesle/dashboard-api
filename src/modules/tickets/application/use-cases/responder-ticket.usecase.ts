@@ -10,7 +10,11 @@ export class ResponderTicketUseCase {
     private readonly emailService: EmailService,
   ) {}
 
-  async execute(ticketId: number, dto: reponderTicketDto, responderNit?: number) {
+  async execute(
+    ticketId: number,
+    dto: reponderTicketDto,
+    responderNit?: number,
+  ) {
     const ticket = await this.repo.findById(ticketId);
     if (!ticket) throw new NotFoundException('Ticket no encontrado');
 
@@ -79,9 +83,7 @@ export class ResponderTicketUseCase {
       ? context.correo_usuario?.trim()
       : context.correo_encargado?.trim();
 
-    const to = destinatario
-      ? [destinatario]
-      : ['programador3@codiesel.co'];
+    const to = destinatario ? [destinatario] : ['programador3@codiesel.co'];
 
     const respuestasHtml = (context.respuesta || '')
       .split(',')

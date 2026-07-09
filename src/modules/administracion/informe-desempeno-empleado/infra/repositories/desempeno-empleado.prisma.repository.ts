@@ -178,7 +178,8 @@ export class DesempenoEmpleadoPrismaRepository implements IDesempenoEmpleadoRepo
     const rows = await this.prisma.$queryRaw<any[]>(sql);
 
     const items = rows.map((r) => {
-      const { calificacionEmpleado, calificacionJefe } = this.calcularCalificaciones(r);
+      const { calificacionEmpleado, calificacionJefe } =
+        this.calcularCalificaciones(r);
 
       return new DesempenoEmpleadoEntity({
         id: Number(r.id),
@@ -278,7 +279,8 @@ export class DesempenoEmpleadoPrismaRepository implements IDesempenoEmpleadoRepo
     const row = rows[0];
     if (!row) return null;
 
-    const { calificacionEmpleado, calificacionJefe } = this.calcularCalificaciones(row);
+    const { calificacionEmpleado, calificacionJefe } =
+      this.calcularCalificaciones(row);
 
     return {
       id: Number(row.id),

@@ -26,16 +26,19 @@ export class GetUsuariosUseCase {
     limit: number;
     totalPages: number;
   }> {
-    const safePage = Number.isFinite(page) && (page ?? 0) > 0 ? Number(page) : 1;
+    const safePage =
+      Number.isFinite(page) && (page ?? 0) > 0 ? Number(page) : 1;
     const safeLimit =
       Number.isFinite(limit) && (limit ?? 0) > 0 ? Number(limit) : 10;
 
     // Obtener datos con JOINs desde el Repository (paginación en BD)
     const safeSearch = (search || '').trim();
-    const [usuarios, total] = await Promise.all([
-      this.coreRepo.findAll(safePage, safeLimit, safeSearch),
-      this.coreRepo.countAll(safeSearch),
-    ]);
+    const usuarios = await this.coreRepo.findAll(
+      safePage,
+      safeLimit,
+      safeSearch,
+    );
+    const total = await this.coreRepo.countAll(safeSearch);
 
     // Usar el Mapper para convertir Entity → DTO Response
     const items = usuarios.map((usuario) =>

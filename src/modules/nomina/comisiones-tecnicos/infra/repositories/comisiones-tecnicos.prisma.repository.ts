@@ -44,9 +44,7 @@ type RawDetalle = {
 };
 
 @Injectable()
-export class ComisionesTecnicosPrismaRepository
-  implements IComisionesTecnicosRepository
-{
+export class ComisionesTecnicosPrismaRepository implements IComisionesTecnicosRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async listar(
@@ -186,4 +184,3 @@ export class ComisionesTecnicosPrismaRepository
     );
   }
 }
-

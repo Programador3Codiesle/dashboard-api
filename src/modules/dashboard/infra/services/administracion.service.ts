@@ -142,11 +142,6 @@ export class AdministracionService {
     const solochevr = await this.commonRepo.getPresupuestoDia(CENTROS_SOLOCH);
     const chevrp = await this.commonRepo.getPresupuestoDia(CENTROS_CHEVRO);
 
-    const toDiasMes = await this.commonRepo.getTotalDias();
-    const toDiasHoy = await this.commonRepo.getDiasActual();
-    const nToDias = toDiasMes?.ultimo_dia ?? 30;
-    const nDiasHoy = toDiasHoy?.dia ?? 1;
-
     const pct = (total: number, presupuesto: number): number =>
       presupuesto > 0 ? Math.round((total / presupuesto) * 10000) / 100 : 0;
 
@@ -254,18 +249,15 @@ export class AdministracionService {
       const n = norm(nombre);
       const alias = aliasTallerLookup[n] ?? n;
       const metaFromLegacy = metaTallerByName[alias];
-      const presupuestoPromise =
+      const presupuestoRow =
         metaFromLegacy != null
-          ? Promise.resolve({ presupuesto: metaFromLegacy })
-          : this.commonRepo.getPresupuestoMesSedesNew(centros);
-      const [presupuestoRow, totalRow, moRow, totRow, repRow] =
-        await Promise.all([
-          presupuestoPromise,
-          this.commonRepo.getTotalPresupuestoByCentros(centros),
-          this.commonRepo.getPresupuestoMo(centros),
-          this.commonRepo.getPresupuestoTot(centros),
-          this.commonRepo.getPresupuestoRep(centros),
-        ]);
+          ? { presupuesto: metaFromLegacy }
+          : await this.commonRepo.getPresupuestoMesSedesNew(centros);
+      const totalRow =
+        await this.commonRepo.getTotalPresupuestoByCentros(centros);
+      const moRow = await this.commonRepo.getPresupuestoMo(centros);
+      const totRow = await this.commonRepo.getPresupuestoTot(centros);
+      const repRow = await this.commonRepo.getPresupuestoRep(centros);
       const presupuesto = presupuestoRow?.presupuesto ?? 0;
       const total = totalRow?.total ?? 0;
       const porcentaje =

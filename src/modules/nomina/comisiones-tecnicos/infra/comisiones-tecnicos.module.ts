@@ -21,4 +21,3 @@ import { DetalleComisionesTecnicosUseCase } from '../application/use-cases/detal
   ],
 })
 export class ComisionesTecnicosModule {}
-

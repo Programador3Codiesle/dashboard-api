@@ -20,6 +20,31 @@ import {
 export class CotizadorAdicionalesLivianosPrismaRepository implements ICotizadorAdicionalesLivianosRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private async withTempUser<T>(
+    userId: number,
+    fn: (tx: Prisma.TransactionClient) => Promise<T>,
+  ): Promise<T> {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        IF OBJECT_ID('tempdb..#temp_user') IS NOT NULL
+          DROP TABLE #temp_user;
+        CREATE TABLE #temp_user (userId VARCHAR(50));
+      `;
+      try {
+        await tx.$executeRaw`
+          INSERT INTO #temp_user (userId)
+          VALUES (${String(userId)})
+        `;
+        return await fn(tx);
+      } finally {
+        await tx.$executeRaw`
+          IF OBJECT_ID('tempdb..#temp_user') IS NOT NULL
+            DROP TABLE #temp_user;
+        `;
+      }
+    });
+  }
+
   async getClasesAdicionales(): Promise<ClaseAdicionalLiviano[]> {
     const rows = await this.prisma.$queryRaw<ClaseAdicionalLiviano[]>`
       SELECT DISTINCT v.clase, cl.descripcion
@@ -177,29 +202,10 @@ export class CotizadorAdicionalesLivianosPrismaRepository implements ICotizadorA
     let mano_add = 0;
     let mano_fail = 0;
 
-    try {
-      // Replicar comportamiento de UserAuditoria (createTempUserTable + insertUserName)
-      await this.prisma.$executeRaw`
-        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'temp_user' AND xtype = 'U')
-        BEGIN
-          CREATE TABLE temp_user (userId VARCHAR(50));
-        END
-      `;
-
-      await this.prisma.$executeRaw`
-        DELETE FROM temp_user
-      `;
-
-      await this.prisma.$executeRaw`
-        INSERT INTO temp_user (userId)
-        VALUES (${String(userId)})
-      `;
-
+    await this.withTempUser(userId, async (tx) => {
       for (const clase of clases) {
         for (const r of repuestos) {
-          const existsRows = await this.prisma.$queryRaw<
-            { cantidad: number }[]
-          >`
+          const existsRows = await tx.$queryRaw<{ cantidad: number }[]>`
             SELECT COUNT(*) AS cantidad
             FROM dbo.postv_reptos_adicionales
             WHERE codigo = ${r.codigo}
@@ -213,7 +219,7 @@ export class CotizadorAdicionalesLivianosPrismaRepository implements ICotizadorA
             continue;
           }
 
-          const inserted = await this.prisma.$executeRaw`
+          const inserted = await tx.$executeRaw`
             INSERT INTO dbo.postv_reptos_adicionales
               (clase, codigo, descripcion, cantidad, clase_operacion, adicional, year_start, year_end, descuento)
             VALUES
@@ -226,9 +232,7 @@ export class CotizadorAdicionalesLivianosPrismaRepository implements ICotizadorA
         }
 
         for (const m of manoObra) {
-          const existsRows = await this.prisma.$queryRaw<
-            { cantidad: number }[]
-          >`
+          const existsRows = await tx.$queryRaw<{ cantidad: number }[]>`
             SELECT COUNT(*) AS cantidad
             FROM dbo.postv_mo_adicionales
             WHERE operacion = ${m.operacion}
@@ -242,7 +246,7 @@ export class CotizadorAdicionalesLivianosPrismaRepository implements ICotizadorA
             continue;
           }
 
-          const inserted = await this.prisma.$executeRaw`
+          const inserted = await tx.$executeRaw`
             INSERT INTO dbo.postv_mo_adicionales
               (clase, operacion, tiempo, valor_menos_5anos, valor_mas_5anos, adicional, descuento)
             VALUES
@@ -254,15 +258,7 @@ export class CotizadorAdicionalesLivianosPrismaRepository implements ICotizadorA
           else mano_fail++;
         }
       }
-    } finally {
-      // Replicar clearTempUser (DROP TABLE)
-      await this.prisma.$executeRaw`
-        IF EXISTS (SELECT * FROM sysobjects WHERE name = 'temp_user' AND xtype = 'U')
-        BEGIN
-          DROP TABLE temp_user;
-        END
-      `;
-    }
+    });
 
     return { repuestos_add, repuestos_fail, mano_add, mano_fail };
   }
@@ -308,31 +304,14 @@ export class CotizadorAdicionalesLivianosPrismaRepository implements ICotizadorA
     adicionalId: number,
     userId: number,
   ): Promise<void> {
-    try {
-      await this.prisma.$executeRaw`
-        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'temp_user' AND xtype = 'U')
-        BEGIN
-          CREATE TABLE temp_user (userId VARCHAR(50));
-        END
-      `;
-      await this.prisma.$executeRaw`DELETE FROM temp_user`;
-      await this.prisma.$executeRaw`
-        INSERT INTO temp_user (userId) VALUES (${String(userId)})
-      `;
-      await this.prisma.$executeRaw`
+    await this.withTempUser(userId, async (tx) => {
+      await tx.$executeRaw`
         DELETE FROM dbo.postv_reptos_adicionales
         WHERE seq = ${seq}
           AND codigo = ${codigo}
           AND adicional = ${adicionalId}
       `;
-    } finally {
-      await this.prisma.$executeRaw`
-        IF EXISTS (SELECT * FROM sysobjects WHERE name = 'temp_user' AND xtype = 'U')
-        BEGIN
-          DROP TABLE temp_user;
-        END
-      `;
-    }
+    });
   }
 
   async deleteManoObraAdicional(
@@ -341,54 +320,21 @@ export class CotizadorAdicionalesLivianosPrismaRepository implements ICotizadorA
     adicionalId: number,
     userId: number,
   ): Promise<void> {
-    try {
-      await this.prisma.$executeRaw`
-        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'temp_user' AND xtype = 'U')
-        BEGIN
-          CREATE TABLE temp_user (userId VARCHAR(50));
-        END
-      `;
-      await this.prisma.$executeRaw`DELETE FROM temp_user`;
-      await this.prisma.$executeRaw`
-        INSERT INTO temp_user (userId) VALUES (${String(userId)})
-      `;
-      await this.prisma.$executeRaw`
+    await this.withTempUser(userId, async (tx) => {
+      await tx.$executeRaw`
         DELETE FROM dbo.postv_mo_adicionales
         WHERE id = ${id}
           AND operacion = ${operacion}
           AND adicional = ${adicionalId}
       `;
-    } finally {
-      await this.prisma.$executeRaw`
-        IF EXISTS (SELECT * FROM sysobjects WHERE name = 'temp_user' AND xtype = 'U')
-        BEGIN
-          DROP TABLE temp_user;
-        END
-      `;
-    }
+    });
   }
 
   async updateRepuestoAdicional(
     input: UpdateRepuestoAdicionalInput,
   ): Promise<void> {
-    try {
-      await this.prisma.$executeRaw`
-        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'temp_user' AND xtype = 'U')
-        BEGIN
-          CREATE TABLE temp_user (userId VARCHAR(50));
-        END
-      `;
-
-      await this.prisma.$executeRaw`
-        DELETE FROM temp_user
-      `;
-
-      await this.prisma.$executeRaw`
-        INSERT INTO temp_user (userId)
-        VALUES (${String(input.userId)})
-      `;
-
-      await this.prisma.$executeRaw`
+    await this.withTempUser(input.userId, async (tx) => {
+      await tx.$executeRaw`
         UPDATE dbo.postv_reptos_adicionales
         SET descripcion = ${input.descripcion},
             cantidad = ${input.cantidad},
@@ -397,37 +343,14 @@ export class CotizadorAdicionalesLivianosPrismaRepository implements ICotizadorA
             descuento = ${input.descuento ?? null}
         WHERE seq = ${input.seq}
       `;
-    } finally {
-      await this.prisma.$executeRaw`
-        IF EXISTS (SELECT * FROM sysobjects WHERE name = 'temp_user' AND xtype = 'U')
-        BEGIN
-          DROP TABLE temp_user;
-        END
-      `;
-    }
+    });
   }
 
   async updateManoObraAdicional(
     input: UpdateManoObraAdicionalInput,
   ): Promise<void> {
-    try {
-      await this.prisma.$executeRaw`
-        IF NOT EXISTS (SELECT * FROM sysobjects WHERE name = 'temp_user' AND xtype = 'U')
-        BEGIN
-          CREATE TABLE temp_user (userId VARCHAR(50));
-        END
-      `;
-
-      await this.prisma.$executeRaw`
-        DELETE FROM temp_user
-      `;
-
-      await this.prisma.$executeRaw`
-        INSERT INTO temp_user (userId)
-        VALUES (${String(input.userId)})
-      `;
-
-      await this.prisma.$executeRaw`
+    await this.withTempUser(input.userId, async (tx) => {
+      await tx.$executeRaw`
         UPDATE dbo.postv_mo_adicionales
         SET operacion = ${input.operacion},
             tiempo = ${input.tiempo},
@@ -436,13 +359,6 @@ export class CotizadorAdicionalesLivianosPrismaRepository implements ICotizadorA
             descuento = ${input.descuento ?? null}
         WHERE id = ${input.id}
       `;
-    } finally {
-      await this.prisma.$executeRaw`
-        IF EXISTS (SELECT * FROM sysobjects WHERE name = 'temp_user' AND xtype = 'U')
-        BEGIN
-          DROP TABLE temp_user;
-        END
-      `;
-    }
+    });
   }
 }
