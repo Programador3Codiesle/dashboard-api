@@ -51,6 +51,7 @@ import { NominaModule } from './modules/nomina/nomina.module';
 import { TallerModule } from './modules/taller/taller.module';
 import { RepuestosModule } from './modules/repuestos/repuestos.module';
 import { ContactCenterModule } from './modules/contact-center/contact-center.module';
+import { ChecklistModule } from './modules/checklist/infra/checklist.module';
 
 @Module({
   imports: [
@@ -116,6 +117,7 @@ import { ContactCenterModule } from './modules/contact-center/contact-center.mod
     TallerModule,
     RepuestosModule,
     ContactCenterModule,
+    ChecklistModule,
   ],
   controllers: [AppController],
   providers: [AppService],
