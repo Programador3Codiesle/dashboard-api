@@ -52,6 +52,10 @@ import { TallerModule } from './modules/taller/taller.module';
 import { RepuestosModule } from './modules/repuestos/repuestos.module';
 import { ContactCenterModule } from './modules/contact-center/contact-center.module';
 import { ChecklistModule } from './modules/checklist/infra/checklist.module';
+import { OrdenesTotModule } from './modules/ordenes-tot/infra/ordenes-tot.module';
+import { IndicadoresModule } from './modules/indicadores/infra/indicadores.module';
+import { EncuestasModule } from './modules/encuestas/infra/encuestas.module';
+import { AuditoriaModule } from './modules/auditoria/infra/auditoria.module';
 
 @Module({
   imports: [
@@ -118,6 +122,10 @@ import { ChecklistModule } from './modules/checklist/infra/checklist.module';
     RepuestosModule,
     ContactCenterModule,
     ChecklistModule,
+    OrdenesTotModule,
+    IndicadoresModule,
+    EncuestasModule,
+    AuditoriaModule,
   ],
   controllers: [AppController],
   providers: [AppService],
