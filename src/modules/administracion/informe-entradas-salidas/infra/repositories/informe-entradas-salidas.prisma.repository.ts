@@ -24,40 +24,20 @@ export class InformeEntradasSalidasPrismaRepository implements IInformeEntradasS
     const fechaIni = soloFechaSql(params.fechaIni);
     const fechaFin = soloFechaSql(params.fechaFin);
 
-    const conditions: Prisma.Sql[] = [];
+    const conditions: Prisma.Sql[] = [
+      Prisma.sql`fechas BETWEEN CONVERT(DATE, ${fechaIni}) AND CONVERT(DATE, ${fechaFin})`,
+      Prisma.sql`sede = ${sede}`,
+    ];
 
-    // Igual al legacy: BETWEEN sobre CONVERT(DATE, i.fecha_hora)
-    conditions.push(
-      Prisma.sql`CONVERT(DATE, i.fecha_hora) BETWEEN CONVERT(DATE, ${fechaIni}) AND CONVERT(DATE, ${fechaFin})`,
-    );
-
-    // Filtro por sede
-    conditions.push(Prisma.sql`i.sede = ${sede}`);
-
-    // Filtro opcional por empleado (nit)
     if (empleado) {
-      conditions.push(Prisma.sql`i.empleado = ${empleado}`);
+      conditions.push(Prisma.sql`empleado = ${empleado}`);
     }
 
-    const whereClause =
-      conditions.length > 0
-        ? Prisma.sql`WHERE accion IS NOT NULL AND ${Prisma.join(conditions, ' AND ')}`
-        : Prisma.empty;
-
     const sql = Prisma.sql`
-      SELECT
-        i.id_reg_ingreso,
-        i.empleado,
-        t.nombres,
-        i.sede,
-        i.accion,
-        CONVERT(DATE, i.fecha_hora) AS fechas,
-        RIGHT(i.fecha_hora, 7) AS horas
-      FROM registro_ingreso i
-      INNER JOIN w_sist_usuarios u ON i.empleado = u.nit_usuario
-      INNER JOIN terceros t ON i.empleado = t.nit
-      ${whereClause}
-      ORDER BY i.empleado, CONVERT(DATE, i.fecha_hora) ASC
+      SELECT *
+      FROM v_inf_ent_sal
+      WHERE ${Prisma.join(conditions, ' AND ')}
+      ORDER BY empleado, fechas ASC
     `;
 
     const rows = await this.prisma.$queryRaw<any[]>(sql);

@@ -14,33 +14,29 @@ export class InformeControlVehicularPrismaRepository implements IInformeControlV
   private buildWhere(filtros: FiltrosControlVehicular): Prisma.Sql {
     const conditions: Prisma.Sql[] = [];
 
-    // Rango de fechas
     if (filtros.fechaIni && filtros.fechaFin) {
       conditions.push(
-        Prisma.sql`CONVERT(DATE, c.fecha_salida) >= ${filtros.fechaIni} AND CONVERT(DATE, c.fecha_salida) <= ${filtros.fechaFin}`,
+        Prisma.sql`CONVERT(DATE, fecha_salida) >= ${filtros.fechaIni} AND CONVERT(DATE, fecha_salida) <= ${filtros.fechaFin}`,
       );
     } else {
-      // Si no se envían fechas, desde primer día del mes actual (igual que legacy)
       conditions.push(
-        Prisma.sql`c.fecha_salida >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)`,
+        Prisma.sql`fecha_salida >= DATEADD(MONTH, DATEDIFF(MONTH, 0, GETDATE()), 0)`,
       );
     }
 
-    // Portería
     if (filtros.porteria) {
-      conditions.push(Prisma.sql`c.porteria = ${filtros.porteria}`);
+      conditions.push(Prisma.sql`porteria = ${filtros.porteria}`);
     }
 
-    // Buscador (porteria, placa, conductor)
     if (filtros.buscador) {
       const like = `%${filtros.buscador}%`;
       conditions.push(
-        Prisma.sql`(c.porteria LIKE ${like} OR c.placa LIKE ${like} OR c.conductor LIKE ${like})`,
+        Prisma.sql`(porteria LIKE ${like} OR placa LIKE ${like} OR conductor LIKE ${like})`,
       );
     }
 
     if (conditions.length === 0) {
-      return Prisma.sql``;
+      return Prisma.empty;
     }
 
     return Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`;
@@ -87,37 +83,16 @@ export class InformeControlVehicularPrismaRepository implements IInformeControlV
     const where = this.buildWhere(filtros);
 
     const selectSql = Prisma.sql`
-      SELECT
-        c.id,
-        CONVERT(VARCHAR, c.fecha_salida, 23) AS fecha_salida,
-        FORMAT(c.fecha_salida, 'hh:mm tt', 'en-US') AS hora_salida,
-        c.km_salida,
-        c.porteria,
-        c.placa,
-        c.tipo_vehiculo,
-        CASE
-          WHEN c.modelo = -1 THEN c.otra_marca
-          WHEN c.modelo > 0 THEN vh_familias.descripcion
-        END AS modelo,
-        c.conductor,
-        c.pasajeros,
-        c.persona_autorizo,
-        CONVERT(VARCHAR, c.fecha_llegada, 23) AS fecha_llegada,
-        FORMAT(c.fecha_llegada, 'hh:mm tt', 'en-US') AS hora_llegada,
-        c.km_llegada,
-        c.taller,
-        c.observacion,
-        c.placa_vh_remolcado
-      FROM postv_control_ing_sal_vehiculos c
-      LEFT JOIN vh_familias ON vh_familias.id = c.modelo
+      SELECT *
+      FROM v_inf_control_vh
       ${where}
-      ORDER BY c.id DESC
+      ORDER BY id DESC
       OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
     `;
 
     const countSql = Prisma.sql`
       SELECT COUNT(*) AS total
-      FROM postv_control_ing_sal_vehiculos c
+      FROM v_inf_control_vh
       ${where}
     `;
 
@@ -133,30 +108,9 @@ export class InformeControlVehicularPrismaRepository implements IInformeControlV
 
   async findById(id: number): Promise<InformeControlVehicularEntity | null> {
     const sql = Prisma.sql`
-      SELECT
-        c.id,
-        CONVERT(VARCHAR, c.fecha_salida, 23) AS fecha_salida,
-        FORMAT(c.fecha_salida, 'hh:mm tt', 'en-US') AS hora_salida,
-        c.km_salida,
-        c.porteria,
-        c.placa,
-        c.tipo_vehiculo,
-        CASE
-          WHEN c.modelo = -1 THEN c.otra_marca
-          WHEN c.modelo > 0 THEN vh_familias.descripcion
-        END AS modelo,
-        c.conductor,
-        c.pasajeros,
-        c.persona_autorizo,
-        CONVERT(VARCHAR, c.fecha_llegada, 23) AS fecha_llegada,
-        FORMAT(c.fecha_llegada, 'hh:mm tt', 'en-US') AS hora_llegada,
-        c.km_llegada,
-        c.taller,
-        c.observacion,
-        c.placa_vh_remolcado
-      FROM postv_control_ing_sal_vehiculos c
-      LEFT JOIN vh_familias ON vh_familias.id = c.modelo
-      WHERE c.id = ${id}
+      SELECT *
+      FROM v_inf_control_vh
+      WHERE id = ${id}
     `;
 
     const rows = await this.prisma.$queryRaw<any[]>(sql);
@@ -167,35 +121,13 @@ export class InformeControlVehicularPrismaRepository implements IInformeControlV
   async listarParaExcel(
     filtros: FiltrosControlVehicular,
   ): Promise<InformeControlVehicularEntity[]> {
-    // Para el Excel usamos misma lógica de filtros pero sin paginación
     const where = this.buildWhere(filtros);
 
     const sql = Prisma.sql`
-      SELECT
-        c.id,
-        CONVERT(VARCHAR, c.fecha_salida, 23) AS fecha_salida,
-        FORMAT(c.fecha_salida, 'hh:mm tt', 'en-US') AS hora_salida,
-        c.km_salida,
-        c.porteria,
-        c.placa,
-        c.tipo_vehiculo,
-        CASE
-          WHEN c.modelo = -1 THEN c.otra_marca
-          WHEN c.modelo > 0 THEN vh_familias.descripcion
-        END AS modelo,
-        c.conductor,
-        c.pasajeros,
-        c.persona_autorizo,
-        CONVERT(VARCHAR, c.fecha_llegada, 23) AS fecha_llegada,
-        FORMAT(c.fecha_llegada, 'hh:mm tt', 'en-US') AS hora_llegada,
-        c.km_llegada,
-        c.taller,
-        c.observacion,
-        c.placa_vh_remolcado
-      FROM postv_control_ing_sal_vehiculos c
-      LEFT JOIN vh_familias ON vh_familias.id = c.modelo
+      SELECT *
+      FROM v_inf_control_vh
       ${where}
-      ORDER BY c.id DESC
+      ORDER BY id DESC
     `;
 
     const rows = await this.prisma.$queryRaw<any[]>(sql);

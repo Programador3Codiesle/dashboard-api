@@ -13,32 +13,8 @@ export class InformeMttoPreventivoPrismaRepository implements IInformeMttoPreven
 
   async listar(): Promise<InformeMttoPreventivoEntity[]> {
     const sql = Prisma.sql`
-      SELECT placa,
-             serie,
-             kilometro_final,
-             km_promedio = (kilometro_final - primer_km) / NULLIF(DATEDIFF(DAY, primer_entrada, fecha_salida), 0),
-             ((FLOOR(kilometro_final / 5000) + 1) * 5000) AS next_mtto,
-             descripcion
-      FROM (
-        SELECT
-          v.descripcion,
-          p.placa,
-          p.serie,
-          p.primer_entrada,
-          p.primer_km,
-          fecha_salida = CASE
-            WHEN a.fecha IS NULL THEN ao.fecha_ultima_entrada
-            ELSE a.fecha
-          END,
-          kilometro_final = CASE
-            WHEN a.kilometraje_salida IS NULL THEN ao.ultimo_km
-            ELSE a.kilometraje_salida
-          END
-        FROM v_primer_km_vh_propio p
-        LEFT JOIN v_actual_km_vh_propio a ON p.placa = a.placa
-        LEFT JOIN v_actual_km_vh_propio_ordenes ao ON p.placa = ao.placa
-        INNER JOIN v_vh_vehiculos v ON p.placa = v.placa
-      ) a
+      SELECT *
+      FROM v_inf_mto_vh_propios
     `;
 
     const rows = await this.prisma.$queryRaw<any[]>(sql);

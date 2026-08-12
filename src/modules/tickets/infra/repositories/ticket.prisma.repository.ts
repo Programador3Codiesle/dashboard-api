@@ -39,9 +39,7 @@ export class TicketPrismaRepository implements ITicketRepository {
       });
       await this.prisma.$executeRaw`
         UPDATE tickets
-        SET
-          sede = ${data.sede ?? ''},
-          extension = ${data.extension ?? null}
+        SET sede = ${data.sede ?? ''}
         WHERE id_ticket = ${result.id_ticket}
       `;
       // @ts-ignore
@@ -121,7 +119,7 @@ export class TicketPrismaRepository implements ITicketRepository {
         tk.img,
         tk.respuesta,
         tk.sede,
-        tk.extension
+        CAST(NULL AS varchar(50)) AS extension
       FROM tickets tk
       WHERE tk.id_ticket = ${id}
     `;
@@ -156,7 +154,7 @@ export class TicketPrismaRepository implements ITicketRepository {
                 tk.fecha_creacion, 
                 tk.estado,
                 tk.sede,
-                tk.extension
+                CAST(NULL AS varchar(50)) AS extension
             FROM tickets tk
             LEFT JOIN terceros us ON us.nit_real = tk.usuario
             LEFT JOIN terceros en ON en.nit_real = tk.encargado
@@ -183,7 +181,7 @@ export class TicketPrismaRepository implements ITicketRepository {
                 tk.fecha_creacion, 
                 tk.estado,
                 tk.sede,
-                tk.extension,
+                CAST(NULL AS varchar(50)) AS extension,
                 STUFF((
                     SELECT ', ' + CAST(em2.idEmpresa AS VARCHAR(10))
                     FROM sw_empresa_usuario em2
@@ -218,7 +216,7 @@ export class TicketPrismaRepository implements ITicketRepository {
                 tk.fecha_creacion, 
                 tk.estado,
                 tk.sede,
-                tk.extension
+                CAST(NULL AS varchar(50)) AS extension
             FROM tickets tk
             LEFT JOIN terceros us ON us.nit_real = tk.usuario
             LEFT JOIN terceros en ON en.nit_real = tk.encargado

@@ -67,21 +67,8 @@ export class OrdenSalidaPrismaRepository implements IOrdenSalidaRepository {
         : Prisma.empty;
 
     const sql = Prisma.sql`
-      SELECT
-        id,
-        area,
-        sede,
-        jefe,
-        tipoSalida,
-        explicacion,
-        CONVERT(VARCHAR, fecha_salida, 23) AS fecha_salida,
-        placa,
-        conductor,
-        quienSale,
-        observacion,
-        fecha_reg_obs,
-        CASE WHEN observacion IS NULL THEN 1 ELSE 0 END AS observacion_null_flag
-      FROM swcrm_formato_ordenSalida
+      SELECT *
+      FROM v_inf_orden_salida
       ${where}
       ORDER BY observacion_null_flag ASC, fecha_salida ASC
     `;

@@ -73,11 +73,11 @@ export class DesempenoEmpleadoPrismaRepository implements IDesempenoEmpleadoRepo
     filtros: FiltrosDesempenoEmpleado,
   ): Promise<ListarDesempenoEmpleadoResultado> {
     const conditions: Prisma.Sql[] = [
-      Prisma.sql`YEAR(d.fecha) = ${filtros.anio}`,
+      Prisma.sql`ano = ${filtros.anio}`,
     ];
 
     if (filtros.sede && filtros.sede !== '') {
-      conditions.push(Prisma.sql`d.sede = ${filtros.sede}`);
+      conditions.push(Prisma.sql`sede = ${filtros.sede}`);
     }
 
     const where =
@@ -89,86 +89,16 @@ export class DesempenoEmpleadoPrismaRepository implements IDesempenoEmpleadoRepo
     const offset = (pagina - 1) * limite;
 
     const countSql = Prisma.sql`
-      SELECT COUNT(DISTINCT d.id) AS total
-      FROM swcrm_desempeno_empleado d
-      INNER JOIN postv_rel_evaluacion_desempeno e
-        ON e.nit_empleado = d.nit_empleado
-      INNER JOIN terceros t
-        ON t.nit = e.nit_jefe
+      SELECT COUNT(*) AS total
+      FROM v_inf_desempeno_empleado
       ${where}
     `;
 
     const sql = Prisma.sql`
-      SELECT
-        d.id,
-        d.nit_empleado,
-        d.empleado,
-        d.area,
-        d.cargo,
-        d.sede,
-        CONVERT(VARCHAR, d.fecha, 23) AS fecha,
-        d.calificado,
-        t.nombres AS jefe,
-        d.trabajo_equipo_e,
-        d.part_activa_e,
-        d.prop_iniciativas_e,
-        d.rel_interpersonales_e,
-        d.comunicacion_efect_e,
-        d.discrecion_e,
-        d.responsabilidad_e,
-        d.acatamiento_e,
-        d.compromiso_e,
-        d.conocimiento_pro_e,
-        d.conocimiento_metas_e,
-        d.adaptabilidad_e,
-        d.control_estres_e,
-        d.solu_conflictos_e,
-        d.estrategia_e,
-        d.solu_adecuadas_e,
-        d.ident_cliente_e,
-        d.serv_cliente_e,
-        d.part_capacitacion_e,
-        d.info_peligros_e,
-        d.info_accidentes_e,
-        d.info_salud_e,
-        d.uso_epp_e,
-        d.llamados_aten_e,
-        d.accidentes_e,
-        d.trabajo_equipo_j,
-        d.part_activa_j,
-        d.prop_iniciativas_j,
-        d.rel_interpersonales_j,
-        d.comunicacion_efect_j,
-        d.discrecion_j,
-        d.responsabilidad_j,
-        d.acatamiento_j,
-        d.compromiso_j,
-        d.conocimiento_pro_j,
-        d.conocimiento_metas_j,
-        d.adaptabilidad_j,
-        d.control_estres_j,
-        d.solu_conflictos_j,
-        d.estrategia_j,
-        d.solu_adecuadas_j,
-        d.ident_cliente_j,
-        d.serv_cliente_j,
-        d.part_capacitacion_j,
-        d.info_peligros_j,
-        d.info_accidentes_j,
-        d.info_salud_j,
-        d.uso_epp_j,
-        d.llamados_aten_j,
-        d.accidentes_j,
-        d.calificacion,
-        d.capacidades_entrenamiento,
-        d.compromisos
-      FROM swcrm_desempeno_empleado d
-      INNER JOIN postv_rel_evaluacion_desempeno e
-        ON e.nit_empleado = d.nit_empleado
-      INNER JOIN terceros t
-        ON t.nit = e.nit_jefe
+      SELECT *
+      FROM v_inf_desempeno_empleado
       ${where}
-      ORDER BY d.fecha DESC, d.empleado
+      ORDER BY fecha DESC, empleado
       OFFSET ${offset} ROWS
       FETCH NEXT ${limite} ROWS ONLY
     `;
@@ -204,75 +134,9 @@ export class DesempenoEmpleadoPrismaRepository implements IDesempenoEmpleadoRepo
 
   async obtenerDetalle(id: number): Promise<DesempenoEmpleadoDetalle | null> {
     const sql = Prisma.sql`
-      SELECT TOP 1
-        d.id,
-        d.nit_empleado,
-        d.empleado,
-        d.area,
-        d.cargo,
-        d.sede,
-        CONVERT(VARCHAR, d.fecha, 23) AS fecha,
-        d.calificado,
-        t.nombres AS jefe,
-        d.trabajo_equipo_e,
-        d.part_activa_e,
-        d.prop_iniciativas_e,
-        d.rel_interpersonales_e,
-        d.comunicacion_efect_e,
-        d.discrecion_e,
-        d.responsabilidad_e,
-        d.acatamiento_e,
-        d.compromiso_e,
-        d.conocimiento_pro_e,
-        d.conocimiento_metas_e,
-        d.adaptabilidad_e,
-        d.control_estres_e,
-        d.solu_conflictos_e,
-        d.estrategia_e,
-        d.solu_adecuadas_e,
-        d.ident_cliente_e,
-        d.serv_cliente_e,
-        d.part_capacitacion_e,
-        d.info_peligros_e,
-        d.info_accidentes_e,
-        d.info_salud_e,
-        d.uso_epp_e,
-        d.llamados_aten_e,
-        d.accidentes_e,
-        d.trabajo_equipo_j,
-        d.part_activa_j,
-        d.prop_iniciativas_j,
-        d.rel_interpersonales_j,
-        d.comunicacion_efect_j,
-        d.discrecion_j,
-        d.responsabilidad_j,
-        d.acatamiento_j,
-        d.compromiso_j,
-        d.conocimiento_pro_j,
-        d.conocimiento_metas_j,
-        d.adaptabilidad_j,
-        d.control_estres_j,
-        d.solu_conflictos_j,
-        d.estrategia_j,
-        d.solu_adecuadas_j,
-        d.ident_cliente_j,
-        d.serv_cliente_j,
-        d.part_capacitacion_j,
-        d.info_peligros_j,
-        d.info_accidentes_j,
-        d.info_salud_j,
-        d.uso_epp_j,
-        d.llamados_aten_j,
-        d.accidentes_j,
-        d.calificacion,
-        d.capacidades_entrenamiento,
-        d.compromisos
-      FROM swcrm_desempeno_empleado d
-      INNER JOIN postv_rel_evaluacion_desempeno e
-        ON e.nit_empleado = d.nit_empleado
-      INNER JOIN terceros t
-        ON t.nit = e.nit_jefe
-      WHERE d.id = ${id}
+      SELECT TOP 1 *
+      FROM v_inf_desempeno_empleado
+      WHERE id = ${id}
     `;
 
     const rows = await this.prisma.$queryRaw<any[]>(sql);

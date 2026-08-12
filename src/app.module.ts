@@ -56,6 +56,7 @@ import { OrdenesTotModule } from './modules/ordenes-tot/infra/ordenes-tot.module
 import { IndicadoresModule } from './modules/indicadores/infra/indicadores.module';
 import { EncuestasModule } from './modules/encuestas/infra/encuestas.module';
 import { AuditoriaModule } from './modules/auditoria/infra/auditoria.module';
+import { MantenimientoModule } from './modules/mantenimiento/infra/mantenimiento.module';
 
 @Module({
   imports: [
@@ -126,6 +127,7 @@ import { AuditoriaModule } from './modules/auditoria/infra/auditoria.module';
     IndicadoresModule,
     EncuestasModule,
     AuditoriaModule,
+    MantenimientoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

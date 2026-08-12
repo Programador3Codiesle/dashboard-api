@@ -10,23 +10,9 @@ export class TallaPersonalPrismaRepository implements ITallaPersonalRepository {
 
   async listar(): Promise<TallaPersonalEntity[]> {
     const sql = Prisma.sql`
-      SELECT t.nit,
-             ter.nombres AS nombre,
-             t.genero,
-             t.talla_camisa,
-             t.talla_pantalon,
-             t.talla_botas
-      FROM (
-        SELECT *
-        FROM (
-          SELECT *,
-                 ROW_NUMBER() OVER (PARTITION BY nit ORDER BY fecha_reg DESC) AS RowNum
-          FROM swcrm_tallas_personal
-        ) AS Subconsulta
-        WHERE RowNum = 1
-      ) t
-      LEFT JOIN terceros ter ON ter.nit = t.nit
-      ORDER BY ter.nombres
+      SELECT *
+      FROM v_inf_talla_dotacion
+      ORDER BY nombre
     `;
 
     const rows = await this.prisma.$queryRaw<any[]>(sql);
