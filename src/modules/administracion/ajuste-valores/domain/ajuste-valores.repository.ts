@@ -1,5 +1,5 @@
 import { AjusteValoresEntity } from './ajuste-valores.entity';
-import { RepositoryResponse } from './ajuste-valroes.interface';
+import { RepositoryResponse } from './ajuste-valores.interface';
 
 // Re-exportar RepositoryResponse para que pueda ser importado desde este módulo
 export type { RepositoryResponse };

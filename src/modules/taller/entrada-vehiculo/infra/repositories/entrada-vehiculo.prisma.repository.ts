@@ -9,6 +9,9 @@ import {
   VhSinOtEntity,
 } from '../../domain/entrada-vehiculo.entity';
 import { toNum, toStr } from './shared.utils';
+import { sqlNumericInClause } from '../../../shared/sql-in-clause';
+
+const BODEGA_IN_COLUMNS = ['a.bodega', 'b.bodega', 'bodegas'] as const;
 
 type CitaRow = {
   id_cita: unknown;
@@ -48,10 +51,7 @@ export class EntradaVehiculoPrismaRepository implements IEntradaVehiculoReposito
   constructor(private readonly prisma: PrismaService) {}
 
   private bodegaIn(column: string, ids: number[]): Prisma.Sql {
-    if (ids.length === 0) {
-      return Prisma.sql`1 = 0`;
-    }
-    return Prisma.sql`${Prisma.raw(column)} IN (${Prisma.join(ids)})`;
+    return sqlNumericInClause(column, ids, BODEGA_IN_COLUMNS);
   }
 
   private mapCita(row: CitaRow): CitaEntradaEntity {

@@ -1,8 +1,14 @@
-import { Controller, Get, Param, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { Response } from 'express';
 import { FormatosNominaFacade } from '../application/formatos-nomina.facade';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
-import { join } from 'path';
 
 @UseGuards(JwtAuthGuard)
 @Controller('administracion/formatos-nomina')
@@ -15,8 +21,8 @@ export class FormatosNominaController {
   }
 
   @Get(':id/descargar')
-  async descargar(@Param('id') id: string, @Res() res: Response) {
-    const ruta = await this.facade.obtenerRutaArchivo(Number(id));
+  async descargar(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
+    const ruta = await this.facade.obtenerRutaArchivo(id);
     if (!ruta) {
       return res.status(404).json({ message: 'Formato no encontrado' });
     }
@@ -25,8 +31,8 @@ export class FormatosNominaController {
   }
 
   @Get(':id/preview')
-  async preview(@Param('id') id: string, @Res() res: Response) {
-    const ruta = await this.facade.obtenerRutaArchivo(Number(id));
+  async preview(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
+    const ruta = await this.facade.obtenerRutaArchivo(id);
     if (!ruta) {
       return res.status(404).json({ message: 'Formato no encontrado' });
     }

@@ -1,19 +1,19 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
-import type {
-  AuditoriaRepository,
-  EntregaRow,
-  FacturacionTallerRow,
-  FacturacionTecnicoRow,
-  NpsSedeCalificacion,
-  NpsSedeDetalle,
-  NpsTecnicoAgregado,
-  NpsTecnicoDetalle,
-  OrdenDiariaRow,
-  OrdenMttoRow,
-  OrdenTecnicoRow,
-  TecnicoOption,
+import {
+  IAuditoriaRepository,
+  type EntregaRow,
+  type FacturacionTallerRow,
+  type FacturacionTecnicoRow,
+  type NpsSedeCalificacion,
+  type NpsSedeDetalle,
+  type NpsTecnicoAgregado,
+  type NpsTecnicoDetalle,
+  type OrdenDiariaRow,
+  type OrdenMttoRow,
+  type OrdenTecnicoRow,
+  type TecnicoOption,
 } from '../../domain/auditoria.repository';
 
 function num(v: unknown): number {
@@ -21,14 +21,27 @@ function num(v: unknown): number {
   return Number.isFinite(n) ? n : 0;
 }
 
-function str(v: unknown): string {
+function asStr(v: unknown): string {
   if (v == null) return '';
+  if (typeof v === 'string') return v;
+  if (typeof v === 'number' && Number.isFinite(v)) return String(v);
+  if (typeof v === 'bigint') return v.toString();
+  if (typeof v === 'boolean') return v ? 'true' : 'false';
   if (v instanceof Date) return v.toISOString().slice(0, 10);
-  return String(v);
+  if (typeof v === 'object') {
+    const maybe = v as { toString?: () => unknown };
+    if (typeof maybe.toString === 'function') {
+      const s = maybe.toString();
+      if (typeof s === 'string' && s !== '' && s !== '[object Object]') {
+        return s;
+      }
+    }
+  }
+  return '';
 }
 
 @Injectable()
-export class AuditoriaPrismaRepository implements AuditoriaRepository {
+export class AuditoriaPrismaRepository implements IAuditoriaRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async ordenesDiarias(
@@ -48,7 +61,7 @@ export class AuditoriaPrismaRepository implements AuditoriaRepository {
         AND bodega = ${bodega}
     `);
     return rows.map((r) => ({
-      nombres: str(r.nombres),
+      nombres: asStr(r.nombres),
       mantenimiento_preventivo: num(r.Mantenimiento_preventivo),
       mantenimiento_correctivo: num(r.Mantenimiento_correctivo),
       garantia: num(r.Garantia),
@@ -111,8 +124,8 @@ export class AuditoriaPrismaRepository implements AuditoriaRepository {
     return rows.map((r) => ({
       ano: num(r.ano),
       mes: num(r.mes),
-      bodega: str(r.bodega),
-      descripcion: str(r.descripcion),
+      bodega: asStr(r.bodega),
+      descripcion: asStr(r.descripcion),
       venta_rptos: num(r.venta_rptos),
       presupuesto_rptos: num(r.presupuesto_rptos),
       venta_mano_obra: num(r.Venta_mano_obra),
@@ -174,16 +187,24 @@ export class AuditoriaPrismaRepository implements AuditoriaRepository {
       GROUP BY
         f.ano, f.mes, f.bodega, f.venta_rptos, f.Venta_mano_obra, f.venta_TOT,
         t.tecnicos, f.nit, te.nombres, bo.descripcion
-      ORDER BY f.ano DESC, f.mes DESC
+      ORDER BY
+        f.ano DESC,
+        f.mes DESC,
+        f.venta_rptos,
+        presupuesto_rptos,
+        f.Venta_mano_obra,
+        presupuesto_mano_obra,
+        f.venta_TOT,
+        presupuesto_tot DESC
     `);
 
     return rows.map((r) => ({
       ano: num(r.ano),
       mes: num(r.mes),
-      bodega: str(r.bodega),
-      descripcion: str(r.descripcion),
-      nit: str(r.nit),
-      tecnico: str(r.nombres),
+      bodega: asStr(r.bodega),
+      descripcion: asStr(r.descripcion),
+      nit: asStr(r.nit),
+      tecnico: asStr(r.nombres),
       venta_rptos: num(r.venta_rptos),
       presupuesto_rptos: num(r.presupuesto_rptos),
       venta_mano_obra: num(r.Venta_mano_obra),
@@ -209,7 +230,7 @@ export class AuditoriaPrismaRepository implements AuditoriaRepository {
     return rows.map((r) => ({
       ano: num(r.ano),
       mes: num(r.mes),
-      sede: str(r.sede ?? r.descripcion ?? r.bodega),
+      sede: asStr(r.sede ?? r.descripcion ?? r.bodega),
       cantidad_ot: num(r.cantidad_ot),
       presupuesto_ordenes: num(r.presupuesto_ordenes),
     }));
@@ -257,16 +278,16 @@ export class AuditoriaPrismaRepository implements AuditoriaRepository {
       ${where}
       GROUP BY
         f.ano, f.mes, f.bodega, f.nit, f.nombres, t.tecnicos, bo.descripcion
-      ORDER BY f.ano DESC, f.mes DESC, ordenes DESC
+      ORDER BY f.ano DESC, f.mes DESC, ordenes DESC, presupuesto_ordenes DESC
     `);
 
     return rows.map((r) => ({
       ano: num(r.ano),
       mes: num(r.mes),
-      bodega: str(r.bodega),
-      descripcion: str(r.descripcion),
-      nit: str(r.nit),
-      nombres: str(r.nombres),
+      bodega: asStr(r.bodega),
+      descripcion: asStr(r.descripcion),
+      nit: asStr(r.nit),
+      nombres: asStr(r.nombres),
       ordenes: num(r.ordenes),
       presupuesto_ordenes: num(r.presupuesto_ordenes),
     }));
@@ -280,7 +301,7 @@ export class AuditoriaPrismaRepository implements AuditoriaRepository {
       FROM tall_operarios_intranet
       ORDER BY nombre ASC
     `);
-    return rows.map((r) => ({ nit: str(r.nit), nombre: str(r.nombre) }));
+    return rows.map((r) => ({ nit: asStr(r.nit), nombre: asStr(r.nombre) }));
   }
 
   async npsSedeCalificaciones(
@@ -322,8 +343,8 @@ export class AuditoriaPrismaRepository implements AuditoriaRepository {
     const r = rows[0];
     if (!r) return null;
     return {
-      sede: str(r.sede),
-      fecha: str(r.Fecha),
+      sede: asStr(r.sede),
+      fecha: asStr(r.Fecha),
       calificacion: num(r.Calificacion),
       enc06: num(r.Enc_0_a_6),
       enc78: num(r.Enc_7_a_8),
@@ -393,7 +414,7 @@ export class AuditoriaPrismaRepository implements AuditoriaRepository {
       GROUP BY t.nombres
     `);
     return rows.map((r) => ({
-      nombres: str(r.nombres),
+      nombres: asStr(r.nombres),
       enc06: num(r.Enc_0_a_6),
       enc78: num(r.Enc_7_a_8),
       enc910: num(r.Enc_9_a_10),

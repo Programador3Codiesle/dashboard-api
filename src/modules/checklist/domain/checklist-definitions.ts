@@ -261,7 +261,9 @@ export const CHECKLIST_COLUMNAS: Record<ChecklistTipo, readonly string[]> = {
 };
 
 /** Campos booleanos en BD (cabina). */
-export const CHECKLIST_BOOLEAN_COLUMNS: Partial<Record<ChecklistTipo, readonly string[]>> = {
+export const CHECKLIST_BOOLEAN_COLUMNS: Partial<
+  Record<ChecklistTipo, readonly string[]>
+> = {
   6: [
     'sistema_mandos',
     'sistema_ventilacion',
@@ -279,12 +281,18 @@ export function isChecklistTipo(value: number): value is ChecklistTipo {
   return value >= 0 && value <= 6;
 }
 
+function asText(value: unknown): string {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  return '';
+}
+
 export function responsableFromData(
   check: ChecklistTipo,
   data: Record<string, unknown>,
 ): string {
   if (check === 0) {
-    return String(data.nombre_pa_1 ?? '');
+    return asText(data.nombre_pa_1);
   }
-  return String(data.responsable ?? '');
+  return asText(data.responsable);
 }

@@ -11,6 +11,9 @@ import {
   toNum,
   toStr,
 } from '../../../entrada-vehiculo/infra/repositories/shared.utils';
+import { sqlNumericInClause } from '../../../shared/sql-in-clause';
+
+const BODEGA_IN_COLUMNS = ['b.bodega'] as const;
 
 type OrdenRow = {
   numero: unknown;
@@ -32,10 +35,19 @@ type AsesorCountRow = {
   n: unknown;
 };
 
+function formatSqlText(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'bigint')
+    return String(value);
+  return null;
+}
+
 function formatDate(value: unknown): string | null {
   if (value == null) return null;
   if (value instanceof Date) return value.toISOString().slice(0, 10);
-  const s = String(value);
+  const s = formatSqlText(value);
+  if (s == null) return null;
   return s.length >= 10 ? s.slice(0, 10) : s;
 }
 
@@ -44,10 +56,7 @@ export class InformeOtAbiertasPrismaRepository implements IInformeOtAbiertasRepo
   constructor(private readonly prisma: PrismaService) {}
 
   private bodegaIn(column: string, ids: number[]): Prisma.Sql {
-    if (ids.length === 0) {
-      return Prisma.sql`1 = 0`;
-    }
-    return Prisma.sql`${Prisma.raw(column)} IN (${Prisma.join(ids)})`;
+    return sqlNumericInClause(column, ids, BODEGA_IN_COLUMNS);
   }
 
   async getOrdenesAbiertas(

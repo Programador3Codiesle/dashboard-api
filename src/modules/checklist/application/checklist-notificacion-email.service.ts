@@ -51,7 +51,9 @@ export class ChecklistNotificacionEmailService {
     });
 
     if (!result.ok) {
-      this.logger.warn(`No se pudo enviar correo checklist #${idCheck}: ${result.error}`);
+      this.logger.warn(
+        `No se pudo enviar correo checklist #${idCheck}: ${result.error}`,
+      );
     }
   }
 }

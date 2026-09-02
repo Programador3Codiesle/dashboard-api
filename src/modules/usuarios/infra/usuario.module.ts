@@ -1,10 +1,8 @@
 import { Module } from '@nestjs/common';
 
-import { UsuarioService } from './services/usuario.service';
 import { UsuarioController } from './usuario.controller';
 import { UsuarioMapper } from '../presentation/mappers/usuario.mapper';
 
-// Contratos del dominio (interfaces abstractas)
 import {
   IUsuarioCoreRepository,
   IUsuarioEmpresaRepository,
@@ -13,7 +11,6 @@ import {
   IUsuarioHorarioRepository,
 } from '../domain/repositories';
 
-// Implementaciones de infraestructura (Prisma)
 import {
   UsuarioCoreRepository,
   UsuarioEmpresaRepository,
@@ -22,10 +19,12 @@ import {
   UsuarioHorarioRepository,
 } from './repositories';
 
-// Use Cases
 import { UsuarioFacade } from '../application/usuario.facade';
 import { CreateUsuarioUseCase } from '../application/use-cases/create-usuario.usecase';
 import { UpdateUsuarioUseCase } from '../application/use-cases/update-usuario.usecase';
+import { ListPerfilesUseCase } from '../application/use-cases/list-perfiles.usecase';
+import { ResetPasswordUseCase } from '../application/use-cases/reset-password.usecase';
+import { ToggleUsuarioEstadoUseCase } from '../application/use-cases/toggle-usuario-estado.usecase';
 import { AssignSedeUseCase } from '../application/use-cases/assign-sede.usecase';
 import { AssignJefeUseCase } from '../application/use-cases/assign-jefe.usecase';
 import { AssignHorarioUseCase } from '../application/use-cases/assign-horario.usecase';
@@ -50,7 +49,6 @@ import { GetUsuariosUseCase } from '../application/use-cases/get-usuarios.usecas
   imports: [],
   controllers: [UsuarioController],
   providers: [
-    // Inyección de dependencias basada en contratos (DIP - Dependency Inversion Principle)
     {
       provide: IUsuarioCoreRepository,
       useClass: UsuarioCoreRepository,
@@ -72,16 +70,14 @@ import { GetUsuariosUseCase } from '../application/use-cases/get-usuarios.usecas
       useClass: UsuarioHorarioRepository,
     },
 
-    // Services
-    UsuarioService,
-
-    // Mappers
     UsuarioMapper,
 
-    // Use Cases
     UsuarioFacade,
     CreateUsuarioUseCase,
     UpdateUsuarioUseCase,
+    ListPerfilesUseCase,
+    ResetPasswordUseCase,
+    ToggleUsuarioEstadoUseCase,
     AssignSedeUseCase,
     AssignJefeUseCase,
     AssignHorarioUseCase,
@@ -89,9 +85,7 @@ import { GetUsuariosUseCase } from '../application/use-cases/get-usuarios.usecas
     GetUsuariosUseCase,
   ],
   exports: [
-    UsuarioService,
     UsuarioFacade,
-    // Exportar contratos para uso en otros módulos
     IUsuarioCoreRepository,
     IUsuarioEmpresaRepository,
     IUsuarioJefeRepository,

@@ -1,8 +1,10 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../../../../auth/infra/jwt-auth.guard';
 import { NpsTecnicosFacade } from '../application/nps-tecnicos.facade';
 import { NpsTecnicoRowEntity } from '../domain/nps-tecnicos.entity';
 import { OrigenNpsTecnicos } from '../domain/nps-tecnicos.repository';
 
+@UseGuards(JwtAuthGuard)
 @Controller('informes/postventa/nps-tecnicos')
 export class InformeNpsTecnicosController {
   constructor(private readonly facade: NpsTecnicosFacade) {}

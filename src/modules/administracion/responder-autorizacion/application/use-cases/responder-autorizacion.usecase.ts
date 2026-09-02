@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import {
-  TokenRespuestaService,
-  TipoAutorizacion,
-} from '../../../../../core/infra/token-respuesta/token-respuesta.service';
+import { TokenRespuestaService } from '../../../../../core/infra/token-respuesta/token-respuesta.service';
 import { IGestionCompraRepository } from '../../../gestion-compras/domain/gestion-compra.repository';
 import { INuevoAusentismoRepository } from '../../../nuevo-ausentismo/domain/nuevo-ausentismo.repository';
 import { ITiempoSuplementarioRepository } from '../../../solicitud-tiempo-suplementario/domain/tiempo-suplementario.repository';

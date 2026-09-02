@@ -12,7 +12,11 @@ function toNum(value: unknown): number {
 
 function toStr(value: unknown): string {
   if (value == null) return '';
-  return String(value);
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  if (typeof value === 'bigint') return value.toString();
+  if (value instanceof Date) return value.toISOString().slice(0, 10);
+  return '';
 }
 
 const TIPOS_EXCLUIDOS = Prisma.sql`

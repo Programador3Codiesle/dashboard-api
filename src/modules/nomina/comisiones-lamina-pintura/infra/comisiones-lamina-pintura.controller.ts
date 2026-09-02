@@ -8,6 +8,11 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 import { ComisionesLaminaPinturaFacade } from '../application/comisiones-lamina-pintura.facade';
+import {
+  nominaNitFromRequest,
+  nominaPerfilFromRequest,
+  type NominaAuthRequest,
+} from '../../shared/nomina-auth-request';
 
 @Controller('nomina/comisiones-lamina-pintura')
 @UseGuards(JwtAuthGuard)
@@ -16,13 +21,13 @@ export class ComisionesLaminaPinturaController {
 
   @Get()
   async listar(
-    @Req() req: any,
+    @Req() req: NominaAuthRequest,
     @Query('desde') desde: string,
     @Query('hasta') hasta: string,
   ) {
     this.validateDates(desde, hasta);
-    const perfilUsuario = req.user?.role ? Number(req.user.role) : null;
-    const nitUsuarioSesion = req.user?.nit ? Number(req.user.nit) : null;
+    const perfilUsuario = nominaPerfilFromRequest(req);
+    const nitUsuarioSesion = nominaNitFromRequest(req);
 
     return this.facade.listar({
       desde,

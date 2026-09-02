@@ -1,6 +1,6 @@
 import { Body, Controller, Post, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
-import { assertCodieselEmpresa } from '../../shared/utils/assert-codiesel.util';
+import { CodieselEmpresaGuard } from '../../shared/utils/codiesel-empresa.guard';
 import { getRepuestosSessionUser } from '../../shared/utils/repuestos-user.util';
 import { OrdenCompraFacade } from '../application/orden-compra.facade';
 import {
@@ -9,7 +9,7 @@ import {
   ListarOrdenCompraDto,
 } from '../application/dto/orden-compra.dto';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, CodieselEmpresaGuard)
 @Controller('repuestos/orden-compra')
 export class OrdenCompraController {
   constructor(private readonly facade: OrdenCompraFacade) {}
@@ -23,7 +23,6 @@ export class OrdenCompraController {
     },
     @Body() dto: ListarOrdenCompraDto,
   ) {
-    assertCodieselEmpresa(req);
     const { perfil } = getRepuestosSessionUser(req);
     return this.facade.listar(dto, perfil);
   }
@@ -37,7 +36,6 @@ export class OrdenCompraController {
     },
     @Body() dto: AccionOrdenCompraDto,
   ) {
-    assertCodieselEmpresa(req);
     const { perfil } = getRepuestosSessionUser(req);
     return this.facade.autorizar(dto, perfil);
   }
@@ -51,7 +49,6 @@ export class OrdenCompraController {
     },
     @Body() dto: AccionOrdenCompraDto,
   ) {
-    assertCodieselEmpresa(req);
     const { userId, perfil } = getRepuestosSessionUser(req);
     return this.facade.denegar(dto, userId, perfil);
   }
@@ -65,7 +62,6 @@ export class OrdenCompraController {
     },
     @Body() dto: GuardarPresupuestoOcDto,
   ) {
-    assertCodieselEmpresa(req);
     const { userId, perfil } = getRepuestosSessionUser(req);
     return this.facade.guardarPresupuesto(dto, userId, perfil);
   }

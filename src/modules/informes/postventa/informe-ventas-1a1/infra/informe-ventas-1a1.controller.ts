@@ -1,6 +1,14 @@
-import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { JwtAuthGuard } from '../../../../auth/infra/jwt-auth.guard';
 import { Ventas1a1Facade } from '../application/ventas-1a1.facade';
 
+@UseGuards(JwtAuthGuard)
 @Controller('informes/postventa/ventas-1a1')
 export class InformeVentas1a1Controller {
   constructor(private readonly ventas1a1Facade: Ventas1a1Facade) {}

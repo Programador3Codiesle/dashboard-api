@@ -122,12 +122,11 @@ export class CotizadorEdicionConfigPrismaRepository implements ICotizadorEdicion
     }
 
     const whereParts: Prisma.Sql[] = [];
-    const values: (string | number)[] = [];
 
     Object.entries(req.whereParcial || {}).forEach(([k, v]) => {
+      if (!cfg.filtros.includes(k)) return;
       if (v !== '' && v !== null && v !== undefined) {
         whereParts.push(Prisma.sql`${Prisma.raw(k)} = ${v}`);
-        values.push(v as any);
       }
     });
 

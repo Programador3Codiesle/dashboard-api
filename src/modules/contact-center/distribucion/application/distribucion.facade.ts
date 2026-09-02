@@ -25,7 +25,9 @@ export class DistribucionFacade {
     ]);
 
     if (!periodo) {
-      throw new BadRequestException('No se pudo obtener el periodo de distribución');
+      throw new BadRequestException(
+        'No se pudo obtener el periodo de distribución',
+      );
     }
 
     const registros = await this.repo.getAsignacionesPeriodo(
@@ -63,7 +65,9 @@ export class DistribucionFacade {
   async getTotales() {
     const periodo = await this.repo.getMesAnio();
     if (!periodo) {
-      throw new BadRequestException('No se pudo obtener el periodo de distribución');
+      throw new BadRequestException(
+        'No se pudo obtener el periodo de distribución',
+      );
     }
     return this.repo.cargarTotales(periodo.mes, periodo.anio);
   }

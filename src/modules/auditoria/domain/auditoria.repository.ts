@@ -1,5 +1,3 @@
-export const AUDITORIA_REPOSITORY = Symbol('AUDITORIA_REPOSITORY');
-
 export type OrdenDiariaRow = {
   nombres: string;
   mantenimiento_preventivo: number;
@@ -82,51 +80,51 @@ export type NpsTecnicoDetalle = {
   enc910: number;
 };
 
-export interface AuditoriaRepository {
-  ordenesDiarias(
+export abstract class IAuditoriaRepository {
+  abstract ordenesDiarias(
     year: number,
     month: number,
     day: number,
     bodega: number,
   ): Promise<OrdenDiariaRow[]>;
 
-  entregas(ano: number, tipo: string): Promise<EntregaRow[]>;
+  abstract entregas(ano: number, tipo: string): Promise<EntregaRow[]>;
 
-  facturacionTaller(bodega: number): Promise<FacturacionTallerRow[]>;
+  abstract facturacionTaller(bodega: number): Promise<FacturacionTallerRow[]>;
 
-  facturacionTecnico(params: {
+  abstract facturacionTecnico(params: {
     bodega?: number;
     tecnico?: string;
   }): Promise<FacturacionTecnicoRow[]>;
 
-  ordenesMttoPreventivo(bodega: number): Promise<OrdenMttoRow[]>;
+  abstract ordenesMttoPreventivo(bodega: number): Promise<OrdenMttoRow[]>;
 
-  ordenesTecnicos(params: {
+  abstract ordenesTecnicos(params: {
     bodega?: number;
     tecnico?: string;
   }): Promise<OrdenTecnicoRow[]>;
 
-  listarTecnicos(): Promise<TecnicoOption[]>;
+  abstract listarTecnicos(): Promise<TecnicoOption[]>;
 
-  npsSedeCalificaciones(
+  abstract npsSedeCalificaciones(
     sede: string,
     year: number,
     month: number,
   ): Promise<NpsSedeCalificacion[]>;
 
-  npsSedeDetalle(
+  abstract npsSedeDetalle(
     sede: string,
     year: number,
     month: number,
   ): Promise<NpsSedeDetalle | null>;
 
-  npsTecnicoAgregado(
+  abstract npsTecnicoAgregado(
     sede: string,
     year: number,
     month: number,
   ): Promise<NpsTecnicoAgregado>;
 
-  npsTecnicoDetalle(
+  abstract npsTecnicoDetalle(
     sede: string,
     year: number,
     month: number,

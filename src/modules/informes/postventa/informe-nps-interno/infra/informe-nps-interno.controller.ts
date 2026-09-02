@@ -1,10 +1,12 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../../../../auth/infra/jwt-auth.guard';
 import { NpsInternoFacade } from '../application/nps-interno.facade';
 import {
   NpsInternoEncuestaDetalleEntity,
   NpsInternoTecnicoResumenEntity,
 } from '../domain/nps-interno.entity';
 
+@UseGuards(JwtAuthGuard)
 @Controller('informes/postventa/nps-interno')
 export class InformeNpsInternoController {
   constructor(private readonly facade: NpsInternoFacade) {}

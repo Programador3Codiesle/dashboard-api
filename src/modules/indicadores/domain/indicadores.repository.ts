@@ -100,30 +100,32 @@ export type PresupuestoPosventaDto =
   | PresupuestoConsolidadoDto
   | PresupuestoSedesDto;
 
-export type IIndicadoresRepository = {
-  getPrimerDiaMes(): Promise<string>;
-  getUltimoDiaMes(): Promise<string>;
-  getDiasDelMes(): Promise<number>;
-  getDiaActual(): Promise<number>;
-  getMetaMes(sede: string, fechaIni: string, fechaFin: string): Promise<number>;
-  getMetaMesNew(
+export abstract class IIndicadoresRepository {
+  abstract getPrimerDiaMes(): Promise<string>;
+  abstract getUltimoDiaMes(): Promise<string>;
+  abstract getDiasDelMes(): Promise<number>;
+  abstract getDiaActual(): Promise<number>;
+  abstract getMetaMes(
     sede: string,
     fechaIni: string,
     fechaFin: string,
   ): Promise<number>;
-  getVendidoDiaCentros(centros: number[]): Promise<number>;
-  getRepuestosTaller(centros: number[]): Promise<number>;
-  getTot(centros: number[]): Promise<number>;
-  getManoObra(centros: number[]): Promise<number>;
-  getRepuestosMostrador(centros: number[]): Promise<number>;
-  getRepuestosMostradorTotal(): Promise<number>;
-  getVendidoDiaPrincipal(): Promise<number>;
-  getVendidoDiaBocono(): Promise<number>;
-  getVendidoDiaRosita(): Promise<number>;
-  getVendidoDiaBarranca(): Promise<number>;
-  getRepuestosPorTipos(t1: string, t2: string): Promise<number>;
-  getTotPorTipos(t1: string, t2: string): Promise<number>;
-  getManoObraPorTipos(t1: string, t2: string): Promise<number>;
-};
-
-export const INDICADORES_REPOSITORY = Symbol('INDICADORES_REPOSITORY');
+  abstract getMetaMesNew(
+    sede: string,
+    fechaIni: string,
+    fechaFin: string,
+  ): Promise<number>;
+  abstract getVendidoDiaCentros(centros: number[]): Promise<number>;
+  abstract getRepuestosTaller(centros: number[]): Promise<number>;
+  abstract getTot(centros: number[]): Promise<number>;
+  abstract getManoObra(centros: number[]): Promise<number>;
+  abstract getRepuestosMostrador(centros: number[]): Promise<number>;
+  abstract getRepuestosMostradorTotal(): Promise<number>;
+  abstract getVendidoDiaPrincipal(): Promise<number>;
+  abstract getVendidoDiaBocono(): Promise<number>;
+  abstract getVendidoDiaRosita(): Promise<number>;
+  abstract getVendidoDiaBarranca(): Promise<number>;
+  abstract getRepuestosPorTipos(t1: string, t2: string): Promise<number>;
+  abstract getTotPorTipos(t1: string, t2: string): Promise<number>;
+  abstract getManoObraPorTipos(t1: string, t2: string): Promise<number>;
+}

@@ -1,29 +1,50 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
-import type {
-  BodegaMto,
-  DatosHidraulicos,
-  DatosTecnicos,
-  EquipoRow,
-  FamiliaOption,
-  JefeOption,
-  ListaItem,
-  MantenimientoRepository,
-  NombreEquipoOption,
-  PersonalMto,
+import {
+  IMantenimientoRepository,
+  type BodegaMto,
+  type DatosHidraulicos,
+  type DatosTecnicos,
+  type EquipoRow,
+  type FamiliaOption,
+  type JefeOption,
+  type ListaItem,
+  type NombreEquipoOption,
+  type PersonalMto,
 } from '../../domain/mantenimiento.repository';
 import { BODEGAS_MTO_IDS } from '../../domain/mantenimiento.constants';
 
-function str(v: unknown): string {
-  return v == null ? '' : String(v);
+function asStr(v: unknown): string {
+  if (v == null) return '';
+  if (typeof v === 'string') return v;
+  if (typeof v === 'number' && Number.isFinite(v)) return String(v);
+  if (typeof v === 'bigint') return v.toString();
+  if (typeof v === 'boolean') return v ? 'true' : 'false';
+  if (v instanceof Date) return v.toISOString().slice(0, 10);
+  if (typeof v === 'object') {
+    const maybe = v as { toString?: () => unknown };
+    if (typeof maybe.toString === 'function') {
+      const s = maybe.toString();
+      if (typeof s === 'string' && s !== '' && s !== '[object Object]') {
+        return s;
+      }
+    }
+  }
+  return '';
 }
+
+function likeContains(term: string): string {
+  const escaped = term.replace(/[[\]%_]/g, (ch) => `[${ch}]`);
+  return `%${escaped}%`;
+}
+
 function num(v: unknown): number {
   return v == null || v === '' ? 0 : Number(v);
 }
 
 @Injectable()
-export class MantenimientoPrismaRepository implements MantenimientoRepository {
+export class MantenimientoPrismaRepository implements IMantenimientoRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async listarEquipos(
@@ -64,10 +85,8 @@ export class MantenimientoPrismaRepository implements MantenimientoRepository {
   }): Prisma.Sql {
     const parts: Prisma.Sql[] = [];
     if (filters.filter) {
-      const f = `%${filters.filter}%`;
-      parts.push(
-        Prisma.sql`(e.nombre_equipo LIKE ${f} OR e.codigo LIKE ${f})`,
-      );
+      const f = likeContains(filters.filter);
+      parts.push(Prisma.sql`(e.nombre_equipo LIKE ${f} OR e.codigo LIKE ${f})`);
     }
     if (filters.bodega) {
       parts.push(Prisma.sql`e.bodega = ${filters.bodega}`);
@@ -80,15 +99,15 @@ export class MantenimientoPrismaRepository implements MantenimientoRepository {
   }
 
   private nullable = (v: unknown): string | null =>
-    v == null || v === '' ? null : str(v);
+    v == null || v === '' ? null : asStr(v);
 
   private mapEquipo = (r: Record<string, unknown>): EquipoRow => ({
     id_equipo: num(r.id_equipo),
-    nombre_equipo: str(r.nombre_equipo),
-    bodega: str(r.bodega),
-    codigo: str(r.codigo),
-    estado: str(r.estado),
-    area: str(r.area),
+    nombre_equipo: asStr(r.nombre_equipo),
+    bodega: asStr(r.bodega),
+    codigo: asStr(r.codigo),
+    estado: asStr(r.estado),
+    area: asStr(r.area),
     cv_equipo: this.nullable(r.cv_equipo),
     alias_equipo: this.nullable(r.alias_equipo),
     imagen_equipo: this.nullable(r.imagen_equipo),
@@ -118,7 +137,10 @@ export class MantenimientoPrismaRepository implements MantenimientoRepository {
     const rows = await this.prisma.$queryRaw<Array<Record<string, unknown>>>(
       Prisma.sql`SELECT codigo, nombre FROM dbo.postv_equipos_familia ORDER BY nombre`,
     );
-    return rows.map((r) => ({ codigo: str(r.codigo), nombre: str(r.nombre) }));
+    return rows.map((r) => ({
+      codigo: asStr(r.codigo),
+      nombre: asStr(r.nombre),
+    }));
   }
 
   async getNombresFamilia(codigoF: string): Promise<NombreEquipoOption[]> {
@@ -130,9 +152,9 @@ export class MantenimientoPrismaRepository implements MantenimientoRepository {
       `,
     );
     return rows.map((r) => ({
-      codigo_equipo: str(r.codigo_equipo),
-      nombre_equipo: str(r.nombre_equipo),
-      codigo_f: str(r.codigo_f),
+      codigo_equipo: asStr(r.codigo_equipo),
+      nombre_equipo: asStr(r.nombre_equipo),
+      codigo_f: asStr(r.codigo_f),
     }));
   }
 
@@ -147,7 +169,7 @@ export class MantenimientoPrismaRepository implements MantenimientoRepository {
         WHERE codigo_f = ${codigoF} AND codigo_equipo = ${codigoN}
       `,
     );
-    return rows[0] ? str(rows[0].nombre_equipo) : null;
+    return rows[0] ? asStr(rows[0].nombre_equipo) : null;
   }
 
   async ultimoCodigoLike(prefijo: string): Promise<string | null> {
@@ -160,7 +182,7 @@ export class MantenimientoPrismaRepository implements MantenimientoRepository {
         ORDER BY codigo DESC
       `,
     );
-    return rows[0]?.codigo ?? null;
+    return rows[0]?.codigo != null ? asStr(rows[0].codigo) : null;
   }
 
   async insertEquipo(data: {
@@ -274,7 +296,10 @@ export class MantenimientoPrismaRepository implements MantenimientoRepository {
     `;
   }
 
-  async upsertDatosTecnicos(idEquipo: number, data: DatosTecnicos): Promise<void> {
+  async upsertDatosTecnicos(
+    idEquipo: number,
+    data: DatosTecnicos,
+  ): Promise<void> {
     await this.prisma.$executeRaw`
       DELETE FROM dbo.postv_equipos_datos_tecnicos WHERE id_equipo = ${idEquipo}
     `;
@@ -420,7 +445,7 @@ export class MantenimientoPrismaRepository implements MantenimientoRepository {
         WHERE id_equipo = ${idEquipo} ORDER BY orden ASC
       `;
     }
-    return rows.map((r) => ({ orden: num(r.orden), texto: str(r.texto) }));
+    return rows.map((r) => ({ orden: num(r.orden), texto: asStr(r.texto) }));
   }
 
   async listarJefes(): Promise<JefeOption[]> {
@@ -433,9 +458,9 @@ export class MantenimientoPrismaRepository implements MantenimientoRepository {
       `,
     );
     return rows.map((r) => ({
-      nit: str(r.nit),
-      nombres: str(r.nombres),
-      correo: r.correo != null ? str(r.correo) : null,
+      nit: asStr(r.nit),
+      nombres: asStr(r.nombres),
+      correo: r.correo != null ? asStr(r.correo) : null,
     }));
   }
 
@@ -451,8 +476,8 @@ export class MantenimientoPrismaRepository implements MantenimientoRepository {
     );
     return rows.map((r) => ({
       id_usuario: num(r.id_usuario),
-      nombres: str(r.nombres),
-      nit: str(r.nit),
+      nombres: asStr(r.nombres),
+      nit: asStr(r.nit),
     }));
   }
 
@@ -466,7 +491,7 @@ export class MantenimientoPrismaRepository implements MantenimientoRepository {
     );
     return rows.map((r) => ({
       bodega: num(r.bodega),
-      descripcion: str(r.descripcion),
+      descripcion: asStr(r.descripcion),
     }));
   }
 
@@ -481,8 +506,8 @@ export class MantenimientoPrismaRepository implements MantenimientoRepository {
     );
     return rows.map((r) => ({
       id_equipo: num(r.id_equipo),
-      codigo: str(r.codigo),
-      nombre_equipo: str(r.nombre_equipo),
+      codigo: asStr(r.codigo),
+      nombre_equipo: asStr(r.nombre_equipo),
     }));
   }
 
@@ -707,10 +732,10 @@ export class MantenimientoPrismaRepository implements MantenimientoRepository {
       `,
     );
     return rows.map((r) => ({
-      mensaje: r.mensaje == null ? '' : String(r.mensaje),
-      emisor: r.emisor == null ? '' : String(r.emisor),
-      id_solicitud: Number(r.id_solicitud),
-      nombre_emisor: r.nombre_emisor == null ? '' : String(r.nombre_emisor),
+      mensaje: asStr(r.mensaje),
+      emisor: asStr(r.emisor),
+      id_solicitud: num(r.id_solicitud),
+      nombre_emisor: asStr(r.nombre_emisor),
     }));
   }
 
@@ -916,6 +941,6 @@ export class MantenimientoPrismaRepository implements MantenimientoRepository {
         WHERE jf.nit_jefe = ${nit}
       `,
     );
-    return rows[0]?.correo ?? null;
+    return rows[0]?.correo != null ? asStr(rows[0].correo) : null;
   }
 }

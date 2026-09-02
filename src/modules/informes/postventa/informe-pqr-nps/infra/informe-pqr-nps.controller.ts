@@ -7,7 +7,9 @@ import {
   Post,
   Put,
   Query,
+  UseGuards,
 } from '@nestjs/common';
+import { JwtAuthGuard } from '../../../../auth/infra/jwt-auth.guard';
 import { PqrNpsFacade } from '../application/pqr-nps.facade';
 import {
   PqrNpsGestionEntity,
@@ -21,6 +23,7 @@ import { ActualizarPqrNpsDto } from '../application/dto/actualizar-pqr-nps.dto';
 import { CrearPqrDto } from '../application/dto/crear-pqr.dto';
 import { CrearVerbalizacionDto } from '../application/dto/crear-verbalizacion.dto';
 
+@UseGuards(JwtAuthGuard)
 @Controller('informes/postventa/pqr-nps')
 export class InformePqrNpsController {
   constructor(private readonly facade: PqrNpsFacade) {}

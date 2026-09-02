@@ -1,7 +1,4 @@
-import {
-  BadRequestException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { BadRequestException, ForbiddenException } from '@nestjs/common';
 
 export const CODIESEL_EMPRESA_ID = 1;
 
@@ -27,6 +24,12 @@ export function assertCodieselEmpresa(req: AuthRequest): void {
   }
 }
 
+function cookieField(v: unknown): string {
+  if (typeof v === 'string') return v;
+  if (typeof v === 'number' && Number.isFinite(v)) return String(v);
+  return '';
+}
+
 export function parseSession(req: AuthRequest): SessionFromReq {
   let idUsuario = 0;
   let nit = '';
@@ -38,9 +41,9 @@ export function parseSession(req: AuthRequest): SessionFromReq {
     try {
       const u = JSON.parse(req.cookies['user']) as Record<string, unknown>;
       idUsuario = Number(u.id ?? u.id_usuario ?? 0);
-      nit = String(u.nit_usuario ?? u.user ?? '');
+      nit = cookieField(u.nit_usuario ?? u.user);
       perfil = Number(u.perfil_postventa ?? 0);
-      nombres = String(u.nombre_usuario ?? u.nombres ?? '');
+      nombres = cookieField(u.nombre_usuario ?? u.nombres);
       if (u.empresa != null) empresa = Number(u.empresa);
     } catch {
       /* ignore */

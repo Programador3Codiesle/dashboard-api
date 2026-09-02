@@ -2,6 +2,7 @@ import { Controller, Get, Query, Res } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { getFrontendBaseUrl } from '../../../../core/config/env-urls';
 import { Response } from 'express';
+import { ResponderAutorizacionQueryDto } from '../application/dto/responder-autorizacion-query.dto';
 import { ResponderAutorizacionUseCase } from '../application/use-cases/responder-autorizacion.usecase';
 
 @Controller('administracion/responder')
@@ -13,20 +14,19 @@ export class ResponderAutorizacionController {
 
   @Get()
   async responder(
-    @Query('token') token: string,
-    @Query('accion') accion: string,
+    @Query() query: ResponderAutorizacionQueryDto,
     @Res({ passthrough: false }) res: Response,
   ): Promise<void> {
-    if (!token || !accion) {
+    if (!query.token || !query.accion) {
       const frontendUrl = getFrontendBaseUrl(this.config);
       const url = `${frontendUrl}/autorizar/confirmacion?resultado=error&mensaje=Parametros+invalidos`;
       res.redirect(302, url);
       return;
     }
     const accionNorm =
-      accion.toLowerCase() === 'rechazar' ? 'rechazar' : 'aprobar';
+      query.accion.toLowerCase() === 'rechazar' ? 'rechazar' : 'aprobar';
     try {
-      const result = await this.responderUC.execute(token, accionNorm);
+      const result = await this.responderUC.execute(query.token, accionNorm);
       const base = getFrontendBaseUrl(this.config);
       if (result.success) {
         const url = `${base}/autorizar/confirmacion?resultado=ok&accion=${result.accion}`;
@@ -35,9 +35,9 @@ export class ResponderAutorizacionController {
       }
       const url = `${base}/autorizar/confirmacion?resultado=error&mensaje=${encodeURIComponent(result.message)}`;
       res.redirect(302, url);
-    } catch (e: any) {
+    } catch (e: unknown) {
       const base = getFrontendBaseUrl(this.config);
-      const msg = e?.message ?? 'Enlace inválido o expirado';
+      const msg = e instanceof Error ? e.message : 'Enlace inválido o expirado';
       const url = `${base}/autorizar/confirmacion?resultado=error&mensaje=${encodeURIComponent(msg)}`;
       res.redirect(302, url);
     }

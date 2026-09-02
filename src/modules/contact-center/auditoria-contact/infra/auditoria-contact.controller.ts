@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -13,7 +14,7 @@ import { diskStorage } from 'multer';
 import { join } from 'path';
 import * as fs from 'fs';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
-import { assertCodieselEmpresa } from '../../shared/utils/assert-codiesel.util';
+import { CodieselEmpresaGuard } from '../../shared/utils/codiesel-empresa.guard';
 import { getContactCenterSessionUser } from '../../shared/utils/contact-center-user.util';
 import { AuditoriaContactFacade } from '../application/auditoria-contact.facade';
 import {
@@ -30,6 +31,7 @@ import {
   IdIndicadorDto,
   IdItemDto,
   InfDetalleDto,
+  IndicadoresPuntosDto,
   ListarAuditoriasDto,
   UpdateIndDto,
   UpdateIndEstadoDto,
@@ -41,15 +43,19 @@ type CcRequest = {
   user?: { sub?: number; role?: number; nit?: number };
 };
 
-const UPLOAD_DIR = join(process.cwd(), 'public', 'uploads', 'auditoria-contact');
+const UPLOAD_DIR = join(
+  process.cwd(),
+  'public',
+  'uploads',
+  'auditoria-contact',
+);
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, CodieselEmpresaGuard)
 @Controller('contact-center/auditoria-contact')
 export class AuditoriaContactController {
   constructor(private readonly facade: AuditoriaContactFacade) {}
 
   private session(req: CcRequest) {
-    assertCodieselEmpresa(req);
     return getContactCenterSessionUser(req);
   }
 
@@ -78,26 +84,22 @@ export class AuditoriaContactController {
   }
 
   @Post('formulario-vista-previa')
-  formularioVistaPrevia(@Req() req: CcRequest, @Body() dto: FormAuditoriaDto) {
-    this.session(req);
+  formularioVistaPrevia(@Body() dto: FormAuditoriaDto) {
     return this.facade.cargarFormulario(dto, true);
   }
 
   @Post('formulario')
-  formulario(@Req() req: CcRequest, @Body() dto: FormAuditoriaDto) {
-    this.session(req);
+  formulario(@Body() dto: FormAuditoriaDto) {
     return this.facade.cargarFormulario(dto, true);
   }
 
   @Post('update-respuesta')
-  updateRespuesta(@Req() req: CcRequest, @Body() dto: UpdateRespuestaDto) {
-    this.session(req);
+  updateRespuesta(@Body() dto: UpdateRespuestaDto) {
     return this.facade.updateRespuesta(dto);
   }
 
   @Post('finalizar')
-  finalizar(@Req() req: CcRequest, @Body() dto: FinalizarAuditoriaDto) {
-    this.session(req);
+  finalizar(@Body() dto: FinalizarAuditoriaDto) {
     return this.facade.finalizarAuditoria(dto);
   }
 
@@ -114,20 +116,17 @@ export class AuditoriaContactController {
   }
 
   @Post('ver-admin')
-  verAdmin(@Req() req: CcRequest, @Body() dto: IdAuditoriaDto) {
-    this.session(req);
+  verAdmin(@Body() dto: IdAuditoriaDto) {
     return this.facade.verAuditoria(dto, 'admin');
   }
 
   @Post('ver-agente')
-  verAgente(@Req() req: CcRequest, @Body() dto: IdAuditoriaDto) {
-    this.session(req);
+  verAgente(@Body() dto: IdAuditoriaDto) {
     return this.facade.verAuditoria(dto, 'agente');
   }
 
   @Post('editar')
-  editar(@Req() req: CcRequest, @Body() dto: IdAuditoriaDto) {
-    this.session(req);
+  editar(@Body() dto: IdAuditoriaDto) {
     return this.facade.verAuditoria(dto, 'editar');
   }
 
@@ -151,29 +150,25 @@ export class AuditoriaContactController {
     }),
   )
   upload(
-    @Req() req: CcRequest,
     @Body() body: { id_auditoria: string },
     @UploadedFiles() files: Express.Multer.File[],
   ) {
-    this.session(req);
     const idAuditoria = Number(body.id_auditoria);
+    if (!Number.isInteger(idAuditoria) || idAuditoria <= 0) {
+      throw new BadRequestException('id_auditoria inválido');
+    }
     const filenames = (files ?? []).map((f) => f.filename);
     return this.facade.registrarArchivos(idAuditoria, filenames);
   }
 
   @Get('indicadores')
-  indicadores(@Req() req: CcRequest) {
-    this.session(req);
+  indicadores() {
     return this.facade.cargarIndicadores();
   }
 
   @Post('indicadores-puntos')
-  indicadoresPuntos(
-    @Req() req: CcRequest,
-    @Body() body: { id_indicador: number; estado: number },
-  ) {
-    this.session(req);
-    return this.facade.cargarIndicadoresPuntos(body.id_indicador, body.estado);
+  indicadoresPuntos(@Body() dto: IndicadoresPuntosDto) {
+    return this.facade.cargarIndicadoresPuntos(dto.id_indicador, dto.estado);
   }
 
   @Post('update-ind-estado')
@@ -195,8 +190,7 @@ export class AuditoriaContactController {
   }
 
   @Post('items')
-  items(@Req() req: CcRequest, @Body() dto: IdIndicadorDto) {
-    this.session(req);
+  items(@Body() dto: IdIndicadorDto) {
     return this.facade.getItemsPorIndicador(dto);
   }
 
@@ -213,14 +207,12 @@ export class AuditoriaContactController {
   }
 
   @Post('items-obs')
-  itemsObs(@Req() req: CcRequest, @Body() dto: IdIndicadorDto) {
-    this.session(req);
+  itemsObs(@Body() dto: IdIndicadorDto) {
     return this.facade.getItemsObs(dto);
   }
 
   @Post('obs')
-  obs(@Req() req: CcRequest, @Body() dto: IdItemDto) {
-    this.session(req);
+  obs(@Body() dto: IdItemDto) {
     return this.facade.getObsPorItem(dto);
   }
 
@@ -255,8 +247,7 @@ export class AuditoriaContactController {
   }
 
   @Get('validate-cant-auditorias')
-  validateCant(@Req() req: CcRequest) {
-    this.session(req);
+  validateCant() {
     return this.facade.validateCantAuditorias();
   }
 }

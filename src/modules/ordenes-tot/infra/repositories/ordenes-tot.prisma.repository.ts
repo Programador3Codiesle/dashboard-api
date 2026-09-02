@@ -14,7 +14,11 @@ import {
 
 function toStr(value: unknown): string {
   if (value == null) return '';
-  return String(value);
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  if (typeof value === 'bigint') return value.toString();
+  if (value instanceof Date) return value.toISOString();
+  return '';
 }
 
 function toNum(value: unknown): number {
@@ -26,7 +30,8 @@ function toNum(value: unknown): number {
 
 function toStrOrNull(value: unknown): string | null {
   if (value == null) return null;
-  return String(value);
+  const text = toStr(value);
+  return text === '' ? null : text;
 }
 
 @Injectable()
@@ -124,11 +129,39 @@ export class OrdenesTotPrismaRepository implements IOrdenesTotRepository {
     return (rows ?? []).map((r) => toNum(r.idsede)).filter((n) => n > 0);
   }
 
-  async listarTot(sedes: number[], estado: 1 | 2): Promise<TotListadoRow[]> {
-    if (sedes.length === 0) return [];
-
+  private totListadoFromWhere(sedes: number[], estado: 1 | 2): Prisma.Sql {
     const reingresoFilter =
       estado === 1 ? Prisma.sql`AND fecha_reingreso is null` : Prisma.empty;
+    return Prisma.sql`
+      FROM postv_vehiculos pv
+      INNER JOIN tall_encabeza_orden teo ON teo.numero = TRY_CAST(pv.orden AS INT)
+      INNER JOIN v_vh_vehiculos vhv ON vhv.codigo = teo.serie
+      WHERE teo.bodega IN (${Prisma.join(sedes)})
+        AND pv.autorizacion = 'SI'
+        AND pv.tipo = 'tot'
+        ${reingresoFilter}
+    `;
+  }
+
+  async countTot(sedes: number[], estado: 1 | 2): Promise<number> {
+    if (sedes.length === 0) return 0;
+
+    const rows = await this.prisma.$queryRaw<Array<{ n: unknown }>>(
+      Prisma.sql`
+        SELECT COUNT(*) AS n
+        ${this.totListadoFromWhere(sedes, estado)}
+      `,
+    );
+    return toNum(rows[0]?.n);
+  }
+
+  async listarTot(
+    sedes: number[],
+    estado: 1 | 2,
+    offset: number,
+    limit: number,
+  ): Promise<TotListadoRow[]> {
+    if (sedes.length === 0) return [];
 
     const rows = await this.prisma.$queryRaw<
       Array<{
@@ -150,13 +183,9 @@ export class OrdenesTotPrismaRepository implements IOrdenesTotRepository {
           CONVERT(CHAR(10), pv.fecha_salida, 111) AS fecha_salida,
           CONVERT(CHAR(10), pv.fecha_reingreso, 111) AS fecha_reingreso,
           pv.proveedor, pv.id_vehiculo, pv.contenido
-        FROM postv_vehiculos pv
-        INNER JOIN tall_encabeza_orden teo ON teo.numero = TRY_CAST(pv.orden AS INT)
-        INNER JOIN v_vh_vehiculos vhv ON vhv.codigo = teo.serie
-        WHERE teo.bodega IN (${Prisma.join(sedes)})
-          AND pv.autorizacion = 'SI'
-          AND pv.tipo = 'tot'
-          ${reingresoFilter}
+        ${this.totListadoFromWhere(sedes, estado)}
+        ORDER BY pv.id_vehiculo DESC
+        OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
       `,
     );
 
@@ -414,6 +443,7 @@ export class OrdenesTotPrismaRepository implements IOrdenesTotRepository {
   }
 
   async listarRepuestosCandidatos(): Promise<RepuestoCandidatoRow[]> {
+    // TOP 200 + fec >= 20200401: tope del legado. OFFSET no abarata el GROUP BY.
     const rows = await this.prisma.$queryRaw<
       Array<{
         numero: unknown;

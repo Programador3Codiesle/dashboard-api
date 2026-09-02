@@ -1,7 +1,15 @@
-import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { JwtAuthGuard } from '../../../../auth/infra/jwt-auth.guard';
 import { InventarioObsoletosFacade } from '../application/inventario-obsoletos.facade';
 import { TipoInventarioObsoleto } from '../domain/inventario-obsoletos.entity';
 
+@UseGuards(JwtAuthGuard)
 @Controller('informes/postventa/inventario-obsoletos')
 export class InformeInventarioObsoletosController {
   constructor(private readonly facade: InventarioObsoletosFacade) {}

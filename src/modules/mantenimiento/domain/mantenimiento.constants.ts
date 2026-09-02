@@ -30,3 +30,10 @@ export const BODEGAS_MTO_IDS = [1, 3, 4, 6, 7, 8, 23] as const;
 
 export const PERFIL_MTTO = 46;
 export const PERFILES_ADMIN_MTTO = [1, 20, 26] as const;
+
+export const PERIODO_MESES: Record<string, number> = {
+  mensual: 1,
+  trimestral: 3,
+  semestral: 6,
+  anual: 12,
+};

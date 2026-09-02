@@ -37,7 +37,9 @@ export class InformeBaseDatosRepository {
     `);
   }
 
-  async consultar(dto: ConsultarInformeBaseDatosDto): Promise<Record<string, unknown>[]> {
+  async consultar(
+    dto: ConsultarInformeBaseDatosDto,
+  ): Promise<Record<string, unknown>[]> {
     switch (dto.tipoInfDB) {
       case '1':
         if (!dto.dateStart) return [];

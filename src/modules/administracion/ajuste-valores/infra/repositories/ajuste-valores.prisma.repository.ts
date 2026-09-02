@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
 import { IAjusteValoresRepository } from '../../domain/ajuste-valores.repository';
-import { RepositoryResponse } from '../../domain/ajuste-valroes.interface';
+import { RepositoryResponse } from '../../domain/ajuste-valores.interface';
 import { AjusteValoresEntity } from '../../domain/ajuste-valores.entity';
 
 @Injectable()

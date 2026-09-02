@@ -1,7 +1,7 @@
 import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import { CreateUsuarioDto } from '../dto/create-usuario.dto';
-import { UpdateUsuarioUseCase } from './update-usuario.usecase';
 import { IUsuarioCoreRepository } from '../../domain/repositories/usuario-core.repository';
+import { encryptLegacyPassword } from '../crypto/encrypt-legacy-password';
 
 /**
  * Use Case para creación de Usuario
@@ -12,7 +12,6 @@ export class CreateUsuarioUseCase {
   constructor(
     @Inject(IUsuarioCoreRepository)
     private readonly coreRepo: IUsuarioCoreRepository,
-    private readonly updateUsuarioUC: UpdateUsuarioUseCase,
   ) {}
 
   async crearUsuario(dto: CreateUsuarioDto) {
@@ -29,8 +28,7 @@ export class CreateUsuarioUseCase {
     }
 
     const passwordRaw = String(dto.nit);
-    const encryptedPassword =
-      this.updateUsuarioUC.encryptLegacyPassword(passwordRaw);
+    const encryptedPassword = encryptLegacyPassword(passwordRaw);
 
     const data = {
       nit: dto.nit,

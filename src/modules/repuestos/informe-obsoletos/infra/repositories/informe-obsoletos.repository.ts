@@ -19,8 +19,11 @@ export class InformeObsoletosRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async consultar(dto: ConsultarObsoletosDto): Promise<ObsoletoFiltroRow[]> {
-    const operador = dto.categoria === 1 ? '>=' : '<=';
     const rangoMeses = this.rangoMeses(dto.opcion);
+    const comparacionCosto =
+      dto.categoria === 1
+        ? Prisma.sql`AND cos_promedio >= ${dto.rango}`
+        : Prisma.sql`AND cos_promedio <= ${dto.rango}`;
 
     return this.prisma.$queryRaw<ObsoletoFiltroRow[]>(Prisma.sql`
       SELECT * FROM (
@@ -36,7 +39,7 @@ export class InformeObsoletosRepository {
         LEFT JOIN referencias_pre pr ON v.codigo = pr.codigo
       ) a
       WHERE meses BETWEEN ${rangoMeses.min} AND ${rangoMeses.max}
-        AND cos_promedio ${Prisma.raw(operador)} ${dto.rango}
+        ${comparacionCosto}
         AND bodega NOT IN (99)
       ORDER BY cos_promedio DESC
     `);

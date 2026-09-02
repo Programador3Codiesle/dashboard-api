@@ -28,10 +28,19 @@ import {
   parseHojaVidaBody,
 } from '../application/mantenimiento.facade';
 import {
-  assertCodieselEmpresa,
-  parseSession,
-  type AuthRequest,
-} from './mantenimiento-auth.util';
+  FinalizarOrdenDto,
+  InformeQueryDto,
+  IniciarOrdenDto,
+  IniciarSolicitudDto,
+  ListarEquiposQueryDto,
+  MensajeDto,
+  NombresFamiliaDto,
+  OrdenPreventivoDto,
+  UpdateEquipoSolicitudDto,
+  UpdateFechaOrdenDto,
+} from '../application/dto/mantenimiento-query.dto';
+import { parseSession, type AuthRequest } from './mantenimiento-auth.util';
+import { CodieselEmpresaGuard } from '../shared/utils/codiesel-empresa.guard';
 
 function diskUpload(subdir: string) {
   return FileInterceptor('file', {
@@ -56,55 +65,42 @@ function diskUpload(subdir: string) {
 }
 
 @Controller('mantenimiento')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, CodieselEmpresaGuard)
 export class MantenimientoController {
   constructor(private readonly facade: MantenimientoFacade) {}
 
   @Get('catalogos')
-  catalogos(@Req() req: AuthRequest) {
-    assertCodieselEmpresa(req);
+  catalogos() {
     return this.facade.catalogos();
   }
 
   @Get('equipos')
-  listarEquipos(
-    @Req() req: AuthRequest,
-    @Query('page') page?: string,
-    @Query('limit') limit?: string,
-    @Query('filter') filter?: string,
-    @Query('bodega') bodega?: string,
-    @Query('area') area?: string,
-  ) {
-    assertCodieselEmpresa(req);
+  listarEquipos(@Query() query: ListarEquiposQueryDto) {
     return this.facade.listarEquipos(
-      Number(page) || 1,
-      Number(limit) || 10,
-      filter,
-      bodega,
-      area,
+      query.page ?? 1,
+      query.limit ?? 10,
+      query.filter,
+      query.bodega,
+      query.area,
     );
   }
 
   @Get('equipos/:id')
-  getEquipo(@Req() req: AuthRequest, @Param('id', ParseIntPipe) id: number) {
-    assertCodieselEmpresa(req);
+  getEquipo(@Param('id', ParseIntPipe) id: number) {
     return this.facade.getEquipo(id);
   }
 
   @Post('equipos/nombres-familia')
-  nombresFamilia(@Req() req: AuthRequest, @Body('codigo') codigo: string) {
-    assertCodieselEmpresa(req);
-    return this.facade.nombresFamilia(codigo);
+  nombresFamilia(@Body() body: NombresFamiliaDto) {
+    return this.facade.nombresFamilia(body.codigo);
   }
 
   @Post('equipos')
   @UseInterceptors(diskUpload('cv_equipos'))
   crearEquipo(
-    @Req() req: AuthRequest,
     @Body() body: Record<string, string>,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    assertCodieselEmpresa(req);
     return this.facade.crearEquipo(
       {
         aliasEquipo: body.aliasEquipo,
@@ -122,12 +118,10 @@ export class MantenimientoController {
   @Put('equipos/:id')
   @UseInterceptors(diskUpload('cv_equipos'))
   actualizarEquipo(
-    @Req() req: AuthRequest,
     @Param('id', ParseIntPipe) id: number,
     @Body() body: Record<string, string>,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    assertCodieselEmpresa(req);
     return this.facade.actualizarEquipo(
       id,
       {
@@ -143,23 +137,17 @@ export class MantenimientoController {
   }
 
   @Get('equipos/:id/hoja-vida')
-  getHojaVida(
-    @Req() req: AuthRequest,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
-    assertCodieselEmpresa(req);
+  getHojaVida(@Param('id', ParseIntPipe) id: number) {
     return this.facade.getHojaVida(id);
   }
 
   @Put('equipos/:id/hoja-vida')
   @UseInterceptors(diskUpload('cv_equipos'))
   updateHojaVida(
-    @Req() req: AuthRequest,
     @Param('id', ParseIntPipe) id: number,
     @Body() body: Record<string, string>,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    assertCodieselEmpresa(req);
     return this.facade.updateHojaVida(
       id,
       {
@@ -179,27 +167,14 @@ export class MantenimientoController {
   ordenPreventivo(
     @Req() req: AuthRequest,
     @Param('id', ParseIntPipe) _id: number,
-    @Body() body: Record<string, string>,
+    @Body() body: OrdenPreventivoDto,
   ) {
-    assertCodieselEmpresa(req);
-    const user = parseSession(req);
-    return this.facade.ordenPreventivoDesdeEquipo(user, {
-      codigoEquipoMp: body.codigoEquipoMp,
-      f_requerida: body.f_requerida,
-      tiempo_estimado: Number(body.tiempo_estimado),
-      descripcionMp: body.descripcionMp,
-    });
+    return this.facade.ordenPreventivoDesdeEquipo(parseSession(req), body);
   }
 
   @Get('equipos/:id/historial')
-  async historial(
-    @Req() req: AuthRequest,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
-    assertCodieselEmpresa(req);
-    const eq = await this.facade.getEquipo(id);
-    if (!eq) return { preventivo: [], correctivo: [] };
-    return this.facade.historial(eq.codigo, id);
+  historial(@Param('id', ParseIntPipe) id: number) {
+    return this.facade.historial(id);
   }
 
   @Post('equipos/:id/retiro')
@@ -210,11 +185,9 @@ export class MantenimientoController {
     @Body() body: Record<string, string>,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    assertCodieselEmpresa(req);
-    const user = parseSession(req);
     if (!file) throw new BadRequestException('Imagen requerida');
     return this.facade.solicitarRetiro(
-      user,
+      parseSession(req),
       id,
       body.jefe,
       body.motivo_solicitud,
@@ -224,16 +197,11 @@ export class MantenimientoController {
 
   @Get('correctivo/solicitudes')
   listarCorrectivo(@Req() req: AuthRequest) {
-    assertCodieselEmpresa(req);
     return this.facade.listarCorrectivo(parseSession(req));
   }
 
   @Get('correctivo/solicitudes/:id')
-  getSolicitud(
-    @Req() req: AuthRequest,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
-    assertCodieselEmpresa(req);
+  getSolicitud(@Param('id', ParseIntPipe) id: number) {
     return this.facade.getSolicitud(id);
   }
 
@@ -244,7 +212,6 @@ export class MantenimientoController {
     @Body() body: Record<string, string>,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    assertCodieselEmpresa(req);
     return this.facade.crearSolicitud(
       parseSession(req),
       {
@@ -261,13 +228,12 @@ export class MantenimientoController {
   iniciarSolicitud(
     @Req() req: AuthRequest,
     @Param('id', ParseIntPipe) id: number,
-    @Body('tiempo_estimado') tiempo?: string,
+    @Body() body: IniciarSolicitudDto,
   ) {
-    assertCodieselEmpresa(req);
     return this.facade.iniciarSolicitud(
       parseSession(req),
       id,
-      Number(tiempo) || 1,
+      body.tiempo_estimado || 1,
     );
   }
 
@@ -279,7 +245,6 @@ export class MantenimientoController {
     @Body('respuesta') respuesta: string,
     @UploadedFile() file?: Express.Multer.File,
   ) {
-    assertCodieselEmpresa(req);
     return this.facade.finalizarSolicitud(
       parseSession(req),
       id,
@@ -289,8 +254,7 @@ export class MantenimientoController {
   }
 
   @Get('correctivo/solicitudes/:id/mensajes')
-  mensajes(@Req() req: AuthRequest, @Param('id', ParseIntPipe) id: number) {
-    assertCodieselEmpresa(req);
+  mensajes(@Param('id', ParseIntPipe) id: number) {
     return this.facade.listarMensajes(id);
   }
 
@@ -298,37 +262,31 @@ export class MantenimientoController {
   agregarMensaje(
     @Req() req: AuthRequest,
     @Param('id', ParseIntPipe) id: number,
-    @Body('mensaje') mensaje: string,
+    @Body() body: MensajeDto,
   ) {
-    assertCodieselEmpresa(req);
-    return this.facade.agregarMensaje(parseSession(req), id, mensaje);
+    return this.facade.agregarMensaje(parseSession(req), id, body.mensaje);
   }
 
   @Patch('correctivo/solicitudes/:id/equipo')
   updateEquipoSolicitud(
-    @Req() req: AuthRequest,
     @Param('id', ParseIntPipe) id: number,
-    @Body('id_equipo') idEquipo: string,
+    @Body() body: UpdateEquipoSolicitudDto,
   ) {
-    assertCodieselEmpresa(req);
-    return this.facade.updateEquipoSolicitud(id, Number(idEquipo));
+    return this.facade.updateEquipoSolicitud(id, body.id_equipo);
   }
 
   @Get('preventivo/eventos')
   eventos(@Req() req: AuthRequest) {
-    assertCodieselEmpresa(req);
     return this.facade.eventosPreventivo(parseSession(req));
   }
 
   @Get('preventivo/listado')
   listado(@Req() req: AuthRequest) {
-    assertCodieselEmpresa(req);
     return this.facade.listadoPreventivo(parseSession(req));
   }
 
   @Get('preventivo/ordenes/:id')
-  orden(@Req() req: AuthRequest, @Param('id', ParseIntPipe) id: number) {
-    assertCodieselEmpresa(req);
+  orden(@Param('id', ParseIntPipe) id: number) {
     return this.facade.getOrdenPreventivo(id);
   }
 
@@ -336,25 +294,17 @@ export class MantenimientoController {
   iniciarOrden(
     @Req() req: AuthRequest,
     @Param('id', ParseIntPipe) id: number,
-    @Body('asignado') asignado: string,
+    @Body() body: IniciarOrdenDto,
   ) {
-    assertCodieselEmpresa(req);
-    return this.facade.iniciarOrden(parseSession(req), id, asignado);
+    return this.facade.iniciarOrden(parseSession(req), id, body.asignado);
   }
 
   @Post('preventivo/ordenes/:id/finalizar')
   finalizarOrden(
     @Req() req: AuthRequest,
     @Param('id', ParseIntPipe) id: number,
-    @Body()
-    body: {
-      observaciones: string;
-      piezas: string;
-      reasignar?: boolean;
-      periodo?: string;
-    },
+    @Body() body: FinalizarOrdenDto,
   ) {
-    assertCodieselEmpresa(req);
     return this.facade.finalizarOrden(
       parseSession(req),
       id,
@@ -366,11 +316,7 @@ export class MantenimientoController {
   }
 
   @Delete('preventivo/ordenes/:id')
-  eliminarOrden(
-    @Req() req: AuthRequest,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
-    assertCodieselEmpresa(req);
+  eliminarOrden(@Param('id', ParseIntPipe) id: number) {
     return this.facade.eliminarOrden(id);
   }
 
@@ -378,9 +324,8 @@ export class MantenimientoController {
   updateFecha(
     @Req() req: AuthRequest,
     @Param('id', ParseIntPipe) id: number,
-    @Body() body: { date: string; date_old: string },
+    @Body() body: UpdateFechaOrdenDto,
   ) {
-    assertCodieselEmpresa(req);
     return this.facade.updateFecha(
       parseSession(req),
       id,
@@ -396,11 +341,7 @@ export class MantenimientoController {
       limits: { fileSize: 20 * 1024 * 1024 },
     }),
   )
-  upload(
-    @Req() req: AuthRequest,
-    @UploadedFile() file?: Express.Multer.File,
-  ) {
-    assertCodieselEmpresa(req);
+  upload(@Req() req: AuthRequest, @UploadedFile() file?: Express.Multer.File) {
     if (!file?.buffer) throw new BadRequestException('Archivo requerido');
     return this.facade.uploadCronograma(parseSession(req), file.buffer);
   }
@@ -410,8 +351,7 @@ export class MantenimientoController {
     'Content-Type',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   )
-  plantilla(@Req() req: AuthRequest, @Res() res: Response) {
-    assertCodieselEmpresa(req);
+  plantilla(@Res() res: Response) {
     const path = join(
       process.cwd(),
       'public',
@@ -426,22 +366,12 @@ export class MantenimientoController {
   }
 
   @Get('informes/preventivo')
-  informePreventivo(
-    @Req() req: AuthRequest,
-    @Query('estado') estado?: string,
-    @Query('bodega') bodega?: string,
-  ) {
-    assertCodieselEmpresa(req);
-    return this.facade.informePreventivo(estado, bodega);
+  informePreventivo(@Query() query: InformeQueryDto) {
+    return this.facade.informePreventivo(query.estado, query.bodega);
   }
 
   @Get('informes/correctivo')
-  informeCorrectivo(
-    @Req() req: AuthRequest,
-    @Query('estado') estado?: string,
-    @Query('bodega') bodega?: string,
-  ) {
-    assertCodieselEmpresa(req);
-    return this.facade.informeCorrectivo(estado, bodega);
+  informeCorrectivo(@Query() query: InformeQueryDto) {
+    return this.facade.informeCorrectivo(query.estado, query.bodega);
   }
 }

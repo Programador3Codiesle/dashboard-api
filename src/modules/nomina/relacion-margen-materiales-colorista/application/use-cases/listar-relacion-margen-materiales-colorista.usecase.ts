@@ -1,12 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import {
-  FiltrosRelacionMargenMaterialesColorista,
-  IRelacionMargenMaterialesColoristaRepository,
-} from '../../domain/relacion-margen-materiales-colorista.repository';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { IRelacionMargenMaterialesColoristaRepository } from '../../domain/relacion-margen-materiales-colorista.repository';
 import {
   RelacionMargenMaterialesColoristaResponseEntity,
   ResumenRelacionMargenMaterialColoristaEntity,
 } from '../../domain/relacion-margen-materiales-colorista.entity';
+import {
+  bodegasPorSede,
+  esSedeCucuta,
+} from '../../domain/relacion-margen-materiales-colorista.constants';
 
 @Injectable()
 export class ListarRelacionMargenMaterialesColoristaUseCase {
@@ -29,10 +30,22 @@ export class ListarRelacionMargenMaterialesColoristaUseCase {
     private readonly repository: IRelacionMargenMaterialesColoristaRepository,
   ) {}
 
-  async execute(
-    filtros: FiltrosRelacionMargenMaterialesColorista,
-  ): Promise<RelacionMargenMaterialesColoristaResponseEntity> {
-    const rows = await this.repository.listar(filtros);
+  async execute(input: {
+    ano: number;
+    mes: number;
+    sede: string;
+  }): Promise<RelacionMargenMaterialesColoristaResponseEntity> {
+    const bodegas = bodegasPorSede(input.sede);
+    if (!bodegas) {
+      throw new BadRequestException(
+        'El parámetro sede es obligatorio (giron o cucuta).',
+      );
+    }
+    const rows = await this.repository.listar({
+      ano: input.ano,
+      mes: input.mes,
+      bodegas,
+    });
 
     const rowsConMes = rows.map((row) => ({
       ...row,
@@ -44,8 +57,7 @@ export class ListarRelacionMargenMaterialesColoristaUseCase {
     const margenTotal =
       totalValor > 0 ? ((totalValor - totalCosto) / totalValor) * 100 : 0;
 
-    const esCucuta =
-      filtros.bodegas.includes(14) && filtros.bodegas.includes(22);
+    const esCucuta = esSedeCucuta(bodegas);
     const bono = this.calcularBono(margenTotal, esCucuta);
 
     return new RelacionMargenMaterialesColoristaResponseEntity({

@@ -99,11 +99,16 @@ function buildPdfFilterFragments(
   return { visualizacion, ejecutadoAutoriza };
 }
 
+const SUBSISTEMA_IN_COLUMNS = ['mo.id_subsistema', 'rb.id_subsistema'] as const;
+
 function subsistemaInClause(
   subsistemas: string | null | undefined,
   idCotizacion: number,
   column: string,
 ): Prisma.Sql {
+  if (!(SUBSISTEMA_IN_COLUMNS as readonly string[]).includes(column)) {
+    return Prisma.sql`1 = 0`;
+  }
   if (subsistemas != null && subsistemas.trim() !== '') {
     const ids = parseSubsistemaIds(subsistemas);
     if (ids.length === 0) {

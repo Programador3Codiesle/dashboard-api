@@ -12,14 +12,14 @@ import {
   DashboardMantenimientoPrismaRepository,
   DashboardGerenciaPrismaRepository,
 } from './repositories';
-import { JefeTallerService } from './services/jefe-taller.service';
-import { TecnicoService } from './services/tecnico.service';
-import { AdministracionService } from './services/administracion.service';
-import { AgenteContactCenterService } from './services/agente-contact-center.service';
-import { GerenciaService } from './services/gerencia.service';
-import { ComprasService } from './services/compras.service';
-import { AsesorRepuestoService } from './services/asesor-repuesto.service';
-import { MantenimientoService } from './services/mantenimiento.service';
+import { JefeTallerService } from '../application/builders/jefe-taller.service';
+import { TecnicoService } from '../application/builders/tecnico.service';
+import { AdministracionService } from '../application/builders/administracion.service';
+import { AgenteContactCenterService } from '../application/builders/agente-contact-center.service';
+import { GerenciaService } from '../application/builders/gerencia.service';
+import { ComprasService } from '../application/builders/compras.service';
+import { AsesorRepuestoService } from '../application/builders/asesor-repuesto.service';
+import { MantenimientoService } from '../application/builders/mantenimiento.service';
 import { IDashboardCommonRepository } from '../domain/dashboard-common.repository';
 import { ITecnicoDashboardRepository } from '../domain/tecnico.repository';
 import { IAsesorRepuestoDashboardRepository } from '../domain/asesor-repuesto.repository';

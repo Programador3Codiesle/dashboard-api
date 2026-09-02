@@ -68,15 +68,20 @@ export type RepuestoCandidatoRow = {
   fecha_ingreso: string | null;
 };
 
-export interface IOrdenesTotRepository {
-  insertVehiculoORepuesto(
+export type TotListadoPage = {
+  items: TotListadoRow[];
+  total: number;
+};
+
+export abstract class IOrdenesTotRepository {
+  abstract insertVehiculoORepuesto(
     placa: string,
     orden: string,
     idUsuario: number,
     tipo: 'vehiculo' | 'repuesto',
   ): Promise<void>;
 
-  insertTot(params: {
+  abstract insertTot(params: {
     placa: string;
     orden: string;
     idUsuario: number;
@@ -84,33 +89,40 @@ export interface IOrdenesTotRepository {
     contenido: string | null;
   }): Promise<void>;
 
-  getUltimoIdByOrden(orden: string): Promise<number | null>;
+  abstract getUltimoIdByOrden(orden: string): Promise<number | null>;
 
-  countOtAbiertas(orden: string): Promise<number>;
+  abstract countOtAbiertas(orden: string): Promise<number>;
 
-  getSedesByNit(nit: number): Promise<number[]>;
+  abstract getSedesByNit(nit: number): Promise<number[]>;
 
   /** Sedes del usuario logueado vía id_usuario (sw_usuariosede). Más fiable que nit_real. */
-  getSedesByIdUsuario(idUsuario: number): Promise<number[]>;
+  abstract getSedesByIdUsuario(idUsuario: number): Promise<number[]>;
 
-  listarTot(sedes: number[], estado: 1 | 2): Promise<TotListadoRow[]>;
+  abstract listarTot(
+    sedes: number[],
+    estado: 1 | 2,
+    offset: number,
+    limit: number,
+  ): Promise<TotListadoRow[]>;
 
-  marcarReingreso(idVehiculo: number): Promise<boolean>;
+  abstract countTot(sedes: number[], estado: 1 | 2): Promise<number>;
 
-  infoVehiculoPorteria(): Promise<PorteriaVehiculoRow[]>;
+  abstract marcarReingreso(idVehiculo: number): Promise<boolean>;
 
-  infoTotPorteria(sedes: number[]): Promise<PorteriaTotRow[]>;
+  abstract infoVehiculoPorteria(): Promise<PorteriaVehiculoRow[]>;
 
-  infoOrdGralPorteria(): Promise<PorteriaOrdGralRow[]>;
+  abstract infoTotPorteria(sedes: number[]): Promise<PorteriaTotRow[]>;
 
-  confirmarSalida(idVehiculo: number): Promise<boolean>;
+  abstract infoOrdGralPorteria(): Promise<PorteriaOrdGralRow[]>;
 
-  infoTotRecibo(idVehiculo: number): Promise<TotReciboRow | null>;
+  abstract confirmarSalida(idVehiculo: number): Promise<boolean>;
+
+  abstract infoTotRecibo(idVehiculo: number): Promise<TotReciboRow | null>;
 
   /** Pendientes tipo vehículo de las sedes del usuario (por bodega de la OT). */
-  listarVehiculosPendientes(sedes: number[]): Promise<VehiculoPendienteRow[]>;
+  abstract listarVehiculosPendientes(
+    sedes: number[],
+  ): Promise<VehiculoPendienteRow[]>;
 
-  listarRepuestosCandidatos(): Promise<RepuestoCandidatoRow[]>;
+  abstract listarRepuestosCandidatos(): Promise<RepuestoCandidatoRow[]>;
 }
-
-export const ORDENES_TOT_REPOSITORY = Symbol('ORDENES_TOT_REPOSITORY');

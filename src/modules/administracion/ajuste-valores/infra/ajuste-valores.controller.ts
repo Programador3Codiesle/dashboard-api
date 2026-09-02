@@ -4,10 +4,15 @@ import {
   Put,
   Body,
   Param,
+  ParseIntPipe,
   Query,
   UseGuards,
 } from '@nestjs/common';
 import { AjusteValoresFacade } from '../application/ajuste-valores.facade';
+import {
+  AnoMesQueryDto,
+  TipoNumeroQueryDto,
+} from '../application/dto/ajuste-valores-query.dto';
 import { UpdateAjusteValoresDto } from '../application/dto/update-ajuste-valores.dto';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 
@@ -16,48 +21,38 @@ import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 export class AjusteValoresController {
   constructor(private readonly ajusteValoresFacade: AjusteValoresFacade) {}
 
-  @Get()
-  obtenerValores(@Query('tipo') tipo: string, @Query('numero') numero: string) {
-    return this.ajusteValoresFacade.obtenerValores(tipo, Number(numero));
-  }
-
   @Get('valores2')
-  obtenerValores2(
-    @Query('tipo') tipo: string,
-    @Query('numero') numero: string,
-  ) {
-    return this.ajusteValoresFacade.obtenerValores2(tipo, Number(numero));
+  obtenerValores2(@Query() query: TipoNumeroQueryDto) {
+    return this.ajusteValoresFacade.obtenerValores2(query.tipo, query.numero);
   }
 
   @Get('valores-cruce')
-  obtenerValoresCruce(
-    @Query('tipo') tipo: string,
-    @Query('numero') numero: string,
-  ) {
-    return this.ajusteValoresFacade.obtenerValoresCruce(tipo, Number(numero));
+  obtenerValoresCruce(@Query() query: TipoNumeroQueryDto) {
+    return this.ajusteValoresFacade.obtenerValoresCruce(
+      query.tipo,
+      query.numero,
+    );
   }
 
   @Get('documentos-cerrados')
-  validarDocumentosCerrados(
-    @Query('ano') ano: string,
-    @Query('mes') mes: string,
-  ) {
+  validarDocumentosCerrados(@Query() query: AnoMesQueryDto) {
     return this.ajusteValoresFacade.validarDocumentosCerrados(
-      Number(ano),
-      Number(mes),
+      query.ano,
+      query.mes,
     );
+  }
+
+  @Get()
+  obtenerValores(@Query() query: TipoNumeroQueryDto) {
+    return this.ajusteValoresFacade.obtenerValores(query.tipo, query.numero);
   }
 
   @Put(':numero')
   actualizarValores(
-    @Param('numero') numero: string,
+    @Param('numero', ParseIntPipe) numero: number,
     @Query('tipo') tipo: string,
     @Body() dto: UpdateAjusteValoresDto,
   ) {
-    return this.ajusteValoresFacade.actualizarValores(
-      Number(numero),
-      tipo,
-      dto,
-    );
+    return this.ajusteValoresFacade.actualizarValores(numero, tipo, dto);
   }
 }

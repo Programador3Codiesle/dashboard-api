@@ -10,6 +10,8 @@ import {
   ComisionAsesorRepuestoEntity,
   DetalleComisionAsesorRepuestoEntity,
 } from '../../domain/comisiones-asesores-repuestos.entity';
+import { PERFILES_COMISIONES_ASESORES_FILTRO_SESION } from '../../domain/comisiones-asesores-repuestos.constants';
+import { perfilEn } from '../../../shared/perfil';
 
 type AggregationRow = {
   subtotal: number | null;
@@ -80,7 +82,7 @@ export class ComisionesAsesoresRepuestosPrismaRepository implements IComisionesA
     const { mes, ano, perfilUsuario, nombreUsuarioSesion } = filtros;
     let asesores = [...this.asesoresBase];
 
-    if (perfilUsuario === 34 || perfilUsuario === 4) {
+    if (perfilEn(perfilUsuario, PERFILES_COMISIONES_ASESORES_FILTRO_SESION)) {
       const buscado = (nombreUsuarioSesion ?? '').trim().toUpperCase();
       asesores = buscado
         ? asesores.filter((a) => a.nombre.toUpperCase() === buscado)

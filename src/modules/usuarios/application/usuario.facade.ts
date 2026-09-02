@@ -1,7 +1,5 @@
-// src/modules/usuarios/infra/usuario.service.ts
 import { Injectable, BadRequestException } from '@nestjs/common';
 
-// DTOs
 import {
   CreateUsuarioDto,
   UpdateUsuarioDto,
@@ -12,20 +10,29 @@ import {
   AssignEmpresaDto,
 } from './dto';
 
-// Use-cases
 import { CreateUsuarioUseCase } from './use-cases/create-usuario.usecase';
 import { UpdateUsuarioUseCase } from './use-cases/update-usuario.usecase';
+import { ListPerfilesUseCase } from './use-cases/list-perfiles.usecase';
+import { ResetPasswordUseCase } from './use-cases/reset-password.usecase';
+import { ToggleUsuarioEstadoUseCase } from './use-cases/toggle-usuario-estado.usecase';
 import { AssignSedeUseCase } from './use-cases/assign-sede.usecase';
 import { AssignJefeUseCase } from './use-cases/assign-jefe.usecase';
 import { AssignHorarioUseCase } from './use-cases/assign-horario.usecase';
 import { AssignEmpresaUseCase } from './use-cases/assign-empresa.usecase';
 import { GetUsuariosUseCase } from './use-cases/get-usuarios.usecase';
 
+function toUsuarioId(id: number | string): number {
+  return typeof id === 'string' ? Number(id) : id;
+}
+
 @Injectable()
 export class UsuarioFacade {
   constructor(
     private readonly createUsuarioUC: CreateUsuarioUseCase,
     private readonly updateUsuarioUC: UpdateUsuarioUseCase,
+    private readonly listPerfilesUC: ListPerfilesUseCase,
+    private readonly resetPasswordUC: ResetPasswordUseCase,
+    private readonly toggleUsuarioEstadoUC: ToggleUsuarioEstadoUseCase,
     private readonly assignSedeUC: AssignSedeUseCase,
     private readonly assignJefeUC: AssignJefeUseCase,
     private readonly assignHorarioUC: AssignHorarioUseCase,
@@ -33,91 +40,65 @@ export class UsuarioFacade {
     private readonly getUsuariosUC: GetUsuariosUseCase,
   ) {}
 
-  /** Listar usuarios (paginación: page, limit) */
   async listar(page?: number, limit?: number, search?: string) {
     return this.getUsuariosUC.execute(page, limit, search);
   }
 
-  /** Crear usuario */
   async crearUsuario(dto: CreateUsuarioDto) {
     return this.createUsuarioUC.crearUsuario(dto);
   }
 
-  /** Actualizar usuario */
   async actualizarUsuario(id: number | string, dto: UpdateUsuarioDto) {
-    const _id = typeof id === 'string' ? Number(id) : id;
-    return this.updateUsuarioUC.actualizarUsuario(_id, dto);
+    return this.updateUsuarioUC.actualizarUsuario(toUsuarioId(id), dto);
   }
 
-  /** Listar perfiles */
   async listarPerfiles() {
-    return this.updateUsuarioUC.listarPerfiles();
+    return this.listPerfilesUC.listarPerfiles();
   }
 
-  /** Listar perfil del usuario */
   async listarPerfilUsuario(id: number | string) {
-    const _id = typeof id === 'string' ? Number(id) : id;
-    return this.updateUsuarioUC.listarPerfilUsuario(_id);
+    return this.listPerfilesUC.listarPerfilUsuario(toUsuarioId(id));
   }
 
-  /** Ver sedes del usuario */
   async verSedeUsuario(id: number | string) {
-    const _id = typeof id === 'string' ? Number(id) : id;
-    return this.assignSedeUC.verSedeUsuario(_id);
+    return this.assignSedeUC.verSedeUsuario(toUsuarioId(id));
   }
 
-  /** Ver sedes */
   async verSedes() {
     return this.assignSedeUC.verSedes();
   }
 
-  /** Asignar sede al usuario */
   async asignarSede(id: number | string, dto: AssignSedeDto) {
-    const _id = typeof id === 'string' ? Number(id) : id;
-    return this.assignSedeUC.asignarSede(_id, dto);
+    return this.assignSedeUC.asignarSede(toUsuarioId(id), dto);
   }
 
-  /** Eliminar sede al usuario */
   async eliminarSede(id: number | string, dto: AssignSedeDto) {
-    const _id = typeof id === 'string' ? Number(id) : id;
-    return this.assignSedeUC.eliminarSede(_id, dto);
+    return this.assignSedeUC.eliminarSede(toUsuarioId(id), dto);
   }
 
-  /** Ver jefes del usuario */
   async verJefes(id: number | string) {
-    const _id = typeof id === 'string' ? Number(id) : id;
-    return this.assignJefeUC.verJefes(_id);
+    return this.assignJefeUC.verJefes(toUsuarioId(id));
   }
 
-  /** Ver jefes del usuario autenticado (por NIT) */
   async verMisJefes(nitEmpleado: number | string) {
-    const _nit =
-      typeof nitEmpleado === 'string' ? Number(nitEmpleado) : nitEmpleado;
-    return this.assignJefeUC.verJefesPorNit(_nit);
+    return this.assignJefeUC.verJefesPorNit(toUsuarioId(nitEmpleado));
   }
 
-  /** Ver jefes */
   async verJefesAll() {
     return this.assignJefeUC.verJefesAll();
   }
 
-  /** Asignar jefe al usuario */
   async asignarJefe(id: number | string, dto: AssignJefeDto) {
-    const _id = typeof id === 'string' ? Number(id) : id;
-    return this.assignJefeUC.asignarJefe(_id, dto);
+    return this.assignJefeUC.asignarJefe(toUsuarioId(id), dto);
   }
 
-  /** Eliminar jefe al usuario */
   async eliminarJefe(id: number | string, dto: AssignJefeDto) {
-    const _id = typeof id === 'string' ? Number(id) : id;
-    return this.assignJefeUC.eliminarJefe(_id, dto);
+    return this.assignJefeUC.eliminarJefe(toUsuarioId(id), dto);
   }
 
-  // usuario.service.ts
   async asignarEmpresa(id: string, dto: AssignEmpresaDto) {
     const _id = typeof id === 'string' ? String(id) : id;
 
-    // Validar que empresas no sea undefined
     if (!dto.empresas || dto.empresas.length === 0) {
       throw new BadRequestException('Debe especificar al menos una empresa');
     }
@@ -125,53 +106,38 @@ export class UsuarioFacade {
     return this.assignEmpresaUC.execute(_id, dto.empresas);
   }
 
-  /** Eliminar empresa al usuario */
   async eliminarEmpresa(id: number | string, dto: AssignEmpresaDto) {
-    const _id = typeof id === 'string' ? Number(id) : id;
-    return this.assignEmpresaUC.eliminarEmpresa(_id, dto);
+    return this.assignEmpresaUC.eliminarEmpresa(toUsuarioId(id), dto);
   }
 
-  /** Ver horario del usuario */
   async verHorario(id: number | string) {
-    const _id = typeof id === 'string' ? Number(id) : id;
-    return this.assignHorarioUC.verHorario(_id);
+    return this.assignHorarioUC.verHorario(toUsuarioId(id));
   }
 
-  /** Asignar horario al usuario */
   async asignarHorario(id: number | string, dto: AssignHorarioDto) {
-    const _id = typeof id === 'string' ? Number(id) : id;
-    return this.assignHorarioUC.asignarHorario(_id, dto);
+    return this.assignHorarioUC.asignarHorario(toUsuarioId(id), dto);
   }
 
-  /** Reset contraseña */
   async resetPassword(id: number | string, dto: UpdateUsuarioDto) {
-    const _id = typeof id === 'string' ? Number(id) : id;
-    return this.updateUsuarioUC.resetPassword(_id, dto);
+    return this.resetPasswordUC.resetPassword(toUsuarioId(id), dto);
   }
 
-  /** Deshabilitar usuario */
   async deshabilitar(id: number | string) {
-    const _id = typeof id === 'string' ? Number(id) : id;
-    return this.updateUsuarioUC.deshabilitar(_id);
+    return this.toggleUsuarioEstadoUC.deshabilitar(toUsuarioId(id));
   }
 
-  /** Habilitar usuario */
   async habilitar(id: number | string) {
-    const _id = typeof id === 'string' ? Number(id) : id;
-    return this.updateUsuarioUC.habilitar(_id);
+    return this.toggleUsuarioEstadoUC.habilitar(toUsuarioId(id));
   }
 
-  /** Ver jefes general */
   async verJefesAllGeneral() {
     return this.assignJefeUC.verJefesAllGeneral();
   }
 
-  /** Ver Usuarios jefes */
   async verUsuariosJefes() {
     return this.assignJefeUC.verUsuariosJefes();
   }
 
-  /** Crear jefe */
   async crearJefe(dto: CreateJefeDto) {
     return this.assignJefeUC.crearJefe(dto);
   }

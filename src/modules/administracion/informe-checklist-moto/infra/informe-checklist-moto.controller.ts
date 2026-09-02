@@ -1,6 +1,8 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 import { ChecklistMotoFacade } from '../application/checklist-moto.facade';
 
+@UseGuards(JwtAuthGuard)
 @Controller('informes/informe-checklist-moto')
 export class InformeChecklistMotoController {
   constructor(private readonly facade: ChecklistMotoFacade) {}

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
+import { itemAuditoriaColumn } from '../../../shared/utils/item-auditoria-column';
 import type { AuditoriaEmailInfo } from '../../application/auditoria-contact-email.service';
 
 export type IndicadorRow = {
@@ -78,7 +79,9 @@ export class AuditoriaContactRepository {
   }
 
   async getCantPreguntas(): Promise<number> {
-    const rows = await this.prisma.$queryRaw<Array<{ cantidad: number }>>(Prisma.sql`
+    const rows = await this.prisma.$queryRaw<
+      Array<{ cantidad: number }>
+    >(Prisma.sql`
       SELECT COUNT(*) as cantidad FROM dbo.postv_auditoria_indicador_item
     `);
     return Number(rows[0]?.cantidad ?? 0);
@@ -101,9 +104,9 @@ export class AuditoriaContactRepository {
     idItem: number,
     opt: number,
   ): Promise<boolean> {
-    const col = `[item_${idItem}]`;
+    const col = itemAuditoriaColumn(idItem);
     const result = await this.prisma.$executeRaw(
-      Prisma.sql`UPDATE postv_auditoria_agente SET ${Prisma.raw(col)} = ${opt} WHERE id_auditoria = ${idAuditoria}`,
+      Prisma.sql`UPDATE postv_auditoria_agente SET ${col} = ${opt} WHERE id_auditoria = ${idAuditoria}`,
     );
     return result > 0;
   }
@@ -140,8 +143,12 @@ export class AuditoriaContactRepository {
     `);
   }
 
-  async getAuditoriaId(idAuditoria: number): Promise<Record<string, unknown> | null> {
-    const rows = await this.prisma.$queryRaw<Record<string, unknown>[]>(Prisma.sql`
+  async getAuditoriaId(
+    idAuditoria: number,
+  ): Promise<Record<string, unknown> | null> {
+    const rows = await this.prisma.$queryRaw<
+      Record<string, unknown>[]
+    >(Prisma.sql`
       SELECT ae.id_auditoria, ae.nit_agente, t.nombres, ae.fecha_creacion,
         ae.fecha_finalizacion, ae.puntuacion, ae.*
       FROM dbo.postv_auditoria_agente ae
@@ -170,7 +177,10 @@ export class AuditoriaContactRepository {
     return result > 0;
   }
 
-  async updateIndicadores(idIndicador: number, puntos: number): Promise<boolean> {
+  async updateIndicadores(
+    idIndicador: number,
+    puntos: number,
+  ): Promise<boolean> {
     const result = await this.prisma.$executeRaw(Prisma.sql`
       UPDATE postv_auditoria_indicador SET puntuacion = ${puntos} WHERE id_indicador = ${idIndicador}
     `);
@@ -195,9 +205,9 @@ export class AuditoriaContactRepository {
   }
 
   async addPreguntaAuditoria(idItem: number): Promise<boolean> {
-    const col = `[item_${idItem}]`;
+    const col = itemAuditoriaColumn(idItem);
     await this.prisma.$executeRaw(
-      Prisma.sql`ALTER TABLE postv_auditoria_agente ADD ${Prisma.raw(col)} tinyint NULL`,
+      Prisma.sql`ALTER TABLE postv_auditoria_agente ADD ${col} tinyint NULL`,
     );
     return true;
   }
@@ -243,7 +253,9 @@ export class AuditoriaContactRepository {
     return result > 0;
   }
 
-  async getAuditoriaEmail(idAuditoria: number): Promise<AuditoriaEmailInfo | null> {
+  async getAuditoriaEmail(
+    idAuditoria: number,
+  ): Promise<AuditoriaEmailInfo | null> {
     const rows = await this.prisma.$queryRaw<AuditoriaEmailInfo[]>(Prisma.sql`
       SELECT t.primer_nombre, e.e_mail as mailEncargado, c.nombre, c.e_mail, a.observaciones
       FROM postv_auditoria_agente a
@@ -281,7 +293,9 @@ export class AuditoriaContactRepository {
   }
 
   async countAuditoriasPendientes(): Promise<number> {
-    const rows = await this.prisma.$queryRaw<Array<{ cantidad: number }>>(Prisma.sql`
+    const rows = await this.prisma.$queryRaw<
+      Array<{ cantidad: number }>
+    >(Prisma.sql`
       SELECT COUNT(*) AS cantidad FROM postv_auditoria_agente a WHERE a.fecha_finalizacion IS NULL
     `);
     return Number(rows[0]?.cantidad ?? 0);

@@ -190,7 +190,10 @@ export class AuditoriaContactFacade {
   async listarAgente(nitAgente: number) {
     const rows = await this.repo.getAuditoriaAgentesAll(nitAgente);
     return rows
-      .filter((r) => r['fecha_finalizacion'] != null && r['fecha_finalizacion'] !== '')
+      .filter(
+        (r) =>
+          r['fecha_finalizacion'] != null && r['fecha_finalizacion'] !== '',
+      )
       .map((row) => this.mapAuditoriaListItem(row, false));
   }
 
@@ -240,12 +243,14 @@ export class AuditoriaContactFacade {
       puntuacion: auditoria['puntuacion'],
       compromiso: auditoria['compromiso'],
       observaciones: auditoria['observaciones'],
-      puedeAgregarCompromiso:
-        modo === 'agente' && !auditoria['compromiso'],
-      archivos: files.map((f) => ({
-        url: `/uploads/auditoria-contact/${f['url_file']}`,
-        nombre: f['url_file'],
-      })),
+      puedeAgregarCompromiso: modo === 'agente' && !auditoria['compromiso'],
+      archivos: files.map((f) => {
+        const urlFile = typeof f['url_file'] === 'string' ? f['url_file'] : '';
+        return {
+          url: `/uploads/auditoria-contact/${urlFile}`,
+          nombre: urlFile,
+        };
+      }),
       indicadores,
     };
   }
@@ -272,7 +277,8 @@ export class AuditoriaContactFacade {
       }>;
     }> = [];
 
-    const pendiente = auditoria['puntuacion'] == null || auditoria['puntuacion'] === '';
+    const pendiente =
+      auditoria['puntuacion'] == null || auditoria['puntuacion'] === '';
 
     for (const ind of indicadores) {
       if (soloHabilitados && ind.estado === 1) continue;
@@ -426,7 +432,10 @@ export class AuditoriaContactFacade {
 
   async addItem(dto: AddItemDto, perfil: number) {
     this.assertAdmin(perfil);
-    const idItem = await this.repo.insertItemXind(dto.id_indicador, dto.concepto);
+    const idItem = await this.repo.insertItemXind(
+      dto.id_indicador,
+      dto.concepto,
+    );
     if (idItem <= 0) return { result: 0 };
 
     try {
@@ -493,10 +502,7 @@ export class AuditoriaContactFacade {
   private async buildObservacionesEmail(
     auditoria: Record<string, unknown>,
   ): Promise<string> {
-    const [indicadores, allItems] = await Promise.all([
-      this.repo.getIndicadores(),
-      this.repo.getAllItems(false),
-    ]);
+    const allItems = await this.repo.getAllItems(false);
     const itemsNo: Array<{ id_item: number; concepto: string }> = [];
 
     for (const item of allItems) {

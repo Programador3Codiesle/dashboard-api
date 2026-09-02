@@ -8,10 +8,14 @@ export class InformeBaseDatosFacade {
 
   async consultar(dto: ConsultarInformeBaseDatosDto) {
     if (dto.tipoInfDB !== '2' && !dto.dateStart) {
-      throw new BadRequestException('dateStart es obligatorio para este tipo de informe');
+      throw new BadRequestException(
+        'dateStart es obligatorio para este tipo de informe',
+      );
     }
     if (dto.dateStart && dto.dateEnd && dto.dateEnd < dto.dateStart) {
-      throw new BadRequestException('La fecha hasta no puede ser menor que la fecha desde');
+      throw new BadRequestException(
+        'La fecha hasta no puede ser menor que la fecha desde',
+      );
     }
 
     const rows = await this.repo.consultar(dto);

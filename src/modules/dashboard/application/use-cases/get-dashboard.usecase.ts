@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { IDashboardCommonRepository } from '../../domain/dashboard-common.repository';
 import {
   PERFIL_JEFE_TALLER,
+  PERFIL_JEFE_TALLER_ALT,
   PERFIL_INFORME_TECNICOS,
   PERFIL_MTO,
   PERFIL_AGENTE_CC,
@@ -10,14 +11,14 @@ import {
   PERFIL_COMPRAS,
 } from '../../domain/dashboard.constants';
 import type { DashboardResponseDto } from '../dto/dashboard-response.dto';
-import { JefeTallerService } from '../../infra/services/jefe-taller.service';
-import { TecnicoService } from '../../infra/services/tecnico.service';
-import { AdministracionService } from '../../infra/services/administracion.service';
-import { AgenteContactCenterService } from '../../infra/services/agente-contact-center.service';
-import { GerenciaService } from '../../infra/services/gerencia.service';
-import { ComprasService } from '../../infra/services/compras.service';
-import { AsesorRepuestoService } from '../../infra/services/asesor-repuesto.service';
-import { MantenimientoService } from '../../infra/services/mantenimiento.service';
+import { JefeTallerService } from '../builders/jefe-taller.service';
+import { TecnicoService } from '../builders/tecnico.service';
+import { AdministracionService } from '../builders/administracion.service';
+import { AgenteContactCenterService } from '../builders/agente-contact-center.service';
+import { GerenciaService } from '../builders/gerencia.service';
+import { ComprasService } from '../builders/compras.service';
+import { AsesorRepuestoService } from '../builders/asesor-repuesto.service';
+import { MantenimientoService } from '../builders/mantenimiento.service';
 
 @Injectable()
 export class GetDashboardUseCase {
@@ -48,7 +49,10 @@ export class GetDashboardUseCase {
       fechaRow?.fecha_actual ?? new Date().toISOString().slice(0, 10);
     const diaFestivo = await this.commonRepo.diasFestivos(fechaActual);
 
-    if (perfilNum === PERFIL_JEFE_TALLER || perfilNum === 20) {
+    if (
+      perfilNum === PERFIL_JEFE_TALLER ||
+      perfilNum === PERFIL_JEFE_TALLER_ALT
+    ) {
       return this.jefeTallerService.buildJefeTaller(
         nitUsuario,
         fechaActual,

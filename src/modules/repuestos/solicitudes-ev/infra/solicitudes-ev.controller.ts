@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
-import { assertCodieselEmpresa } from '../../shared/utils/assert-codiesel.util';
+import { CodieselEmpresaGuard } from '../../shared/utils/codiesel-empresa.guard';
 import { getRepuestosSessionUser } from '../../shared/utils/repuestos-user.util';
 import { SolicitudesEvFacade } from '../application/solicitudes-ev.facade';
 import {
@@ -12,14 +12,13 @@ import {
   RegistrarSvDto,
 } from '../application/dto/solicitudes-ev.dto';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, CodieselEmpresaGuard)
 @Controller('repuestos/solicitudes-ev')
 export class SolicitudesEvController {
   constructor(private readonly facade: SolicitudesEvFacade) {}
 
   @Get('bodegas')
-  listarBodegas(@Req() req: { cookies?: Record<string, string> }) {
-    assertCodieselEmpresa(req);
+  listarBodegas() {
     return this.facade.listarBodegas();
   }
 
@@ -32,7 +31,6 @@ export class SolicitudesEvController {
     },
     @Body() dto: ListarSolicitudesEvDto,
   ) {
-    assertCodieselEmpresa(req);
     const { userId, perfil } = getRepuestosSessionUser(req);
     return this.facade.listar(dto, userId, perfil);
   }
@@ -46,7 +44,6 @@ export class SolicitudesEvController {
     },
     @Body() dto: DetalleSolicitudEvDto,
   ) {
-    assertCodieselEmpresa(req);
     const { userId, perfil } = getRepuestosSessionUser(req);
     return this.facade.obtenerDetalle(dto, userId, perfil);
   }
@@ -60,7 +57,6 @@ export class SolicitudesEvController {
     },
     @Body() dto: AutorizarSolicitudEvDto,
   ) {
-    assertCodieselEmpresa(req);
     const { userId, perfil } = getRepuestosSessionUser(req);
     return this.facade.autorizar(dto, userId, perfil);
   }
@@ -74,7 +70,6 @@ export class SolicitudesEvController {
     },
     @Body() dto: RegistrarEvDto,
   ) {
-    assertCodieselEmpresa(req);
     const { userId, perfil } = getRepuestosSessionUser(req);
     return this.facade.registrarEv(dto, userId, perfil);
   }
@@ -88,7 +83,6 @@ export class SolicitudesEvController {
     },
     @Body() dto: RegistrarSvDto,
   ) {
-    assertCodieselEmpresa(req);
     const { userId, perfil } = getRepuestosSessionUser(req);
     return this.facade.registrarSv(dto, userId, perfil);
   }
@@ -102,7 +96,6 @@ export class SolicitudesEvController {
     },
     @Body() dto: MarcarEntregadoDto,
   ) {
-    assertCodieselEmpresa(req);
     const { userId, perfil } = getRepuestosSessionUser(req);
     return this.facade.marcarEntregado(dto, userId, perfil);
   }

@@ -8,7 +8,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
-import { assertCodieselEmpresa } from '../../shared/utils/assert-codiesel.util';
+import { CodieselEmpresaGuard } from '../../shared/utils/codiesel-empresa.guard';
 import { getContactCenterSessionUser } from '../../shared/utils/contact-center-user.util';
 import { AgendamientoLeadsFacade } from '../application/agendamiento-leads.facade';
 import {
@@ -22,45 +22,39 @@ type CcRequest = {
   user?: { sub?: number; role?: number; nit?: number };
 };
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, CodieselEmpresaGuard)
 @Controller('contact-center/agendamiento-leads')
 export class AgendamientoLeadsController {
   constructor(private readonly facade: AgendamientoLeadsFacade) {}
 
   @Post('listar')
   listar(@Req() req: CcRequest, @Body() dto: ListarLeadsDto) {
-    assertCodieselEmpresa(req);
     const { userId, perfil } = getContactCenterSessionUser(req);
     return this.facade.listar(dto, userId, perfil);
   }
 
   @Post('asignar')
-  asignar(@Req() req: CcRequest, @Body() dto: AsignarLeadsDto) {
-    assertCodieselEmpresa(req);
+  asignar(@Body() dto: AsignarLeadsDto) {
     return this.facade.asignar(dto);
   }
 
   @Post('gestionar')
-  gestionar(@Req() req: CcRequest, @Body() dto: GestionarLeadDto) {
-    assertCodieselEmpresa(req);
+  gestionar(@Body() dto: GestionarLeadDto) {
     return this.facade.gestionar(dto);
   }
 
   @Get('motivos')
-  motivos(@Req() req: CcRequest) {
-    assertCodieselEmpresa(req);
+  motivos() {
     return this.facade.getMotivos();
   }
 
   @Get('agentes-asignacion')
-  agentesAsignacion(@Req() req: CcRequest) {
-    assertCodieselEmpresa(req);
+  agentesAsignacion() {
     return this.facade.getAgentesAsignacion();
   }
 
   @Get('export')
-  async export(@Req() req: CcRequest): Promise<StreamableFile> {
-    assertCodieselEmpresa(req);
+  async export(): Promise<StreamableFile> {
     const buffer = await this.facade.exportarExcel();
     return new StreamableFile(buffer, {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',

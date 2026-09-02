@@ -1,6 +1,14 @@
-import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Controller,
+  Get,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
+import { JwtAuthGuard } from '../../../../auth/infra/jwt-auth.guard';
 import { EntradaVhFacade } from '../application/entrada-vh.facade';
 
+@UseGuards(JwtAuthGuard)
 @Controller('informes/postventa/entrada-vh')
 export class InformeEntradaVhController {
   constructor(private readonly entradaVhFacade: EntradaVhFacade) {}

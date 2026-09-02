@@ -25,7 +25,7 @@ export class ChecklistGuardarFacade {
       throw new BadRequestException('Tipo de checklist inválido');
     }
 
-    const tipo = dto.check as ChecklistTipo;
+    const tipo = dto.check;
     const data = this.normalizarData(tipo, dto.data);
     this.validarRequeridos(tipo, data);
 
@@ -35,10 +35,8 @@ export class ChecklistGuardarFacade {
     }
 
     const responsable = responsableFromData(tipo, data);
-    if (nitUsuario > 0) {
-      const correos = await this.repo.obtenerCorreosJefes(nitUsuario);
-      void this.emailService.notificar(tipo, responsable, id, correos);
-    }
+    const correos = await this.repo.obtenerCorreosJefes(nitUsuario);
+    void this.emailService.notificar(tipo, responsable, id, correos);
 
     return { ok: true, id };
   }
@@ -55,25 +53,37 @@ export class ChecklistGuardarFacade {
     }
 
     if (tipo === 4 && data.observacion_func_elevacion != null) {
-      data.observacion_funcionamiento_elevacion = data.observacion_func_elevacion;
+      data.observacion_funcionamiento_elevacion =
+        data.observacion_func_elevacion;
       delete data.observacion_func_elevacion;
     }
 
     return data;
   }
 
-  private validarRequeridos(tipo: ChecklistTipo, data: Record<string, unknown>) {
+  private validarRequeridos(
+    tipo: ChecklistTipo,
+    data: Record<string, unknown>,
+  ) {
     const allowed = CHECKLIST_COLUMNAS[tipo];
     const keys = new Set(Object.keys(data));
 
     if (tipo === 0) {
       if (!data.area_trabajo || !data.proposito_trabajo || !data.fecha) {
-        throw new BadRequestException('Complete los campos obligatorios del formulario');
+        throw new BadRequestException(
+          'Complete los campos obligatorios del formulario',
+        );
       }
       return;
     }
 
-    const generales = ['responsable', 'equipo', 'codigo', 'sede', 'fecha'] as const;
+    const generales = [
+      'responsable',
+      'equipo',
+      'codigo',
+      'sede',
+      'fecha',
+    ] as const;
     for (const g of generales) {
       if (allowed.includes(g) && !keys.has(g)) {
         throw new BadRequestException(`El campo ${g} es obligatorio`);

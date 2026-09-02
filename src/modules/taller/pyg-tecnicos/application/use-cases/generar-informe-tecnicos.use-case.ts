@@ -1,19 +1,11 @@
-import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   GenerarInformeTecnicosResponseEntity,
   InformeTecnicoCalculadoEntity,
 } from '../../domain/entities/pyg-tecnicos.entity';
 import { IPygTecnicosRepository } from '../../domain/repositories/pyg-tecnicos.repository.interface';
 import { GenerarInformeDto } from '../dto/generar-informe.dto';
-
-function parseMonthFromYearMonth(value: string): number {
-  const parts = value.split('-');
-  return Number(parts[1]);
-}
+import { assertPygPeriodo } from '../../../shared/pyg-periodo';
 
 @Injectable()
 export class GenerarInformeTecnicosUseCase {
@@ -22,24 +14,7 @@ export class GenerarInformeTecnicosUseCase {
   async execute(
     dto: GenerarInformeDto,
   ): Promise<GenerarInformeTecnicosResponseEntity> {
-    if (dto.yearTwo >= dto.yearOne) {
-      throw new BadRequestException(
-        'El año a comparar debe ser menor al año del informe',
-      );
-    }
-
-    const monthOne = parseMonthFromYearMonth(dto.monthOne);
-    const monthTwo = parseMonthFromYearMonth(dto.monthTwo);
-
-    if (!Number.isFinite(monthOne) || !Number.isFinite(monthTwo)) {
-      throw new BadRequestException('Mes inválido en los filtros');
-    }
-
-    if (monthOne > monthTwo) {
-      throw new BadRequestException(
-        'El mes DESDE debe ser menor o igual al mes HASTA',
-      );
-    }
+    const { monthOne, monthTwo } = assertPygPeriodo(dto);
 
     const dataInforme = await this.repository.getDataInforme(
       dto.yearOne,

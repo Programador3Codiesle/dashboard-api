@@ -59,6 +59,14 @@ export class InfDetalleDto {
   nitAgente!: number;
 }
 
+export class IndicadoresPuntosDto {
+  @IsInt()
+  id_indicador!: number;
+
+  @IsInt()
+  estado!: number;
+}
+
 export class UpdateIndEstadoDto {
   @IsString()
   datosInd!: string;

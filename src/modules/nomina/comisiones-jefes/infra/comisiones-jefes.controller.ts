@@ -10,6 +10,16 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 import { ComisionesJefesFacade } from '../application/comisiones-jefes.facade';
+import { parseYearMonthParam } from '../../shared/parse-year-month';
+import {
+  nominaNitFromRequest,
+  nominaPerfilFromRequest,
+  type NominaAuthRequest,
+} from '../../shared/nomina-auth-request';
+import {
+  toActualizarValoresHttpResponse,
+  toCheckValoresHttpResponse,
+} from '../application/mappers/comisiones-jefes.http';
 
 @Controller('nomina/comisiones-jefes')
 @UseGuards(JwtAuthGuard)
@@ -17,17 +27,13 @@ export class ComisionesJefesController {
   constructor(private readonly facade: ComisionesJefesFacade) {}
 
   @Get()
-  async listar(@Req() req: any, @Query('mes') mes: string) {
-    if (!mes || !/^\d{4}-\d{2}$/.test(mes)) {
-      throw new BadRequestException(
-        'El parámetro mes es obligatorio con formato YYYY-MM.',
-      );
-    }
-    const [anoStr, mesStr] = mes.split('-');
-    const ano = Number(anoStr);
-    const mesNum = Number(mesStr);
-    const perfilUsuario = req.user?.role ? Number(req.user.role) : null;
-    const nitUsuarioSesion = req.user?.nit ? Number(req.user.nit) : null;
+  async listar(@Req() req: NominaAuthRequest, @Query('mes') mes: string) {
+    const { ano, mes: mesNum } = parseYearMonthParam(
+      mes,
+      'El parámetro mes es obligatorio con formato YYYY-MM.',
+    );
+    const perfilUsuario = nominaPerfilFromRequest(req);
+    const nitUsuarioSesion = nominaNitFromRequest(req);
 
     return this.facade.listarComisiones({
       mes: mesNum,
@@ -79,17 +85,7 @@ export class ComisionesJefesController {
       comboJefes,
       sede,
     });
-    return {
-      status: result.data.length > 0,
-      title: result.data.length > 0 ? 'Exito' : 'Advertencia',
-      icon: result.data.length > 0 ? 'success' : 'warning',
-      message:
-        result.data.length > 0
-          ? 'Cargando la información de los bonos.'
-          : 'No se ha encontrado información en la base de datos, con los campos seleccionados.',
-      data: result.data,
-      bono: result.bonoMatriz ? [result.bonoMatriz] : null,
-    };
+    return toCheckValoresHttpResponse(result);
   }
 
   @Post('actualizar-valores')
@@ -113,11 +109,6 @@ export class ComisionesJefesController {
       bonoNpsInterno: bonoNpsInterno === '1',
     });
 
-    return {
-      status: result.updated,
-      title: result.updated ? 'Exito' : 'Error',
-      icon: result.updated ? 'success' : 'error',
-      message: result.message,
-    };
+    return toActualizarValoresHttpResponse(result);
   }
 }

@@ -1,11 +1,14 @@
-export const ENCUESTAS_REPOSITORY = Symbol('ENCUESTAS_REPOSITORY');
-
 export type SatisfaccionListItem = {
   nit_real: string;
   nombres: string;
   numero: string;
   placa: string;
   fecha: string;
+};
+
+export type SatisfaccionListadoPage = {
+  items: SatisfaccionListItem[];
+  total: number;
 };
 
 export type SatisfaccionDetalleOrden = {
@@ -96,35 +99,30 @@ export type ContactoPlaca = {
   mail: string | null;
 };
 
-export type ResponderEncuestaQrInput = {
-  placa: string;
-  pregunta1: string | number;
-  pregunta4: string | number | null;
-  pregunta5: string | number | null;
-  pregunta7: string | null;
-  bod: string | number;
-  numero: string | number;
-  fieldNit: string | number;
-  propietario: string | number;
-  bodega?: string | number;
-};
+export abstract class IEncuestasRepository {
+  abstract listarSatisfaccion(
+    q: string,
+    offset: number,
+    limit: number,
+  ): Promise<SatisfaccionListadoPage>;
+  abstract detalleOrdenSatisfaccion(
+    ot: string,
+  ): Promise<SatisfaccionDetalleOrden | null>;
+  abstract respuestasSatisfaccion(
+    ot: string,
+  ): Promise<SatisfaccionRespuestas | null>;
 
-export interface EncuestasRepository {
-  listarSatisfaccion(): Promise<SatisfaccionListItem[]>;
-  detalleOrdenSatisfaccion(ot: string): Promise<SatisfaccionDetalleOrden | null>;
-  respuestasSatisfaccion(ot: string): Promise<SatisfaccionRespuestas | null>;
+  abstract listarTecnicosNps(): Promise<TecnicoNps[]>;
+  abstract contarNpsSede(fecha: string, sede: string): Promise<number>;
+  abstract insertNpsSede(data: NpsSedeInput): Promise<boolean>;
+  abstract updateNpsSede(data: NpsSedeInput): Promise<boolean>;
+  abstract contarNpsTecnico(fecha: string, tecnico: string): Promise<number>;
+  abstract insertNpsTecnico(data: NpsTecnicoInput): Promise<boolean>;
+  abstract updateNpsTecnico(data: NpsTecnicoInput): Promise<boolean>;
 
-  listarTecnicosNps(): Promise<TecnicoNps[]>;
-  contarNpsSede(fecha: string, sede: string): Promise<number>;
-  insertNpsSede(data: NpsSedeInput): Promise<boolean>;
-  updateNpsSede(data: NpsSedeInput): Promise<boolean>;
-  contarNpsTecnico(fecha: string, tecnico: string): Promise<number>;
-  insertNpsTecnico(data: NpsTecnicoInput): Promise<boolean>;
-  updateNpsTecnico(data: NpsTecnicoInput): Promise<boolean>;
-
-  contarEncuestaGm(idEncuesta: string): Promise<number>;
-  insertEncuestaGm(row: EncuestaGmRow): Promise<boolean>;
-  insertNpsTec(row: {
+  abstract contarEncuestaGm(idEncuesta: string): Promise<number>;
+  abstract insertEncuestaGm(row: EncuestaGmRow): Promise<boolean>;
+  abstract insertNpsTec(row: {
     nit_tecnico: string;
     nom_cliente: string;
     fecha_recibido_enc: string;
@@ -132,10 +130,15 @@ export interface EncuestasRepository {
     sede: string;
   }): Promise<boolean>;
 
-  listarPreguntasEncuesta(): Promise<PreguntaEncuesta[]>;
-  buscarEncuestaByPlaca(placa: string): Promise<VehiculoEncuestaQr | null>;
-  buscarContactoByNit(nit: string, placa: string): Promise<ContactoPlaca | null>;
-  insertContactoPlaca(data: {
+  abstract listarPreguntasEncuesta(): Promise<PreguntaEncuesta[]>;
+  abstract buscarEncuestaByPlaca(
+    placa: string,
+  ): Promise<VehiculoEncuestaQr | null>;
+  abstract buscarContactoByNit(
+    nit: string,
+    placa: string,
+  ): Promise<ContactoPlaca | null>;
+  abstract insertContactoPlaca(data: {
     placa: string;
     nit: string;
     nombres: string;
@@ -143,7 +146,7 @@ export interface EncuestasRepository {
     mail: string;
     fecha_registro: string;
   }): Promise<boolean>;
-  updateContactoPlaca(
+  abstract updateContactoPlaca(
     where: { nit: string; placa: string },
     data: {
       nombres?: string;
@@ -153,11 +156,11 @@ export interface EncuestasRepository {
       fecha_actualizacion?: string;
     },
   ): Promise<boolean>;
-  updateTercero(
+  abstract updateTercero(
     nit: string,
     data: { mail?: string; celular?: string; concepto_7?: number },
   ): Promise<boolean>;
-  insertEncuestaSatisfaccionQr(data: {
+  abstract insertEncuestaSatisfaccionQr(data: {
     placa: string;
     fecha: string;
     pregunta1: string | number;
@@ -169,8 +172,8 @@ export interface EncuestasRepository {
     bod: string | number;
     numero_orden: string | number;
   }): Promise<boolean>;
-  selectOrdenSalida(numero: string | number): Promise<boolean>;
-  updateOrdenSalida(
+  abstract selectOrdenSalida(numero: string | number): Promise<boolean>;
+  abstract updateOrdenSalida(
     numero: string | number,
     data: {
       encuesta: number;
@@ -179,7 +182,7 @@ export interface EncuestasRepository {
       usuario_vh: string | number;
     },
   ): Promise<number>;
-  insertOrdenSalida(data: {
+  abstract insertOrdenSalida(data: {
     numero: string | number;
     placa_vh?: string;
     bodega_o?: string | number;

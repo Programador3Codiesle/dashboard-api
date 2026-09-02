@@ -1,6 +1,8 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../../../../auth/infra/jwt-auth.guard';
 import { TicketPromedioTecnicoFacade } from '../application/ticket-promedio-tecnico.facade';
 
+@UseGuards(JwtAuthGuard)
 @Controller('informes/postventa/ticket-promedio-tecnico')
 export class InformeTicketPromedioTecnicoController {
   constructor(

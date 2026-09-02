@@ -1,7 +1,9 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 import { ChecklistPesvFacade } from '../application/checklist-pesv.facade';
 import { TipoChecklistPesv } from '../domain/checklist-pesv.repository';
 
+@UseGuards(JwtAuthGuard)
 @Controller('informes/informe-checklist-pesv')
 export class InformeChecklistPesvController {
   constructor(private readonly facade: ChecklistPesvFacade) {}

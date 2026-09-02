@@ -10,6 +10,8 @@ import {
   ComisionTecnicoEntity,
   DetalleComisionTecnicoEntity,
 } from '../../domain/comisiones-tecnicos.entity';
+import { PERFILES_COMISIONES_TECNICOS_FILTRO_NIT } from '../../domain/comisiones-tecnicos.constants';
+import { perfilEn } from '../../../shared/perfil';
 
 type RawComision = {
   nit: number;
@@ -57,7 +59,8 @@ export class ComisionesTecnicosPrismaRepository implements IComisionesTecnicosRe
     }
 
     const nitWhere =
-      (perfilUsuario === 24 || perfilUsuario === 57) && nitUsuarioSesion
+      perfilEn(perfilUsuario, PERFILES_COMISIONES_TECNICOS_FILTRO_NIT) &&
+      nitUsuarioSesion
         ? Prisma.sql`AND nit = ${nitUsuarioSesion}`
         : Prisma.empty;
 

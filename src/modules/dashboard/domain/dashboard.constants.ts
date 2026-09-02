@@ -2,10 +2,12 @@ import AsesorConfig from './dashboard.entity';
 
 /**
  * Constantes de negocio del dashboard: perfiles de usuario y centros de costo por sede.
- * Usadas por use-case (ruteo por perfil) y por services (administración).
+ * Usadas por use-case (ruteo por perfil) y por builders (administración).
  */
 
 export const PERFIL_JEFE_TALLER = 33;
+/** Perfil legado de jefe de taller (mismo dashboard que 33). No unificar. */
+export const PERFIL_JEFE_TALLER_ALT = 20;
 export const PERFIL_INFORME_TECNICOS = 24;
 export const PERFIL_MTO = 46;
 export const PERFIL_AGENTE_CC = 31;

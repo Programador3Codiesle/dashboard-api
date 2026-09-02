@@ -130,10 +130,3 @@ export interface PostvPresupuestoPosventaRow {
   tot_interno: number;
   mostrador: number | null;
 }
-
-// Los contratos de acceso a datos se encuentran ahora
-// separados por contexto/perfil:
-// - IDashboardCommonRepository
-// - ITecnicoDashboardRepository
-// - IAsesorRepuestoDashboardRepository
-// - IDashboardOtrosPerfilesRepository

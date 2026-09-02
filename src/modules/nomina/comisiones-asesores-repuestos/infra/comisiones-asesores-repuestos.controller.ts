@@ -8,6 +8,10 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 import { ComisionesAsesoresRepuestosFacade } from '../application/comisiones-asesores-repuestos.facade';
+import {
+  nominaPerfilFromRequest,
+  type NominaAuthRequest,
+} from '../../shared/nomina-auth-request';
 
 @Controller('nomina/comisiones-asesores-repuestos')
 @UseGuards(JwtAuthGuard)
@@ -16,7 +20,7 @@ export class ComisionesAsesoresRepuestosController {
 
   @Get()
   async listar(
-    @Req() req: any,
+    @Req() req: NominaAuthRequest,
     @Query('mes') mes: string,
     @Query('ano') ano: string,
     @Query('asesorNombre') asesorNombre?: string,
@@ -41,7 +45,7 @@ export class ComisionesAsesoresRepuestosController {
       );
     }
 
-    const perfilUsuario = req.user?.role ? Number(req.user.role) : null;
+    const perfilUsuario = nominaPerfilFromRequest(req);
     return this.facade.listarComisiones({
       mes: mesNum,
       ano: anoNum,

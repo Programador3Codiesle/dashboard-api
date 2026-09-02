@@ -1,5 +1,3 @@
-export const MANTENIMIENTO_REPOSITORY = Symbol('MANTENIMIENTO_REPOSITORY');
-
 export type EquipoRow = {
   id_equipo: number;
   nombre_equipo: string;
@@ -75,7 +73,11 @@ export type NombreEquipoOption = {
   nombre_equipo: string;
   codigo_f: string;
 };
-export type JefeOption = { nit: string; nombres: string; correo: string | null };
+export type JefeOption = {
+  nit: string;
+  nombres: string;
+  correo: string | null;
+};
 export type PersonalMto = { nit: string; nombres: string; id_usuario: number };
 export type BodegaMto = { bodega: number; descripcion: string };
 
@@ -86,26 +88,26 @@ export type SessionUser = {
   nombres: string;
 };
 
-export interface MantenimientoRepository {
-  listarEquipos(
+export abstract class IMantenimientoRepository {
+  abstract listarEquipos(
     filters: { filter?: string; bodega?: string; area?: string },
     limit: number,
     offset: number,
   ): Promise<EquipoRow[]>;
-  countEquipos(filters: {
+  abstract countEquipos(filters: {
     filter?: string;
     bodega?: string;
     area?: string;
   }): Promise<number>;
-  getEquipoById(id: number): Promise<EquipoRow | null>;
-  getFamilias(): Promise<FamiliaOption[]>;
-  getNombresFamilia(codigoF: string): Promise<NombreEquipoOption[]>;
-  getNombreEquipo(
+  abstract getEquipoById(id: number): Promise<EquipoRow | null>;
+  abstract getFamilias(): Promise<FamiliaOption[]>;
+  abstract getNombresFamilia(codigoF: string): Promise<NombreEquipoOption[]>;
+  abstract getNombreEquipo(
     codigoF: string,
     codigoN: string,
   ): Promise<string | null>;
-  ultimoCodigoLike(prefijo: string): Promise<string | null>;
-  insertEquipo(data: {
+  abstract ultimoCodigoLike(prefijo: string): Promise<string | null>;
+  abstract insertEquipo(data: {
     nombre: string;
     bodega: string;
     codigo: string;
@@ -128,7 +130,7 @@ export interface MantenimientoRepository {
     dist_departamento?: string | null;
     dist_redes_sociales?: string | null;
   }): Promise<number>;
-  updateEquipo(
+  abstract updateEquipo(
     id: number,
     data: {
       nombre: string;
@@ -154,59 +156,80 @@ export interface MantenimientoRepository {
       dist_redes_sociales?: string | null;
     },
   ): Promise<void>;
-  updateEstadoEquipo(id: number, estado: string): Promise<void>;
-  updatePeriodoEquipo(id: number, periodo: string): Promise<void>;
-  upsertDatosTecnicos(idEquipo: number, data: DatosTecnicos): Promise<void>;
-  deleteDatosTecnicos(idEquipo: number): Promise<void>;
-  upsertDatosHidraulicos(
+  abstract updateEstadoEquipo(id: number, estado: string): Promise<void>;
+  abstract updatePeriodoEquipo(id: number, periodo: string): Promise<void>;
+  abstract upsertDatosTecnicos(
+    idEquipo: number,
+    data: DatosTecnicos,
+  ): Promise<void>;
+  abstract deleteDatosTecnicos(idEquipo: number): Promise<void>;
+  abstract upsertDatosHidraulicos(
     idEquipo: number,
     data: DatosHidraulicos,
   ): Promise<void>;
-  deleteDatosHidraulicos(idEquipo: number): Promise<void>;
-  replaceLista(
+  abstract deleteDatosHidraulicos(idEquipo: number): Promise<void>;
+  abstract replaceLista(
     tabla: 'elementos' | 'recomendaciones' | 'mtto_operativo',
     idEquipo: number,
     items: string[],
   ): Promise<void>;
-  getDatosTecnicos(idEquipo: number): Promise<DatosTecnicos | null>;
-  getDatosHidraulicos(idEquipo: number): Promise<DatosHidraulicos | null>;
-  getLista(
+  abstract getDatosTecnicos(idEquipo: number): Promise<DatosTecnicos | null>;
+  abstract getDatosHidraulicos(
+    idEquipo: number,
+  ): Promise<DatosHidraulicos | null>;
+  abstract getLista(
     tabla: 'elementos' | 'recomendaciones' | 'mtto_operativo',
     idEquipo: number,
   ): Promise<ListaItem[]>;
-  listarJefes(): Promise<JefeOption[]>;
-  listarPersonalMto(): Promise<PersonalMto[]>;
-  listarBodegasMto(): Promise<BodegaMto[]>;
-  listarEquiposActivos(): Promise<
+  abstract listarJefes(): Promise<JefeOption[]>;
+  abstract listarPersonalMto(): Promise<PersonalMto[]>;
+  abstract listarBodegasMto(): Promise<BodegaMto[]>;
+  abstract listarEquiposActivos(): Promise<
     Array<{ id_equipo: number; codigo: string; nombre_equipo: string }>
   >;
-  historialPreventivo(codigo: string): Promise<Record<string, unknown>[]>;
-  historialCorrectivo(idEquipo: number): Promise<Record<string, unknown>[]>;
-  detallePreventivo(id: number): Promise<Record<string, unknown> | null>;
-  insertRetiro(data: {
+  abstract historialPreventivo(
+    codigo: string,
+  ): Promise<Record<string, unknown>[]>;
+  abstract historialCorrectivo(
+    idEquipo: number,
+  ): Promise<Record<string, unknown>[]>;
+  abstract detallePreventivo(
+    id: number,
+  ): Promise<Record<string, unknown> | null>;
+  abstract insertRetiro(data: {
     equipoId: number;
     nitSolicita: string;
     motivo: string;
     imagen: string;
     fecha: string;
   }): Promise<number>;
-  getRetiroById(id: number): Promise<{
+  abstract getRetiroById(id: number): Promise<{
     id: number;
     equipo_id: number;
     estado: number;
   } | null>;
-  autorizarRetiro(
+  abstract autorizarRetiro(
     id: number,
     nitJefe: string,
     fecha: string,
   ): Promise<void>;
-  rechazarRetiro(id: number, nitJefe: string, fecha: string): Promise<void>;
-  getSedesUsuario(nit: string): Promise<number[]>;
-  listarSolicitudesJefe(nit: string): Promise<Record<string, unknown>[]>;
-  listarSolicitudesSedes(sedes: number[]): Promise<Record<string, unknown>[]>;
-  listarSolicitudesAdmins(): Promise<Record<string, unknown>[]>;
-  getSolicitudById(id: number): Promise<Record<string, unknown> | null>;
-  insertSolicitud(data: {
+  abstract rechazarRetiro(
+    id: number,
+    nitJefe: string,
+    fecha: string,
+  ): Promise<void>;
+  abstract getSedesUsuario(nit: string): Promise<number[]>;
+  abstract listarSolicitudesJefe(
+    nit: string,
+  ): Promise<Record<string, unknown>[]>;
+  abstract listarSolicitudesSedes(
+    sedes: number[],
+  ): Promise<Record<string, unknown>[]>;
+  abstract listarSolicitudesAdmins(): Promise<Record<string, unknown>[]>;
+  abstract getSolicitudById(
+    id: number,
+  ): Promise<Record<string, unknown> | null>;
+  abstract insertSolicitud(data: {
     jefe: string;
     fecha: string;
     solicitud: string;
@@ -215,30 +238,39 @@ export interface MantenimientoRepository {
     imagen: string | null;
     idEquipo: number | null;
   }): Promise<void>;
-  iniciarSolicitud(
+  abstract iniciarSolicitud(
     id: number,
     encargado: string,
     fechaInicio: string,
     tiempoEstimado: number,
   ): Promise<void>;
-  finalizarSolicitud(
+  abstract finalizarSolicitud(
     id: number,
     respuesta: string,
     fechaFinal: string,
     imagenResp: string | null,
   ): Promise<void>;
-  updateEquipoSolicitud(idSolicitud: number, idEquipo: number): Promise<void>;
-  listarMensajes(idSolicitud: number): Promise<Record<string, unknown>[]>;
-  insertMensaje(data: {
+  abstract updateEquipoSolicitud(
+    idSolicitud: number,
+    idEquipo: number,
+  ): Promise<void>;
+  abstract listarMensajes(
+    idSolicitud: number,
+  ): Promise<Record<string, unknown>[]>;
+  abstract insertMensaje(data: {
     mensaje: string;
     emisor: string;
     idSolicitud: number;
     nombreEmisor: string;
   }): Promise<void>;
-  cronograma(sedes?: string[]): Promise<Record<string, unknown>[]>;
-  listadoPendientes(sedes?: string[]): Promise<Record<string, unknown>[]>;
-  ordenPreventivoById(id: number): Promise<Record<string, unknown> | null>;
-  insertOrdenPreventiva(data: {
+  abstract cronograma(sedes?: string[]): Promise<Record<string, unknown>[]>;
+  abstract listadoPendientes(
+    sedes?: string[],
+  ): Promise<Record<string, unknown>[]>;
+  abstract ordenPreventivoById(
+    id: number,
+  ): Promise<Record<string, unknown> | null>;
+  abstract insertOrdenPreventiva(data: {
     codigo: string;
     responsable: string;
     fechaSolicitud: string;
@@ -246,28 +278,34 @@ export interface MantenimientoRepository {
     descripcion: string;
     tiempoEstimado: number;
   }): Promise<void>;
-  iniciarOrden(
+  abstract iniciarOrden(
     id: number,
     asignado: string,
     fechaInicio: string,
   ): Promise<void>;
-  finalizarOrden(
+  abstract finalizarOrden(
     id: number,
     observaciones: string,
     piezas: string,
     fechaFinal: string,
   ): Promise<void>;
-  eliminarOrden(id: number): Promise<void>;
-  updateFechaRequerida(id: number, fecha: string): Promise<void>;
-  insertHistFecha(data: {
+  abstract eliminarOrden(id: number): Promise<void>;
+  abstract updateFechaRequerida(id: number, fecha: string): Promise<void>;
+  abstract insertHistFecha(data: {
     idMtto: number;
     nitUser: string;
     fechaSolicitud: string;
     dateOld: string;
     dateNew: string;
   }): Promise<void>;
-  equipoExiste(codigo: string): Promise<boolean>;
-  informePreventivo(estado?: string, bodega?: string): Promise<Record<string, unknown>[]>;
-  informeCorrectivo(estado?: string, bodega?: string): Promise<Record<string, unknown>[]>;
-  getJefeCorreo(nit: string): Promise<string | null>;
+  abstract equipoExiste(codigo: string): Promise<boolean>;
+  abstract informePreventivo(
+    estado?: string,
+    bodega?: string,
+  ): Promise<Record<string, unknown>[]>;
+  abstract informeCorrectivo(
+    estado?: string,
+    bodega?: string,
+  ): Promise<Record<string, unknown>[]>;
+  abstract getJefeCorreo(nit: string): Promise<string | null>;
 }

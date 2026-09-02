@@ -12,6 +12,11 @@ import {
   DetalleComisionLaminaPinturaEntity,
   TotalRepuestosSedeEntity,
 } from '../../domain/comisiones-lamina-pintura.entity';
+import {
+  PERFIL_COMISIONES_LYP_OPERARIO,
+  PERFILES_COMISIONES_LYP_PERMITIDOS,
+} from '../../domain/comisiones-lamina-pintura.constants';
+import { perfilEn } from '../../../shared/perfil';
 
 type RawLyp = {
   operario: number;
@@ -56,12 +61,12 @@ export class ComisionesLaminaPinturaPrismaRepository implements IComisionesLamin
     filtros: FiltrosComisionesLaminaPintura,
   ): Promise<ComisionLaminaPinturaEntity[]> {
     const { desde, hasta, perfilUsuario, nitUsuarioSesion } = filtros;
-    if (perfilUsuario !== 1 && perfilUsuario !== 20 && perfilUsuario !== 24) {
+    if (!perfilEn(perfilUsuario, PERFILES_COMISIONES_LYP_PERMITIDOS)) {
       throw new ForbiddenException('No tiene permisos para ver este Informe');
     }
 
     const filtroOperario =
-      perfilUsuario === 24 && nitUsuarioSesion
+      perfilUsuario === PERFIL_COMISIONES_LYP_OPERARIO && nitUsuarioSesion
         ? Prisma.sql`AND a.operario = ${nitUsuarioSesion}`
         : Prisma.empty;
 

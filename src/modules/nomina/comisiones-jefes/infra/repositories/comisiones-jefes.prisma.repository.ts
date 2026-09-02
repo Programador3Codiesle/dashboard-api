@@ -14,6 +14,8 @@ import {
   JefePorSedeEntity,
   ValidacionBonosJefeEntity,
 } from '../../domain/comisiones-jefes.entity';
+import { PERFILES_COMISIONES_JEFES_SIN_FILTRO_NIT } from '../../domain/comisiones-jefes.constants';
+import { perfilEn } from '../../../shared/perfil';
 
 type RawComisionJefe = {
   nit: number;
@@ -148,7 +150,8 @@ export class ComisionesJefesPrismaRepository implements IComisionesJefesReposito
   ): Promise<ComisionJefeEntity[]> {
     const { mes, ano, perfilUsuario, nitUsuarioSesion } = filtros;
     const filtroNit =
-      perfilUsuario != null && perfilUsuario !== 1 && perfilUsuario !== 20
+      perfilUsuario != null &&
+      !perfilEn(perfilUsuario, PERFILES_COMISIONES_JEFES_SIN_FILTRO_NIT)
         ? nitUsuarioSesion
         : null;
 

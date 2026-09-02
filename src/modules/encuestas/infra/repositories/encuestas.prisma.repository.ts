@@ -1,47 +1,56 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
-import type {
-  ContactoPlaca,
-  EncuestaGmRow,
-  EncuestasRepository,
-  NpsSedeInput,
-  NpsTecnicoInput,
-  PreguntaEncuesta,
-  SatisfaccionDetalleOrden,
-  SatisfaccionListItem,
-  SatisfaccionRespuestas,
-  TecnicoNps,
-  VehiculoEncuestaQr,
+import {
+  IEncuestasRepository,
+  type ContactoPlaca,
+  type EncuestaGmRow,
+  type NpsSedeInput,
+  type NpsTecnicoInput,
+  type PreguntaEncuesta,
+  type SatisfaccionDetalleOrden,
+  type SatisfaccionListadoPage,
+  type SatisfaccionRespuestas,
+  type TecnicoNps,
+  type VehiculoEncuestaQr,
 } from '../../domain/encuestas.repository';
 
 function asStr(v: unknown): string {
   if (v == null) return '';
+  if (typeof v === 'string') return v;
+  if (typeof v === 'number' && Number.isFinite(v)) return String(v);
+  if (typeof v === 'bigint') return v.toString();
+  if (typeof v === 'boolean') return v ? 'true' : 'false';
   if (v instanceof Date) return v.toISOString().slice(0, 10);
-  return String(v);
+  if (typeof v === 'object') {
+    const maybe = v as { toString?: () => unknown };
+    if (typeof maybe.toString === 'function') {
+      const s = maybe.toString();
+      if (typeof s === 'string' && s !== '' && s !== '[object Object]') {
+        return s;
+      }
+    }
+  }
+  return '';
 }
 
 function asStrOrNull(v: unknown): string | null {
   if (v == null || v === '') return null;
-  return String(v);
+  const s = asStr(v);
+  return s === '' ? null : s;
+}
+
+function likeContains(term: string): string {
+  const escaped = term.replace(/[[\]%_]/g, (ch) => `[${ch}]`);
+  return `%${escaped}%`;
 }
 
 @Injectable()
-export class EncuestasPrismaRepository implements EncuestasRepository {
+export class EncuestasPrismaRepository implements IEncuestasRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listarSatisfaccion(): Promise<SatisfaccionListItem[]> {
-    // pes.fecha puede venir como varchar con formatos mixtos o basura;
-    // mismo patrón seguro del informe filtrado (TRY_CONVERT 23/103).
-    const rows = await this.prisma.$queryRaw<
-      Array<Record<string, unknown>>
-    >(Prisma.sql`
-      SELECT
-        nit_real,
-        nombres,
-        numero,
-        placa,
-        fecha
+  private satisfaccionFromWhere(q: string): Prisma.Sql {
+    const from = Prisma.sql`
       FROM (
         SELECT DISTINCT
           cli.nit_real,
@@ -58,16 +67,55 @@ export class EncuestasPrismaRepository implements EncuestasRepository {
         INNER JOIN v_vh_vehiculos vhv ON teo.serie = vhv.codigo
         INNER JOIN posv_encuesta_satisfaccion pes ON pes.n_orden = teo.numero
       ) t
-      ORDER BY fecha DESC
-    `);
+    `;
+    const term = q.trim();
+    if (!term) return from;
+    const like = likeContains(term);
+    return Prisma.sql`
+      ${from}
+      WHERE CONVERT(VARCHAR(50), t.nit_real) LIKE ${like}
+         OR CONVERT(VARCHAR(200), t.nombres) LIKE ${like}
+         OR CONVERT(VARCHAR(50), t.numero) LIKE ${like}
+         OR CONVERT(VARCHAR(20), t.placa) LIKE ${like}
+    `;
+  }
 
-    return rows.map((r) => ({
-      nit_real: asStr(r.nit_real),
-      nombres: asStr(r.nombres),
-      numero: asStr(r.numero),
-      placa: asStr(r.placa),
-      fecha: asStr(r.fecha),
-    }));
+  async listarSatisfaccion(
+    q: string,
+    offset: number,
+    limit: number,
+  ): Promise<SatisfaccionListadoPage> {
+    // pes.fecha puede venir como varchar con formatos mixtos o basura;
+    // mismo patrón seguro del informe filtrado (TRY_CONVERT 23/103).
+    const fromWhere = this.satisfaccionFromWhere(q);
+    const [countRows, rows] = await Promise.all([
+      this.prisma.$queryRaw<Array<{ n: unknown }>>(Prisma.sql`
+        SELECT COUNT(*) AS n
+        ${fromWhere}
+      `),
+      this.prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
+        SELECT
+          nit_real,
+          nombres,
+          numero,
+          placa,
+          fecha
+        ${fromWhere}
+        ORDER BY fecha DESC
+        OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
+      `),
+    ]);
+
+    return {
+      total: Number(countRows[0]?.n ?? 0),
+      items: rows.map((r) => ({
+        nit_real: asStr(r.nit_real),
+        nombres: asStr(r.nombres),
+        numero: asStr(r.numero),
+        placa: asStr(r.placa),
+        fecha: asStr(r.fecha),
+      })),
+    };
   }
 
   async detalleOrdenSatisfaccion(
@@ -341,7 +389,9 @@ export class EncuestasPrismaRepository implements EncuestasRepository {
     }));
   }
 
-  async buscarEncuestaByPlaca(placa: string): Promise<VehiculoEncuestaQr | null> {
+  async buscarEncuestaByPlaca(
+    placa: string,
+  ): Promise<VehiculoEncuestaQr | null> {
     const rows = await this.prisma.$queryRaw<
       Array<Record<string, unknown>>
     >(Prisma.sql`

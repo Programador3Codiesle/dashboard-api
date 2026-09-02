@@ -1,56 +1,44 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
-import { assertCodieselEmpresa } from '../../shared/utils/assert-codiesel.util';
+import { CodieselEmpresaGuard } from '../../shared/utils/codiesel-empresa.guard';
 import { DistribucionFacade } from '../application/distribucion.facade';
 import {
   ToggleDistribucionDto,
   UpdateDistribucionDto,
 } from '../application/dto/distribucion.dto';
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, CodieselEmpresaGuard)
 @Controller('contact-center/distribucion')
 export class DistribucionController {
   constructor(private readonly facade: DistribucionFacade) {}
 
   @Get('agentes')
-  agentes(@Req() req: { cookies?: Record<string, string> }) {
-    assertCodieselEmpresa(req);
+  agentes() {
     return this.facade.getAgentes();
   }
 
   @Get('bodegas')
-  bodegas(@Req() req: { cookies?: Record<string, string> }) {
-    assertCodieselEmpresa(req);
+  bodegas() {
     return this.facade.getBodegas();
   }
 
   @Get('matriz')
-  matriz(@Req() req: { cookies?: Record<string, string> }) {
-    assertCodieselEmpresa(req);
+  matriz() {
     return this.facade.getMatriz();
   }
 
   @Get('totales')
-  totales(@Req() req: { cookies?: Record<string, string> }) {
-    assertCodieselEmpresa(req);
+  totales() {
     return this.facade.getTotales();
   }
 
   @Post('toggle')
-  toggle(
-    @Req() req: { cookies?: Record<string, string> },
-    @Body() dto: ToggleDistribucionDto,
-  ) {
-    assertCodieselEmpresa(req);
+  toggle(@Body() dto: ToggleDistribucionDto) {
     return this.facade.toggle(dto);
   }
 
   @Post('update-distribucion')
-  updateDistribucion(
-    @Req() req: { cookies?: Record<string, string> },
-    @Body() dto: UpdateDistribucionDto,
-  ) {
-    assertCodieselEmpresa(req);
+  updateDistribucion(@Body() dto: UpdateDistribucionDto) {
     return this.facade.updateDistribucion(dto);
   }
 }

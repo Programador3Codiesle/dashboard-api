@@ -4,6 +4,7 @@ import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import {
   CHECKLIST_BOOLEAN_COLUMNS,
   CHECKLIST_COLUMNAS,
+  CHECKLIST_TABLAS,
   ChecklistTipo,
 } from '../../domain/checklist-definitions';
 import { IChecklistGuardarRepository } from '../../domain/checklist-guardar.repository';
@@ -83,15 +84,6 @@ export class ChecklistGuardarPrismaRepository implements IChecklistGuardarReposi
   }
 
   private tablaSql(tipo: ChecklistTipo): Prisma.Sql {
-    const names: Record<ChecklistTipo, string> = {
-      0: 'swcrm_check_labor_calor',
-      1: 'swcrm_check_alineador',
-      2: 'swcrm_check_elevadores',
-      3: 'swcrm_check_tijera',
-      4: 'swcrm_check_hidraulicos',
-      5: 'swcrm_check_portico',
-      6: 'swcrm_check_cabina_pintura',
-    };
-    return Prisma.raw(names[tipo]);
+    return Prisma.raw(CHECKLIST_TABLAS[tipo]);
   }
 }

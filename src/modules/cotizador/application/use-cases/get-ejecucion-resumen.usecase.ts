@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import {
+  bodegasEjecucion,
+  dateToYmd,
+} from '../../domain/cotizador-ejecucion.constants';
+import {
   ICotizadorEjecucionRepository,
   ResumenEjecucion,
   TotalesEjecucion,
@@ -20,23 +24,12 @@ export interface EjecucionResumenResponse {
 export class GetEjecucionResumenUseCase {
   constructor(private readonly repo: ICotizadorEjecucionRepository) {}
 
-  private getBodegasArray(bodega?: number | null): number[] {
-    const ALL = [1, 6, 7, 8];
-    if (bodega && ALL.includes(bodega)) return [bodega];
-    return ALL;
-  }
-
-  private toYmd(dateStr: string): string {
-    // dateStr viene como YYYY-MM-DD
-    return dateStr.replace(/-/g, '');
-  }
-
   async execute(
     params: EjecucionFiltroParams,
   ): Promise<EjecucionResumenResponse> {
-    const bodegas = this.getBodegasArray(params.bodega ?? null);
-    const desde = this.toYmd(params.dateStart);
-    const hasta = this.toYmd(params.dateEnd);
+    const bodegas = bodegasEjecucion(params.bodega ?? null);
+    const desde = dateToYmd(params.dateStart);
+    const hasta = dateToYmd(params.dateEnd);
 
     const resumen = await this.repo.getResumen(desde, hasta, bodegas);
     const totales = await this.repo.getTotales(desde, hasta, bodegas);

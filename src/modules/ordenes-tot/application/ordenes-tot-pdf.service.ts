@@ -50,12 +50,7 @@ export class OrdenesTotPdfService {
         'logos',
         'empresa1.png',
       ),
-      path.resolve(
-        process.cwd(),
-        'public',
-        'logos',
-        'empresa1.png',
-      ),
+      path.resolve(process.cwd(), 'public', 'logos', 'empresa1.png'),
     ];
 
     for (const fullPath of candidates) {

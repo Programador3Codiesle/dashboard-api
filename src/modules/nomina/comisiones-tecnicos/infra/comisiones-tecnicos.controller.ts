@@ -8,6 +8,12 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 import { ComisionesTecnicosFacade } from '../application/comisiones-tecnicos.facade';
+import { parseYearMonthParam } from '../../shared/parse-year-month';
+import {
+  nominaNitFromRequest,
+  nominaPerfilFromRequest,
+  type NominaAuthRequest,
+} from '../../shared/nomina-auth-request';
 
 @Controller('nomina/comisiones-tecnicos')
 @UseGuards(JwtAuthGuard)
@@ -15,18 +21,16 @@ export class ComisionesTecnicosController {
   constructor(private readonly facade: ComisionesTecnicosFacade) {}
 
   @Get()
-  async listar(@Req() req: any, @Query('mes') mes: string) {
-    if (!mes || !/^\d{4}-\d{2}$/.test(mes)) {
-      throw new BadRequestException(
-        'El parámetro mes es obligatorio con formato YYYY-MM.',
-      );
-    }
-    const [anoStr, mesStr] = mes.split('-');
+  async listar(@Req() req: NominaAuthRequest, @Query('mes') mes: string) {
+    const { ano, mes: mesNum } = parseYearMonthParam(
+      mes,
+      'El parámetro mes es obligatorio con formato YYYY-MM.',
+    );
     return this.facade.listar({
-      ano: Number(anoStr),
-      mes: Number(mesStr),
-      perfilUsuario: req.user?.role ? Number(req.user.role) : null,
-      nitUsuarioSesion: req.user?.nit ? Number(req.user.nit) : null,
+      ano,
+      mes: mesNum,
+      perfilUsuario: nominaPerfilFromRequest(req),
+      nitUsuarioSesion: nominaNitFromRequest(req),
     });
   }
 

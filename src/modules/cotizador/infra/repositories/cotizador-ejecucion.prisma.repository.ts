@@ -9,42 +9,59 @@ import {
   TotalesEjecucion,
 } from '../../domain/cotizador-ejecucion.repository';
 
+type ResumenSqlRow = {
+  total_cotizaciones: unknown;
+  env_sin_agenda: unknown;
+  env_agendadas: unknown;
+  asistidas: unknown;
+};
+
+type TotalesSqlRow = {
+  total_agendado: unknown;
+  total_facturado: unknown;
+  items_cotizados: unknown;
+  items_facturados: unknown;
+};
+
+type ComparativoSqlRow = {
+  id_cotizacion: unknown;
+  numero: unknown;
+  codigo: string;
+  valor_cotizado: unknown;
+  operacion: string;
+  valor_facturado: unknown;
+};
+
 @Injectable()
 export class CotizadorEjecucionPrismaRepository implements ICotizadorEjecucionRepository {
   constructor(private readonly prisma: PrismaService) {}
-
-  private bodegasToList(bodegas: number[]): string {
-    return bodegas.map((b) => String(b)).join(',');
-  }
 
   async getResumen(
     desde: string,
     hasta: string,
     bodegas: number[],
   ): Promise<ResumenEjecucion | null> {
-    const bodegasList = this.bodegasToList(bodegas);
-
-    const rows = await this.prisma.$queryRaw<any[]>`
+    const rows = await this.prisma.$queryRaw<ResumenSqlRow[]>`
       SELECT 
         total_cotizaciones = (
           SELECT COUNT(id_cotizacion) 
           FROM postv_cotizacion_contact 
           WHERE fecha_creacion BETWEEN ${desde} AND ${hasta}
-            AND bodega IN (${Prisma.raw(bodegasList)})
+            AND bodega IN (${Prisma.join(bodegas)})
         ),
         env_sin_agenda = (
           SELECT COUNT(id_cotizacion) 
           FROM postv_cotizacion_contact 
           WHERE estado = 0
             AND fecha_creacion BETWEEN ${desde} AND ${hasta}
-            AND bodega IN (${Prisma.raw(bodegasList)})
+            AND bodega IN (${Prisma.join(bodegas)})
         ),
         env_agendadas = (
           SELECT COUNT(id_cotizacion) 
           FROM postv_cotizacion_contact 
           WHERE estado = 1
             AND fecha_creacion BETWEEN ${desde} AND ${hasta}
-            AND bodega IN (${Prisma.raw(bodegasList)})
+            AND bodega IN (${Prisma.join(bodegas)})
         ),
         asistidas = (
           SELECT COUNT(id_cotizacion) FROM
@@ -72,7 +89,7 @@ export class CotizadorEjecucionPrismaRepository implements ICotizadorEjecucionRe
               WHERE a.estado = 1
                 AND e.anulada = 0
                 AND CONVERT(date, e.fecha) BETWEEN ${desde} AND ${hasta}
-                AND e.bodega IN (${Prisma.raw(bodegasList)})
+                AND e.bodega IN (${Prisma.join(bodegas)})
             ) ct
           ) t 
           WHERE rnk = 1
@@ -95,9 +112,7 @@ export class CotizadorEjecucionPrismaRepository implements ICotizadorEjecucionRe
     hasta: string,
     bodegas: number[],
   ): Promise<TotalesEjecucion | null> {
-    const bodegasList = this.bodegasToList(bodegas);
-
-    const rows = await this.prisma.$queryRaw<any[]>`
+    const rows = await this.prisma.$queryRaw<TotalesSqlRow[]>`
       SELECT 
         total_agendado = SUM(ISNULL(repuestos,0) + ISNULL(mano_obra,0)),
         total_facturado = SUM(ISNULL(rptos,0) + ISNULL(mo,0)),
@@ -130,7 +145,7 @@ export class CotizadorEjecucionPrismaRepository implements ICotizadorEjecucionRe
             WHERE a.estado = 1
               AND e.anulada = 0 
               AND CONVERT(date, e.fecha) BETWEEN ${desde} AND ${hasta}
-              AND e.bodega IN (${Prisma.raw(bodegasList)})
+              AND e.bodega IN (${Prisma.join(bodegas)})
           ) ct
         ) t
         WHERE rnk = 1
@@ -190,9 +205,7 @@ export class CotizadorEjecucionPrismaRepository implements ICotizadorEjecucionRe
     hasta: string,
     bodegas: number[],
   ): Promise<FilaCotizacionToFacturado[]> {
-    const bodegasList = this.bodegasToList(bodegas);
-
-    const rows = await this.prisma.$queryRaw<any[]>`
+    const rows = await this.prisma.$queryRaw<ComparativoSqlRow[]>`
       SELECT cm.id_cotizacion,
              cm.numero,
              d.operacion,
@@ -226,7 +239,7 @@ export class CotizadorEjecucionPrismaRepository implements ICotizadorEjecucionRe
             WHERE a.estado = 1 
               AND e.anulada = 0 
               AND CONVERT(date, e.fecha) BETWEEN ${desde} AND ${hasta}
-              AND e.bodega IN (${Prisma.raw(bodegasList)})
+              AND e.bodega IN (${Prisma.join(bodegas)})
           ) ct
         ) t
         WHERE rnk = 1
@@ -280,7 +293,7 @@ export class CotizadorEjecucionPrismaRepository implements ICotizadorEjecucionRe
             WHERE a.estado = 1 
               AND e.anulada = 0 
               AND CONVERT(date, e.fecha) BETWEEN ${desde} AND ${hasta}
-              AND e.bodega IN (${Prisma.raw(bodegasList)})
+              AND e.bodega IN (${Prisma.join(bodegas)})
           ) ct
         ) t
         WHERE rnk = 1
@@ -290,7 +303,7 @@ export class CotizadorEjecucionPrismaRepository implements ICotizadorEjecucionRe
                operacion = 'mano de obra', 
                CONVERT(int, SUM(Venta_mano_obra + (Venta_mano_obra * 0.19))) as mo  
         FROM v_informe_tecnico 
-        WHERE bodega IN (${Prisma.raw(bodegasList)})
+        WHERE bodega IN (${Prisma.join(bodegas)})
         GROUP BY numero_orden
       ) d1 ON cm.numero = d1.numero_orden 
       LEFT JOIN (
@@ -303,7 +316,7 @@ export class CotizadorEjecucionPrismaRepository implements ICotizadorEjecucionRe
       ) mo ON cm.id_cotizacion = mo.id_cotizacion AND mo.codigo = d1.operacion
     `;
 
-    return rows.map<FilaCotizacionToFacturado>((r: any) => ({
+    return rows.map((r) => ({
       id_cotizacion: Number(r.id_cotizacion),
       numero: Number(r.numero),
       codigo: r.codigo,
@@ -318,9 +331,7 @@ export class CotizadorEjecucionPrismaRepository implements ICotizadorEjecucionRe
     hasta: string,
     bodegas: number[],
   ): Promise<FilaFacturadoToCotizacion[]> {
-    const bodegasList = this.bodegasToList(bodegas);
-
-    const rows = await this.prisma.$queryRaw<any[]>`
+    const rows = await this.prisma.$queryRaw<ComparativoSqlRow[]>`
       SELECT cm.id_cotizacion,
              cm.numero,
              d.operacion,
@@ -354,7 +365,7 @@ export class CotizadorEjecucionPrismaRepository implements ICotizadorEjecucionRe
             WHERE a.estado = 1 
               AND e.anulada = 0 
               AND CONVERT(date, e.fecha) BETWEEN ${desde} AND ${hasta}
-              AND e.bodega IN (${Prisma.raw(bodegasList)})
+              AND e.bodega IN (${Prisma.join(bodegas)})
           ) ct
         ) t
         WHERE rnk = 1
@@ -406,7 +417,7 @@ export class CotizadorEjecucionPrismaRepository implements ICotizadorEjecucionRe
             WHERE a.estado = 1 
               AND e.anulada = 0 
               AND CONVERT(date, e.fecha) BETWEEN ${desde} AND ${hasta}
-              AND e.bodega IN (${Prisma.raw(bodegasList)})
+              AND e.bodega IN (${Prisma.join(bodegas)})
           ) ct
         ) t
         WHERE rnk = 1
@@ -424,12 +435,12 @@ export class CotizadorEjecucionPrismaRepository implements ICotizadorEjecucionRe
                operacion = 'mano de obra',
                CONVERT(int, SUM(Venta_mano_obra + (Venta_mano_obra * 0.19))) as mo  
         FROM v_informe_tecnico 
-        WHERE bodega IN (${Prisma.raw(bodegasList)})
+        WHERE bodega IN (${Prisma.join(bodegas)})
         GROUP BY numero_orden
       ) d1 ON cm.numero = d1.numero_orden  AND mo.codigo = d1.operacion
     `;
 
-    return rows.map<FilaFacturadoToCotizacion>((r: any) => ({
+    return rows.map((r) => ({
       id_cotizacion: Number(r.id_cotizacion),
       numero: Number(r.numero),
       operacion: r.operacion,

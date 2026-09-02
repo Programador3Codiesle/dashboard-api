@@ -6,7 +6,11 @@ export type ContactCenterSessionUser = {
 };
 
 export function getContactCenterSessionUser(req: {
-  user?: { sub?: number | string; role?: number | string; nit?: number | string };
+  user?: {
+    sub?: number | string;
+    role?: number | string;
+    nit?: number | string;
+  };
   cookies?: Record<string, string>;
 }): ContactCenterSessionUser {
   const userId = Number(req.user?.sub ?? 0);

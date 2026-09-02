@@ -1,11 +1,9 @@
 import {
   Controller,
-  ForbiddenException,
   Get,
   Post,
   Body,
   Query,
-  Req,
   Res,
   UploadedFile,
   UseGuards,
@@ -18,77 +16,41 @@ import type { Response } from 'express';
 import { JwtAuthGuard } from '../../auth/infra/jwt-auth.guard';
 import { EncuestasFacade } from '../application/encuestas.facade';
 import { NpsSedeDto, NpsTecnicoDto } from '../application/dto/encuestas.dto';
-
-const CODIESEL_EMPRESA_ID = 1;
-
-type AuthRequest = {
-  user?: { sub?: number | string; nit?: number | string; role?: number | string };
-  cookies?: Record<string, string>;
-};
-
-function assertCodieselEmpresa(req: AuthRequest): number {
-  let empresa: number | null = null;
-
-  if (req.cookies?.['user']) {
-    try {
-      const userCookie = JSON.parse(req.cookies['user']) as {
-        empresa?: number | string;
-      };
-      if (userCookie?.empresa != null) {
-        empresa = Number(userCookie.empresa);
-      }
-    } catch {
-      /* ignore */
-    }
-  }
-
-  if (empresa !== CODIESEL_EMPRESA_ID) {
-    throw new ForbiddenException(
-      'Este módulo solo está disponible para Codiesel',
-    );
-  }
-  return empresa;
-}
+import { SatisfaccionDetalleQueryDto } from '../application/dto/satisfaccion-detalle-query.dto';
+import { SatisfaccionListadoQueryDto } from '../application/dto/satisfaccion-listado-query.dto';
+import { CodieselEmpresaGuard } from '../shared/utils/codiesel-empresa.guard';
 
 const EXCEL_UPLOAD = FileInterceptor('fileContacts', {
   storage: memoryStorage(),
 });
 
 @Controller('encuestas')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, CodieselEmpresaGuard)
 export class EncuestasController {
   constructor(private readonly facade: EncuestasFacade) {}
 
   @Get('satisfaccion')
-  listarSatisfaccion(@Req() req: AuthRequest) {
-    assertCodieselEmpresa(req);
-    return this.facade.listarSatisfaccion();
+  listarSatisfaccion(@Query() query: SatisfaccionListadoQueryDto) {
+    return this.facade.listarSatisfaccion(query.q, query.page, query.pageSize);
   }
 
   @Get('satisfaccion/detalle')
-  detalleSatisfaccion(
-    @Req() req: AuthRequest,
-    @Query('ot') ot: string,
-  ) {
-    assertCodieselEmpresa(req);
-    return this.facade.detalleSatisfaccion(ot);
+  detalleSatisfaccion(@Query() query: SatisfaccionDetalleQueryDto) {
+    return this.facade.detalleSatisfaccion(query.ot);
   }
 
   @Get('nps-colmotores/tecnicos')
-  listarTecnicos(@Req() req: AuthRequest) {
-    assertCodieselEmpresa(req);
+  listarTecnicos() {
     return this.facade.listarTecnicosNps();
   }
 
   @Post('nps-colmotores/sede')
-  insertNpsSede(@Req() req: AuthRequest, @Body() dto: NpsSedeDto) {
-    assertCodieselEmpresa(req);
+  insertNpsSede(@Body() dto: NpsSedeDto) {
     return this.facade.insertNpsSede(dto);
   }
 
   @Post('nps-colmotores/tecnico')
-  insertNpsTecnico(@Req() req: AuthRequest, @Body() dto: NpsTecnicoDto) {
-    assertCodieselEmpresa(req);
+  insertNpsTecnico(@Body() dto: NpsTecnicoDto) {
     return this.facade.insertNpsTecnico({
       ...dto,
       tipificacion: dto.tipificacion ?? 'Ninguno',
@@ -97,11 +59,7 @@ export class EncuestasController {
 
   @Post('nps-tecnicos/upload')
   @UseInterceptors(EXCEL_UPLOAD)
-  async uploadNpsTecnicos(
-    @Req() req: AuthRequest,
-    @UploadedFile() file: Express.Multer.File,
-  ) {
-    assertCodieselEmpresa(req);
+  async uploadNpsTecnicos(@UploadedFile() file: Express.Multer.File) {
     if (!file?.buffer) {
       throw new BadRequestException('Archivo requerido');
     }
@@ -109,11 +67,7 @@ export class EncuestasController {
   }
 
   @Get('nps-tecnicos/plantilla')
-  async descargarPlantilla(
-    @Req() req: AuthRequest,
-    @Res() res: Response,
-  ) {
-    assertCodieselEmpresa(req);
+  async descargarPlantilla(@Res() res: Response) {
     const buffer = await this.facade.generarPlantillaNps();
     res.setHeader(
       'Content-Type',

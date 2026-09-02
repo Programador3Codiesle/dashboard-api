@@ -3,31 +3,41 @@ import {
   CheckValoresJefeInput,
   FiltrosComisionesJefes,
   FiltrosDetalleComisionJefe,
-  IComisionesJefesRepository,
   UpdateValoresJefeInput,
 } from '../domain/comisiones-jefes.repository';
+import { ListarComisionesJefesUseCase } from './use-cases/listar-comisiones-jefes.usecase';
+import { ObtenerDetalleComisionJefeUseCase } from './use-cases/obtener-detalle-comision-jefe.usecase';
+import { ObtenerJefesPorSedeUseCase } from './use-cases/obtener-jefes-por-sede.usecase';
+import { CheckValoresJefeUseCase } from './use-cases/check-valores-jefe.usecase';
+import { ActualizarValoresJefeUseCase } from './use-cases/actualizar-valores-jefe.usecase';
 
 @Injectable()
 export class ComisionesJefesFacade {
-  constructor(private readonly repository: IComisionesJefesRepository) {}
+  constructor(
+    private readonly listarUseCase: ListarComisionesJefesUseCase,
+    private readonly detalleUseCase: ObtenerDetalleComisionJefeUseCase,
+    private readonly jefesPorSedeUseCase: ObtenerJefesPorSedeUseCase,
+    private readonly checkValoresUseCase: CheckValoresJefeUseCase,
+    private readonly actualizarValoresUseCase: ActualizarValoresJefeUseCase,
+  ) {}
 
   listarComisiones(filtros: FiltrosComisionesJefes) {
-    return this.repository.listarComisiones(filtros);
+    return this.listarUseCase.execute(filtros);
   }
 
   obtenerDetalle(filtros: FiltrosDetalleComisionJefe) {
-    return this.repository.obtenerDetalle(filtros);
+    return this.detalleUseCase.execute(filtros);
   }
 
   obtenerJefesPorSede(sede: string) {
-    return this.repository.obtenerJefesPorSede(sede);
+    return this.jefesPorSedeUseCase.execute(sede);
   }
 
   checkValoresMesAnterior(input: CheckValoresJefeInput) {
-    return this.repository.checkValoresMesAnterior(input);
+    return this.checkValoresUseCase.execute(input);
   }
 
   actualizarValores(input: UpdateValoresJefeInput) {
-    return this.repository.actualizarValores(input);
+    return this.actualizarValoresUseCase.execute(input);
   }
 }

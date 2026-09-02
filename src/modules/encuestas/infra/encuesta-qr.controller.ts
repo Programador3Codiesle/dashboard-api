@@ -9,7 +9,7 @@ import {
   SinEncuestaDto,
 } from '../application/dto/encuestas.dto';
 
-/** Endpoints públicos de Satisfacción QR (sin JWT), equivalente a orden_salida/encuesta. */
+/** Endpoints públicos de Satisfacción QR (sin JWT), equivalente a orden_salida/encuesta. No añadir JwtAuthGuard. */
 @Controller('encuestas/qr')
 export class EncuestaQrController {
   constructor(private readonly facade: EncuestasFacade) {}

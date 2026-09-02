@@ -11,6 +11,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/infra/jwt-auth.guard';
+import { CodieselEmpresaGuard } from '../shared/utils/codiesel-empresa.guard';
 import { CrearRepuestoDto } from '../application/dto/crear-repuesto.dto';
 import { CrearTotDto } from '../application/dto/crear-tot.dto';
 import { CrearVehiculoDto } from '../application/dto/crear-vehiculo.dto';
@@ -28,7 +29,7 @@ type AuthRequest = {
   user?: AuthUser;
 };
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, CodieselEmpresaGuard)
 @Controller('ordenes-tot')
 export class OrdenesTotController {
   constructor(private readonly facade: OrdenesTotFacade) {}
@@ -58,6 +59,8 @@ export class OrdenesTotController {
       this.idUsuario(req),
       query.estado,
       this.nitUsuario(req),
+      query.page ?? 1,
+      query.limit ?? 10,
     );
   }
 

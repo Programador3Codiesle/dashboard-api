@@ -56,7 +56,9 @@ export class DistribucionRepository {
     mes: number,
     anio: number,
   ): Promise<number | null> {
-    const rows = await this.prisma.$queryRaw<Array<{ distribucion: number }>>(Prisma.sql`
+    const rows = await this.prisma.$queryRaw<
+      Array<{ distribucion: number }>
+    >(Prisma.sql`
       SELECT distribucion FROM postv_distribucion_agentes_cc
       WHERE agente = ${agente} AND mes = ${mes} AND anio = ${anio} AND bodega = ${bodega}
     `);
@@ -94,7 +96,9 @@ export class DistribucionRepository {
     mes: number,
     anio: number,
   ): Promise<number> {
-    const rows = await this.prisma.$queryRaw<Array<{ dist_sede: number | null }>>(Prisma.sql`
+    const rows = await this.prisma.$queryRaw<
+      Array<{ dist_sede: number | null }>
+    >(Prisma.sql`
       SELECT SUM(distribucion) AS dist_sede FROM postv_distribucion_agentes_cc
       WHERE bodega = ${bodega} AND mes = ${mes} AND anio = ${anio}
     `);
@@ -128,7 +132,10 @@ export class DistribucionRepository {
     return result > 0;
   }
 
-  async cargarTotales(mes: number, anio: number): Promise<Array<{ bodega: number; dist_sede: number | null }>> {
+  async cargarTotales(
+    mes: number,
+    anio: number,
+  ): Promise<Array<{ bodega: number; dist_sede: number | null }>> {
     return this.prisma.$queryRaw(Prisma.sql`
       SELECT SUM(d.distribucion) AS dist_sede, b.bodega
       FROM bodegas b

@@ -5,7 +5,6 @@ import { IEstadoTallerRepository } from '../../domain/estado-taller.repository';
 import {
   EstadoOtCatalogoEntity,
   HistorialOtEntity,
-  OrdenTallerAbiertaEntity,
   OrdenTallerAbiertaRowEntity,
   SedeUsuarioEntity,
 } from '../../domain/estado-taller.entity';
@@ -13,6 +12,9 @@ import {
   toNum,
   toStr,
 } from '../../../entrada-vehiculo/infra/repositories/shared.utils';
+import { sqlNumericInClause } from '../../../shared/sql-in-clause';
+
+const BODEGA_IN_COLUMNS = ['teo.bodega', 'b.bodega', 'ordenT'] as const;
 
 type OrdenRow = {
   bodega: unknown;
@@ -49,19 +51,28 @@ type HistorialRow = {
   fecha_hist: unknown;
 };
 
+function formatSqlText(value: unknown): string | null {
+  if (value == null) return null;
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'bigint')
+    return String(value);
+  return null;
+}
+
 function formatDate(value: unknown): string | null {
   if (value == null) return null;
   if (value instanceof Date) {
     return value.toISOString().slice(0, 10);
   }
-  const s = String(value);
+  const s = formatSqlText(value);
+  if (s == null) return null;
   return s.length >= 10 ? s.slice(0, 10) : s;
 }
 
 function formatDateTime(value: unknown): string | null {
   if (value == null) return null;
   if (value instanceof Date) return value.toISOString();
-  return String(value);
+  return formatSqlText(value);
 }
 
 @Injectable()
@@ -69,10 +80,7 @@ export class EstadoTallerPrismaRepository implements IEstadoTallerRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   private bodegaIn(column: string, ids: number[]): Prisma.Sql {
-    if (ids.length === 0) {
-      return Prisma.sql`1 = 0`;
-    }
-    return Prisma.sql`${Prisma.raw(column)} IN (${Prisma.join(ids)})`;
+    return sqlNumericInClause(column, ids, BODEGA_IN_COLUMNS);
   }
 
   private async withTempUser<T>(
