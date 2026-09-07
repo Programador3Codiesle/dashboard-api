@@ -15,7 +15,12 @@ import { memoryStorage } from 'multer';
 import type { Response } from 'express';
 import { JwtAuthGuard } from '../../auth/infra/jwt-auth.guard';
 import { EncuestasFacade } from '../application/encuestas.facade';
-import { NpsSedeDto, NpsTecnicoDto } from '../application/dto/encuestas.dto';
+import {
+  NpsSedeDto,
+  NpsTecnicoDto,
+  ResponderQrVentanillaDto,
+  ValidarPlacaQrQueryDto,
+} from '../application/dto/encuestas.dto';
 import { SatisfaccionDetalleQueryDto } from '../application/dto/satisfaccion-detalle-query.dto';
 import { SatisfaccionListadoQueryDto } from '../application/dto/satisfaccion-listado-query.dto';
 import { CodieselEmpresaGuard } from '../shared/utils/codiesel-empresa.guard';
@@ -78,5 +83,15 @@ export class EncuestasController {
       'attachment; filename="formato_nps.xlsx"',
     );
     res.send(buffer);
+  }
+
+  @Get('satisfaccion-qr/validar-placa')
+  validarPlacaQr(@Query() query: ValidarPlacaQrQueryDto) {
+    return this.facade.validarPlacaQr(query.placa ?? '');
+  }
+
+  @Post('satisfaccion-qr/ventanilla')
+  responderQrVentanilla(@Body() dto: ResponderQrVentanillaDto) {
+    return this.facade.responderQrVentanilla(dto);
   }
 }

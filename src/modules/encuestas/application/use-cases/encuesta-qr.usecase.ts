@@ -160,4 +160,54 @@ export class EncuestaQrUseCase {
     });
     return { response: ok ? ('success' as const) : ('error' as const) };
   }
+
+  async validarPlaca(placa: string) {
+    const trimmed = placa?.trim() ?? '';
+    if (!trimmed) {
+      return { ok: false as const, message: 'Error, La Placa No Existe' };
+    }
+    const n = await this.repo.contarVehiculosByPlaca(trimmed.toUpperCase());
+    if (n === 0) {
+      return { ok: false as const, message: 'Error, La Placa No Existe' };
+    }
+    return { ok: true as const, message: 'Bien, La Placa Existe' };
+  }
+
+  async responderVentanilla(body: {
+    bodega: string;
+    placa: string;
+    pregunta2?: string;
+    pregunta3?: string;
+    pregunta4?: string;
+    pregunta5?: string;
+    pregunta7: string;
+  }) {
+    const bodega = String(body.bodega ?? '').trim();
+    const placa = String(body.placa ?? '')
+      .trim()
+      .toUpperCase();
+    const detalle = String(body.pregunta7 ?? '').trim();
+    if (!bodega || bodega === '0' || !placa || !detalle) {
+      throw new BadRequestException(
+        'Error todos los Campos deden ser completado',
+      );
+    }
+    const ok = await this.repo.insertEncuestaSatisfaccionQrVentanilla({
+      placa,
+      fecha: todayYmd(),
+      pregunta1: body.pregunta2 ?? '',
+      pregunta2: body.pregunta3 ?? '',
+      pregunta3: body.pregunta4 ?? '',
+      pregunta4: body.pregunta5 ?? '',
+      pregunta5: detalle,
+      fuente: 'QR',
+      bod: bodega,
+    });
+    return {
+      ok,
+      message: ok
+        ? 'Encuesta Cargada de Manera Exitosa'
+        : 'Error al Cargar La Encuesta',
+    };
+  }
 }

@@ -144,3 +144,41 @@ export class SinEncuestaDto {
   @IsString()
   nit!: string;
 }
+
+export class ValidarPlacaQrQueryDto {
+  @IsOptional()
+  @IsString()
+  placa?: string;
+}
+
+export class ResponderQrVentanillaDto {
+  @IsString()
+  bodega!: string;
+
+  @IsString()
+  placa!: string;
+
+  /** POST name="2" en legado (pregunta1 en tabla). */
+  @IsOptional()
+  @IsString()
+  pregunta2?: string;
+
+  /** POST name="3" en legado (pregunta2 en tabla). */
+  @IsOptional()
+  @IsString()
+  pregunta3?: string;
+
+  /** POST name="4" en legado (pregunta3 en tabla). */
+  @IsOptional()
+  @IsString()
+  pregunta4?: string;
+
+  /** POST name="5" en legado (pregunta4 en tabla). */
+  @IsOptional()
+  @IsString()
+  pregunta5?: string;
+
+  /** POST name="7" en legado (pregunta5 en tabla). */
+  @IsString()
+  pregunta7!: string;
+}

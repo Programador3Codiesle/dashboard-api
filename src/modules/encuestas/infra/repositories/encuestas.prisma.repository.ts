@@ -554,6 +554,15 @@ export class EncuestasPrismaRepository implements IEncuestasRepository {
     }
   }
 
+  async contarVehiculosByPlaca(placa: string): Promise<number> {
+    const rows = await this.prisma.$queryRaw<Array<{ n: number }>>(Prisma.sql`
+      SELECT COUNT(*) AS n
+      FROM v_vh_vehiculos vhv
+      WHERE vhv.placa = ${placa}
+    `);
+    return Number(rows[0]?.n ?? 0);
+  }
+
   async insertEncuestaSatisfaccionQr(data: {
     placa: string;
     fecha: string;
@@ -583,6 +592,41 @@ export class EncuestasPrismaRepository implements IEncuestasRepository {
           ${data.fuente},
           ${String(data.bod)},
           ${String(data.numero_orden)}
+        )
+      `);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async insertEncuestaSatisfaccionQrVentanilla(data: {
+    placa: string;
+    fecha: string;
+    pregunta1: string | number;
+    pregunta2: string | number;
+    pregunta3: string | number | null;
+    pregunta4: string | number | null;
+    pregunta5: string | null;
+    fuente: string;
+    bod: string | number;
+  }): Promise<boolean> {
+    try {
+      await this.prisma.$executeRaw(Prisma.sql`
+        INSERT INTO postv_encuesta_satisfaccion_qr (
+          placa, fecha, pregunta1, pregunta2, pregunta3, pregunta4, pregunta5,
+          fuente, bod
+        )
+        VALUES (
+          ${data.placa},
+          CONVERT(VARCHAR, GETDATE(), 23),
+          ${String(data.pregunta1)},
+          ${String(data.pregunta2)},
+          ${data.pregunta3 == null ? '' : String(data.pregunta3)},
+          ${data.pregunta4 == null ? '' : String(data.pregunta4)},
+          ${data.pregunta5},
+          ${data.fuente},
+          ${String(data.bod)}
         )
       `);
       return true;

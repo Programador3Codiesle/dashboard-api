@@ -160,6 +160,7 @@ export abstract class IEncuestasRepository {
     nit: string,
     data: { mail?: string; celular?: string; concepto_7?: number },
   ): Promise<boolean>;
+  abstract contarVehiculosByPlaca(placa: string): Promise<number>;
   abstract insertEncuestaSatisfaccionQr(data: {
     placa: string;
     fecha: string;
@@ -171,6 +172,18 @@ export abstract class IEncuestasRepository {
     fuente: string;
     bod: string | number;
     numero_orden: string | number;
+  }): Promise<boolean>;
+  /** INSERT de `insert_encuesta_satisfaccion_qr_ventanilla` (sin `numero_orden`). */
+  abstract insertEncuestaSatisfaccionQrVentanilla(data: {
+    placa: string;
+    fecha: string;
+    pregunta1: string | number;
+    pregunta2: string | number;
+    pregunta3: string | number | null;
+    pregunta4: string | number | null;
+    pregunta5: string | null;
+    fuente: string;
+    bod: string | number;
   }): Promise<boolean>;
   abstract selectOrdenSalida(numero: string | number): Promise<boolean>;
   abstract updateOrdenSalida(

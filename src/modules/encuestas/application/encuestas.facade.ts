@@ -111,4 +111,20 @@ export class EncuestasFacade {
   }) {
     return this.encuestaQr.sinEncuesta(body);
   }
+
+  validarPlacaQr(placa: string) {
+    return this.encuestaQr.validarPlaca(placa);
+  }
+
+  responderQrVentanilla(body: {
+    bodega: string;
+    placa: string;
+    pregunta2?: string;
+    pregunta3?: string;
+    pregunta4?: string;
+    pregunta5?: string;
+    pregunta7: string;
+  }) {
+    return this.encuestaQr.responderVentanilla(body);
+  }
 }
