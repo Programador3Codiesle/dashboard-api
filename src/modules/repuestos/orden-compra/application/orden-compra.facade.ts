@@ -16,7 +16,12 @@ export class OrdenCompraFacade {
   constructor(private readonly repo: OrdenCompraRepository) {}
 
   async listar(dto: ListarOrdenCompraDto, perfil: number) {
-    const rows = await this.repo.listar(dto.fechaIni, dto.fechaFin);
+    const rows = await this.repo.listar(
+      dto.fechaIni,
+      dto.fechaFin,
+      dto.pagina,
+      dto.limite,
+    );
     const now = new Date();
     const presupuestoMes = await this.repo.obtenerPresupuestoMes(
       now.getFullYear(),

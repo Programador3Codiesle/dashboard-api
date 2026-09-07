@@ -1,4 +1,5 @@
-import { IsIn, IsInt } from 'class-validator';
+import { IsIn, IsInt, IsOptional, Min } from 'class-validator';
+import { Type } from 'class-transformer';
 
 export class ConsultarObsoletosDto {
   @IsIn([1, 2, 3, 4])
@@ -9,4 +10,16 @@ export class ConsultarObsoletosDto {
 
   @IsInt()
   rango!: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  pagina?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limite?: number;
 }

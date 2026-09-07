@@ -13,6 +13,7 @@ import {
   CrearVerbalizacionPayload,
   FiltrosPqrNps,
 } from '../domain/pqr-nps.repository';
+import type { PaginatedResult } from '../../../../../core/infra/pagination';
 import { ObtenerGestionPqrNpsUseCase } from './use-cases/obtener-gestion-pqr-nps.usecase';
 import { GuardarGestionPqrNpsUseCase } from './use-cases/guardar-gestion-pqr-nps.usecase';
 import { CrearPqrUseCase } from './use-cases/crear-pqr.usecase';
@@ -36,7 +37,7 @@ export class PqrNpsFacade {
     private readonly listarTecnicosUseCase: ListarTecnicosPqrNpsUseCase,
   ) {}
 
-  listar(filtros: FiltrosPqrNps): Promise<PqrNpsItemEntity[]> {
+  listar(filtros: FiltrosPqrNps): Promise<PaginatedResult<PqrNpsItemEntity>> {
     return this.listarPqrNps.execute(filtros);
   }
 

@@ -7,13 +7,12 @@ import {
   Req,
   Res,
   UnauthorizedException,
+  ForbiddenException,
 } from '@nestjs/common';
 import { CookieOptions } from 'express';
 import { Throttle } from '@nestjs/throttler';
-import { ThrottlerAuthGuard } from './throttler-auth.guard';
 import { LoginDto } from '../application/dto/login.dto';
 import { RegisterDto } from '../application/dto/register.dto';
-import { RefreshTokenDto } from '../application/dto/refresh-token.dto';
 import { Response, Request } from 'express';
 
 import { LoginUseCase } from '../application/use-cases/login.usecase';
@@ -22,6 +21,47 @@ import { RefreshTokenUseCase } from '../application/use-cases/refresh-token.usec
 import { AuthService } from './auth.service';
 
 import { JwtAuthGuard } from './jwt-auth.guard';
+import {
+  PERFIL_ADMIN,
+  PERFIL_DEVELOPER,
+  jwtSubjectToString,
+} from '../domain/auth.constants';
+
+type AuthJwtUser = { sub?: string; role?: string | number };
+
+function readCookie(req: Request, name: string): string | undefined {
+  const header = req.headers.cookie;
+  if (typeof header !== 'string' || header.length === 0) return undefined;
+  for (const part of header.split(';')) {
+    const trimmed = part.trim();
+    const eq = trimmed.indexOf('=');
+    if (eq <= 0) continue;
+    if (trimmed.slice(0, eq) === name) {
+      return trimmed.slice(eq + 1);
+    }
+  }
+  return undefined;
+}
+
+function readBodyUserId(body: unknown): string | undefined {
+  if (!body || typeof body !== 'object' || !('userId' in body)) {
+    return undefined;
+  }
+  const value = (body as { userId?: unknown }).userId;
+  return typeof value === 'string' ? value : undefined;
+}
+
+function readRequestUser(req: Request): AuthJwtUser | undefined {
+  const raw: unknown = Reflect.get(req, 'user');
+  if (!raw || typeof raw !== 'object') return undefined;
+  const rec = raw as Record<string, unknown>;
+  const role = rec.role;
+  return {
+    sub: jwtSubjectToString(rec.sub),
+    role:
+      typeof role === 'string' || typeof role === 'number' ? role : undefined,
+  };
+}
 
 @Controller('auth')
 export class AuthController {
@@ -75,14 +115,19 @@ export class AuthController {
     return baseOptions;
   }
 
+  @Throttle({ default: { limit: 250, ttl: 60_000 } })
   @Post('login')
   async login(
     @Body() dto: LoginDto,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
     const rememberSession = dto.remember ?? false;
-    const { user, accessToken, refreshToken } =
-      await this.loginUseCase.execute(dto);
+    const clientIp = req.ip ?? req.socket?.remoteAddress;
+    const { user, accessToken, refreshToken } = await this.loginUseCase.execute(
+      dto,
+      clientIp,
+    );
 
     // Cookies HttpOnly
     const isProduction = process.env.NODE_ENV === 'production';
@@ -110,8 +155,13 @@ export class AuthController {
     return { user };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Post('register')
-  async register(@Body() dto: RegisterDto) {
+  async register(@Req() req: Request, @Body() dto: RegisterDto) {
+    const role = Number(readRequestUser(req)?.role);
+    if (role !== PERFIL_ADMIN && role !== PERFIL_DEVELOPER) {
+      throw new ForbiddenException('No autorizado para registrar usuarios');
+    }
     return this.registerUseCase.execute({
       email: Number(dto.email),
       password: dto.password,
@@ -119,23 +169,21 @@ export class AuthController {
     });
   }
 
-  @UseGuards(ThrottlerAuthGuard)
-  @Throttle({ default: { limit: 3, ttl: 60000 } }) // 3 refreshes por minuto por IP
+  @Throttle({ default: { limit: 400, ttl: 60_000 } })
   @Post('refresh')
   async refresh(
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const refreshToken = req.cookies?.['refresh_token'];
-    const rememberSession = req.cookies?.['remember_session'] === '1';
+    const refreshToken = readCookie(req, 'refresh_token');
+    const rememberSession = readCookie(req, 'remember_session') === '1';
 
     if (!refreshToken) {
       throw new UnauthorizedException('Refresh token no encontrado');
     }
 
-    // Intentar obtener userId del token JWT si está disponible (opcional)
-    // Si no está disponible, el servicio lo extraerá del refresh token
-    const userId = (req as any).user?.sub || req.body?.userId || null;
+    const userId =
+      readRequestUser(req)?.sub || readBodyUserId(req.body) || null;
 
     const { accessToken, refreshToken: newRefreshToken } =
       await this.refreshUseCase.execute(userId, refreshToken);
@@ -166,17 +214,11 @@ export class AuthController {
 
   @Post('logout')
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    // Intentar obtener userId del token si está disponible (aunque el guard no sea obligatorio)
-    const userId = (req as any).user?.sub;
-
-    // Si tenemos userId, invalidar el refresh token en BD
-    if (userId) {
-      try {
-        await this.authService.logout(userId);
-      } catch (error) {
-        // Si falla, continuar de todas formas para borrar las cookies
-        console.error('Error al invalidar refresh token:', error);
-      }
+    const refreshToken = readCookie(req, 'refresh_token');
+    try {
+      await this.authService.logoutFromRefreshToken(refreshToken);
+    } catch (error) {
+      console.error('Error al invalidar refresh token:', error);
     }
 
     const isProduction = process.env.NODE_ENV === 'production';
@@ -211,7 +253,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  async profile(@Req() req: Request) {
-    return (req as any).user;
+  profile(@Req() req: Request) {
+    return readRequestUser(req);
   }
 }

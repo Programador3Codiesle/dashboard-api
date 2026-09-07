@@ -19,6 +19,7 @@ import {
   PqrNpsVerbalizacionEntity,
 } from '../domain/pqr-nps.entity';
 import { FiltrosPqrNps } from '../domain/pqr-nps.repository';
+import type { PaginatedResult } from '../../../../../core/infra/pagination';
 import { ActualizarPqrNpsDto } from '../application/dto/actualizar-pqr-nps.dto';
 import { CrearPqrDto } from '../application/dto/crear-pqr.dto';
 import { CrearVerbalizacionDto } from '../application/dto/crear-verbalizacion.dto';
@@ -31,9 +32,15 @@ export class InformePqrNpsController {
   @Get()
   listar(
     @Query('estado') estado?: 'abiertos' | 'cerrados' | 'todos',
-  ): Promise<PqrNpsItemEntity[]> {
+    @Query('pagina') pagina?: string,
+    @Query('limite') limite?: string,
+    @Query('q') q?: string,
+  ): Promise<PaginatedResult<PqrNpsItemEntity>> {
     const filtros: FiltrosPqrNps = {
       estado: estado ?? 'abiertos',
+      pagina: pagina ? Number(pagina) : undefined,
+      limite: limite ? Number(limite) : undefined,
+      q: q?.trim() || undefined,
     };
 
     return this.facade.listar(filtros);

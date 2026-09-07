@@ -1,7 +1,16 @@
-import { Controller, Get, Query, UseGuards, Req } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Query,
+  UseGuards,
+  UseInterceptors,
+  Req,
+} from '@nestjs/common';
+import { CacheTTL } from '@nestjs/cache-manager';
 import { Request } from 'express';
 import { JwtAuthGuard } from '../../auth/infra/jwt-auth.guard';
 import { GetDashboardUseCase } from '../application/use-cases/get-dashboard.usecase';
+import { DashboardCacheInterceptor } from './dashboard-cache.interceptor';
 
 @UseGuards(JwtAuthGuard)
 @Controller('dashboard')
@@ -9,6 +18,8 @@ export class DashboardController {
   constructor(private readonly getDashboardUseCase: GetDashboardUseCase) {}
 
   @Get()
+  @UseInterceptors(DashboardCacheInterceptor)
+  @CacheTTL(60_000)
   async getDashboard(
     @Req() req: Request,
     @Query('idsede') idsede?: string,
@@ -16,11 +27,11 @@ export class DashboardController {
     @Query('ano') ano?: string,
     @Query('empresa') empresa?: string,
   ) {
-    const user = (req as any).user as {
-      sub: string;
-      nit: number;
-      role: string | number;
-    };
+    const user = (
+      req as Request & {
+        user?: { sub?: string; nit?: number; role?: string | number };
+      }
+    ).user;
     const userId = String(user?.sub ?? '');
     const nitUsuario = Number(user?.nit ?? 0);
     const perfil = user?.role ?? 0;

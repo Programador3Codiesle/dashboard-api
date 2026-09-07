@@ -13,6 +13,8 @@ export abstract class IEstadoTallerRepository {
 
   abstract getOrdenesAbiertas(
     bodegaIds: number[],
+    pagina?: number,
+    limite?: number,
   ): Promise<OrdenTallerAbiertaRowEntity[]>;
 
   abstract getTotalOrdenesAbiertas(bodegaIds: number[]): Promise<number>;

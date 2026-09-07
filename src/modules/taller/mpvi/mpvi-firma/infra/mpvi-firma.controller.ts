@@ -9,10 +9,12 @@ import {
   UploadedFile,
   UseInterceptors,
 } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MpviFirmaFacade } from '../application/mpvi-firma.facade';
 import { CargarFirmaDto } from '../application/dto/mpvi-firma.dto';
 
+@SkipThrottle()
 @Controller('taller/mpvi/firma')
 export class MpviFirmaController {
   constructor(private readonly facade: MpviFirmaFacade) {}

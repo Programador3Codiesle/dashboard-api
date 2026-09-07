@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
 import { ConsultarObsoletosDto } from '../../application/dto/informe-obsoletos.dto';
+import { clampPageLimit } from '../../../../../core/infra/pagination';
 
 export type ObsoletoFiltroRow = {
   codigo: string;
@@ -20,6 +21,7 @@ export class InformeObsoletosRepository {
 
   async consultar(dto: ConsultarObsoletosDto): Promise<ObsoletoFiltroRow[]> {
     const rangoMeses = this.rangoMeses(dto.opcion);
+    const { offset, limite } = clampPageLimit(dto.pagina, dto.limite);
     const comparacionCosto =
       dto.categoria === 1
         ? Prisma.sql`AND cos_promedio >= ${dto.rango}`
@@ -42,6 +44,7 @@ export class InformeObsoletosRepository {
         ${comparacionCosto}
         AND bodega NOT IN (99)
       ORDER BY cos_promedio DESC
+      OFFSET ${offset} ROWS FETCH NEXT ${limite} ROWS ONLY
     `);
   }
 

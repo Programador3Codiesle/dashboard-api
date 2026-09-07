@@ -13,6 +13,11 @@ import {
   toStr,
 } from '../../../entrada-vehiculo/infra/repositories/shared.utils';
 import { sqlNumericInClause } from '../../../shared/sql-in-clause';
+import {
+  clampPageLimit,
+  ESTADO_TALLER_DEFAULT_LIMIT,
+  ESTADO_TALLER_MAX_LIMIT,
+} from '../../../../../core/infra/pagination';
 
 const BODEGA_IN_COLUMNS = ['teo.bodega', 'b.bodega', 'ordenT'] as const;
 
@@ -196,8 +201,17 @@ export class EstadoTallerPrismaRepository implements IEstadoTallerRepository {
 
   async getOrdenesAbiertas(
     bodegaIds: number[],
+    pagina?: number,
+    limite?: number,
   ): Promise<OrdenTallerAbiertaRowEntity[]> {
     if (bodegaIds.length === 0) return [];
+
+    const { offset, limite: take } = clampPageLimit(
+      pagina,
+      limite,
+      ESTADO_TALLER_DEFAULT_LIMIT,
+      ESTADO_TALLER_MAX_LIMIT,
+    );
 
     const rows = await this.prisma.$queryRaw<OrdenRow[]>(Prisma.sql`
       SELECT DISTINCT
@@ -345,6 +359,7 @@ export class EstadoTallerPrismaRepository implements IEstadoTallerRepository {
         est.v_tot_est,
         est.mes_fact_est
       ORDER BY teo.numero DESC
+      OFFSET ${offset} ROWS FETCH NEXT ${take} ROWS ONLY
     `);
 
     return (rows ?? []).map((row) => this.mapOrdenBase(row));

@@ -19,6 +19,8 @@
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "smoke:contact-center": "node scripts/smoke-contact-center.mjs",
+    "smoke:auth-dashboard": "node scripts/smoke-auth-dashboard.mjs",
+    "load:login-dashboard": "node scripts/load-login-dashboard.mjs",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -37,8 +39,10 @@
     "cache-manager": "^7.2.8",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
+    "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
     "exceljs": "^4.4.0",
+    "helmet": "^8.3.0",
     "jsonwebtoken": "^9.0.2",
     "mssql": "^12.2.0",
     "nodemailer": "^7.0.13",
@@ -56,6 +60,7 @@
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
     "@types/bcrypt": "^6.0.0",
+    "@types/compression": "^1.8.1",
     "@types/cookie-parser": "^1.4.10",
     "@types/exceljs": "^0.5.3",
     "@types/express": "^5.0.0",

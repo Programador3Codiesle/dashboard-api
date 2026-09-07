@@ -6,6 +6,7 @@ import {
   IInformeEntradasSalidasRepository,
 } from '../../domain/informe-entradas-salidas.repository';
 import { InformeEntradasSalidasEntity } from '../../domain/informe-entradas-salidas.entity';
+import { clampPageLimit } from '../../../../../core/infra/pagination';
 
 function soloFechaSql(s: string): string {
   const t = String(s ?? '').trim();
@@ -23,6 +24,7 @@ export class InformeEntradasSalidasPrismaRepository implements IInformeEntradasS
     const { sede, empleado } = params;
     const fechaIni = soloFechaSql(params.fechaIni);
     const fechaFin = soloFechaSql(params.fechaFin);
+    const { offset, limite } = clampPageLimit(params.pagina, params.limite);
 
     const conditions: Prisma.Sql[] = [
       Prisma.sql`fechas BETWEEN CONVERT(DATE, ${fechaIni}) AND CONVERT(DATE, ${fechaFin})`,
@@ -38,9 +40,20 @@ export class InformeEntradasSalidasPrismaRepository implements IInformeEntradasS
       FROM v_inf_ent_sal
       WHERE ${Prisma.join(conditions, ' AND ')}
       ORDER BY empleado, fechas ASC
+      OFFSET ${offset} ROWS FETCH NEXT ${limite} ROWS ONLY
     `;
 
-    const rows = await this.prisma.$queryRaw<any[]>(sql);
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        id_reg_ingreso: number | bigint;
+        empleado: string | number | null;
+        nombres: string | null;
+        sede: string | null;
+        accion: string | null;
+        fechas: Date | string | null;
+        horas: string | null;
+      }>
+    >(sql);
 
     return rows.map(
       (r) =>

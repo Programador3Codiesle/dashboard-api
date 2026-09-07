@@ -5,6 +5,8 @@ export interface FiltrosEntradasSalidas {
   fechaIni: string;
   fechaFin: string;
   empleado?: string | null;
+  pagina?: number;
+  limite?: number;
 }
 
 export abstract class IInformeEntradasSalidasRepository {

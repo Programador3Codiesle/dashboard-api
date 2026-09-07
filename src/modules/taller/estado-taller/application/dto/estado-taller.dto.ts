@@ -10,6 +10,16 @@ export class ObtenerPanelQueryDto {
   @Type(() => Number)
   @IsInt()
   id_empresa?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  pagina?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  limite?: number;
 }
 
 export class AgregarEventoDto {

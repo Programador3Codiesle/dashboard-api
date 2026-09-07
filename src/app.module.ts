@@ -1,9 +1,10 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 import { ConfigModule } from '@nestjs/config';
-import { ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { CacheModule } from '@nestjs/cache-manager';
 import { PrismaModule } from './core/infra/prisma/prisma.module';
 import { TokenRespuestaModule } from './core/infra/token-respuesta/token-respuesta.module';
@@ -73,7 +74,9 @@ import { MantenimientoModule } from './modules/mantenimiento/infra/mantenimiento
     ThrottlerModule.forRoot([
       {
         ttl: 60_000,
-        limit: 120, // 120 req/min por IP (evita abuso sin bloquear uso normal)
+        // Oficina detrás de NAT: 150–200 usuarios comparten una IP.
+        // 120/min tumbaría el pico de la mañana. 2000/min sigue cortando floods.
+        limit: 2000,
       },
     ]),
     PrismaModule,
@@ -130,6 +133,12 @@ import { MantenimientoModule } from './modules/mantenimiento/infra/mantenimiento
     MantenimientoModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}

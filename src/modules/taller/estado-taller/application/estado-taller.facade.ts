@@ -30,8 +30,20 @@ export class EstadoTallerFacade {
     private readonly guardarValoresEstimadosUseCase: GuardarValoresEstimadosUseCase,
   ) {}
 
-  obtenerPanel(nitUsuario: number, bodega?: string, idEmpresa?: number) {
-    return this.obtenerPanelUseCase.execute(nitUsuario, bodega, idEmpresa);
+  obtenerPanel(
+    nitUsuario: number,
+    bodega?: string,
+    idEmpresa?: number,
+    pagina?: number,
+    limite?: number,
+  ) {
+    return this.obtenerPanelUseCase.execute(
+      nitUsuario,
+      bodega,
+      idEmpresa,
+      pagina,
+      limite,
+    );
   }
 
   obtenerTotalAbiertas(

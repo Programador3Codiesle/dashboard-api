@@ -47,12 +47,28 @@ export class PrismaService
       port = portStr ? parseInt(portStr) : 1433;
     }
 
+    const poolMax = Number(configService.get('MSSQL_POOL_MAX') ?? 30);
+    const poolMin = Number(configService.get('MSSQL_POOL_MIN') ?? 0);
+    const requestTimeout = Number(
+      configService.get('MSSQL_REQUEST_TIMEOUT_MS') ?? 30_000,
+    );
+    const connectionTimeout = Number(
+      configService.get('MSSQL_CONNECTION_TIMEOUT_MS') ?? 15_000,
+    );
+
     // Configuración para el adaptador de SQL Server
     const config: {
       server: string;
       port: number;
       user: string;
       password: string;
+      pool: {
+        max: number;
+        min: number;
+        idleTimeoutMillis: number;
+      };
+      requestTimeout: number;
+      connectionTimeout: number;
       options: {
         trustServerCertificate: boolean;
         encrypt: boolean;
@@ -63,6 +79,19 @@ export class PrismaService
       port,
       user,
       password,
+      pool: {
+        max: Number.isFinite(poolMax) && poolMax > 0 ? Math.floor(poolMax) : 30,
+        min: Number.isFinite(poolMin) && poolMin >= 0 ? Math.floor(poolMin) : 0,
+        idleTimeoutMillis: 30_000,
+      },
+      requestTimeout:
+        Number.isFinite(requestTimeout) && requestTimeout > 0
+          ? Math.floor(requestTimeout)
+          : 30_000,
+      connectionTimeout:
+        Number.isFinite(connectionTimeout) && connectionTimeout > 0
+          ? Math.floor(connectionTimeout)
+          : 15_000,
       options: {
         trustServerCertificate: true, // Confiar en certificados auto-firmados
         encrypt: false, // Desactivar encriptación por defecto

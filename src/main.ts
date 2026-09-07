@@ -3,13 +3,16 @@ import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import compression from 'compression';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import { join } from 'path';
 
 // Permite que JSON.stringify serialice BigInt (p. ej. IDs de Prisma) como string
-(BigInt.prototype as unknown as { toJSON: () => string }).toJSON = function () {
-  return this.toString();
-};
+(BigInt.prototype as unknown as { toJSON: (this: bigint) => string }).toJSON =
+  function (this: bigint) {
+    return this.toString();
+  };
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -22,6 +25,16 @@ async function bootstrap() {
     credentials: true,
     allowedHeaders: 'Content-Type,Authorization',
   });
+
+  app.use(
+    helmet({
+      contentSecurityPolicy: false,
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }),
+  );
+  app.use(compression());
+  app.useBodyParser('json', { limit: '1mb' });
+  app.useBodyParser('urlencoded', { limit: '1mb', extended: true });
 
   app.use(cookieParser());
 
@@ -42,4 +55,4 @@ async function bootstrap() {
   await app.listen(port);
   console.log(`Application is running on: http://localhost:${port}`);
 }
-bootstrap();
+void bootstrap();

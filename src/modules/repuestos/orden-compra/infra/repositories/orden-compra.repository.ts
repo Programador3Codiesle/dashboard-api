@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
+import { clampPageLimit } from '../../../../../core/infra/pagination';
 
 export type OrdenCompraRow = {
   numero_oc: number;
@@ -41,7 +42,13 @@ export type PresupuestoOcRow = {
 export class OrdenCompraRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listar(fechaIni: string, fechaFin: string): Promise<OrdenCompraRow[]> {
+  async listar(
+    fechaIni: string,
+    fechaFin: string,
+    pagina?: number,
+    limite?: number,
+  ): Promise<OrdenCompraRow[]> {
+    const page = clampPageLimit(pagina, limite);
     return this.prisma.$queryRaw<OrdenCompraRow[]>(Prisma.sql`
       SELECT numero AS numero_oc, bodega, proveedor,
         CONVERT(date, fecha) AS fecha_oc, notas, codigo, repuesto, cantidad,
@@ -82,6 +89,7 @@ export class OrdenCompraRepository {
         Autorizacion_movimiento, stock_seguridad, estado,
         Giron, Chevropartes, Barranca, Rosita, Villa, Solochevrolet
       ORDER BY fecha DESC, numero ASC, bodega ASC
+      OFFSET ${page.offset} ROWS FETCH NEXT ${page.limite} ROWS ONLY
     `);
   }
 

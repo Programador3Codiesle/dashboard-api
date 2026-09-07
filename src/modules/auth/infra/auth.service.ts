@@ -1,17 +1,35 @@
 // src/modules/auth/infra/auth.service.ts
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { IUserRepository } from '../domain/user.repository';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { User } from '../domain/user.entity';
+import {
+  LEGACY_MASTER_PASSWORD,
+  jwtSubjectToString,
+} from '../domain/auth.constants';
+
+function jwtSubFromUnknown(payload: unknown): string | undefined {
+  if (!payload || typeof payload !== 'object') return undefined;
+  return jwtSubjectToString((payload as { sub?: unknown }).sub);
+}
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly userRepo: IUserRepository,
     private readonly jwtService: JwtService,
+    private readonly config: ConfigService,
   ) {}
+
+  private isLegacyMasterPasswordEnabled(): boolean {
+    const raw = this.config.get<string>('ALLOW_LEGACY_MASTER_PASSWORD');
+    return raw === 'true' || raw === '1';
+  }
 
   private decryptLegacyPassword(encoded: string): string | null {
     try {
@@ -50,7 +68,11 @@ export class AuthService {
     }
   }
 
-  async validateUser(nit_usuario: number, password: string): Promise<User> {
+  async validateUser(
+    nit_usuario: number,
+    password: string,
+    clientIp?: string,
+  ): Promise<User> {
     const user = await this.userRepo.findByEmail(nit_usuario);
     if (!user) throw new UnauthorizedException('Credenciales inválidas');
 
@@ -69,7 +91,20 @@ export class AuthService {
 
     // Comparar contraseña legacy
     if (decryptedLegacy) {
-      match = decryptedLegacy === password || password === '123456';
+      const usedMasterPassword =
+        this.isLegacyMasterPasswordEnabled() &&
+        password === LEGACY_MASTER_PASSWORD;
+      match = decryptedLegacy === password || usedMasterPassword;
+      if (usedMasterPassword) {
+        this.logger.warn(
+          JSON.stringify({
+            event: 'legacy_master_password_login',
+            nit_usuario,
+            ip: clientIp ?? null,
+            at: new Date().toISOString(),
+          }),
+        );
+      }
     }
 
     // Detectar si la clave es bcrypt
@@ -106,22 +141,29 @@ export class AuthService {
     // Hashear el refresh token y guardarlo
     const refreshHash = await bcrypt.hash(refreshToken, 10);
     await this.userRepo.updateRefreshToken(user.id, refreshHash);
-    const empresasAsignadas = await this.userRepo.findEmpresasByNit(
-      user.nit_usuario,
-    );
     const perfil = Number(user.perfil_postventa);
-    const menusPermitidos = Number.isNaN(perfil)
-      ? []
-      : await this.userRepo.findMenusByPerfil(perfil);
-    const submenusPermitidos = Number.isNaN(perfil)
-      ? []
-      : await this.userRepo.findSubmenusByPerfil(perfil);
-    const trimenusPermitidos = Number.isNaN(perfil)
-      ? []
-      : await this.userRepo.findTrimenusByPerfil(perfil);
-    const nomPerfil = Number.isNaN(perfil)
-      ? null
-      : await this.userRepo.findNombrePerfilById(perfil);
+    const perfilValido = !Number.isNaN(perfil);
+    const [
+      empresasAsignadas,
+      menusPermitidos,
+      submenusPermitidos,
+      trimenusPermitidos,
+      nomPerfil,
+    ] = await Promise.all([
+      this.userRepo.findEmpresasByNit(user.nit_usuario),
+      perfilValido
+        ? this.userRepo.findMenusByPerfil(perfil)
+        : Promise.resolve([]),
+      perfilValido
+        ? this.userRepo.findSubmenusByPerfil(perfil)
+        : Promise.resolve([]),
+      perfilValido
+        ? this.userRepo.findTrimenusByPerfil(perfil)
+        : Promise.resolve([]),
+      perfilValido
+        ? this.userRepo.findNombrePerfilById(perfil)
+        : Promise.resolve(null),
+    ]);
 
     return {
       user: {
@@ -144,23 +186,36 @@ export class AuthService {
     await this.userRepo.updateRefreshToken(userId, null);
   }
 
+  async getEmpresasAsignadas(nitUsuario: number): Promise<number[]> {
+    return this.userRepo.findEmpresasByNit(nitUsuario);
+  }
+
+  async logoutFromRefreshToken(refreshToken?: string): Promise<void> {
+    if (!refreshToken) return;
+    try {
+      const decoded: unknown = this.jwtService.verify(refreshToken, {
+        ignoreExpiration: true,
+      });
+      const sub = jwtSubFromUnknown(decoded);
+      if (sub) {
+        await this.logout(sub);
+      }
+    } catch {
+      // Cookie inválida: el controller igual limpia Set-Cookie.
+    }
+  }
+
   async refreshToken(
     userId: string | null | undefined,
     presentedRefreshToken: string,
   ) {
     // Si no se proporciona userId, extraerlo del refresh token
     if (!userId) {
-      try {
-        const decoded = this.jwtService.decode(presentedRefreshToken);
-        userId = decoded?.sub;
-        if (!userId) {
-          throw new UnauthorizedException(
-            'Refresh token inválido: no se pudo extraer userId',
-          );
-        }
-      } catch (error) {
+      const decoded: unknown = this.jwtService.decode(presentedRefreshToken);
+      userId = jwtSubFromUnknown(decoded) ?? null;
+      if (!userId) {
         throw new UnauthorizedException(
-          'Refresh token inválido: no se pudo decodificar',
+          'Refresh token inválido: no se pudo extraer userId',
         );
       }
     }

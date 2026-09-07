@@ -1,4 +1,5 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { EncuestasFacade } from '../application/encuestas.facade';
 import {
   ActualizarTerceroDto,
@@ -10,6 +11,7 @@ import {
 } from '../application/dto/encuestas.dto';
 
 /** Endpoints públicos de Satisfacción QR (sin JWT), equivalente a orden_salida/encuesta. No añadir JwtAuthGuard. */
+@SkipThrottle()
 @Controller('encuestas/qr')
 export class EncuestaQrController {
   constructor(private readonly facade: EncuestasFacade) {}

@@ -13,12 +13,16 @@ export class InformeEntradasSalidasController {
     @Query('fechaIni') fechaIni: string,
     @Query('fechaFin') fechaFin: string,
     @Query('empleado') empleado?: string,
+    @Query('pagina') pagina?: string,
+    @Query('limite') limite?: string,
   ) {
     return this.facade.listar({
       sede,
       fechaIni,
       fechaFin,
       empleado: empleado ?? null,
+      pagina: pagina ? Number(pagina) : undefined,
+      limite: limite ? Number(limite) : undefined,
     });
   }
 }

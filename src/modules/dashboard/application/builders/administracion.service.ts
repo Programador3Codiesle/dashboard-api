@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { mapInBatches } from '../../../../core/infra/async-batch';
 import { IDashboardCommonRepository } from '../../domain/dashboard-common.repository';
 import {
   CENTROS_GIRON,
@@ -35,10 +36,6 @@ export class AdministracionService {
       return base;
     }
 
-    const grafSedes = await this.commonRepo.getGrafSedes();
-    base.graf_sedes = grafSedes.length > 0 ? grafSedes : undefined;
-
-    // Metas: legacy usa tabla `presupuesto` (fecha_ini/fecha_fin); nueva app usaba postv_presupuesto_posventa (suele venir en 0).
     const [y, m] = (fechaActual || '').split('-').map(Number);
     const fechaIni = y && m ? `${y}-${String(m).padStart(2, '0')}-01` : '';
     const lastDay = y && m ? new Date(y, m, 0).getDate() : 30;
@@ -46,10 +43,14 @@ export class AdministracionService {
       y && m
         ? `${y}-${String(m).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`
         : '';
-    const presupuestoMesAll =
+
+    const [grafSedes, presupuestoMesAll] = await Promise.all([
+      this.commonRepo.getGrafSedes(),
       fechaIni && fechaFin
-        ? await this.commonRepo.getPresupuestoMesAll(fechaIni, fechaFin)
-        : [];
+        ? this.commonRepo.getPresupuestoMesAll(fechaIni, fechaFin)
+        : Promise.resolve([]),
+    ]);
+    base.graf_sedes = grafSedes.length > 0 ? grafSedes : undefined;
 
     const norm = (s: string) =>
       (s || '')
@@ -110,37 +111,51 @@ export class AdministracionService {
       [norm('Mostrador La Rosita')]: norm('Mostrador la Rosita'),
     };
 
-    const presuGiron =
-      presupuestoByKey['giron'] != null
-        ? { presupuesto: presupuestoByKey['giron'] }
-        : await this.commonRepo.getPresupuestoMesSedesNew('1,11,9,21');
-    const presuBocono =
-      presupuestoByKey['bocono'] != null
-        ? { presupuesto: presupuestoByKey['bocono'] }
-        : await this.commonRepo.getPresupuestoMesSedesNew('8,14,16,22');
-    const presuRosita =
-      presupuestoByKey['rosita'] != null
-        ? { presupuesto: presupuestoByKey['rosita'] }
-        : await this.commonRepo.getPresupuestoMesSedesNew('7');
-    const presuBarranca =
-      presupuestoByKey['barranca'] != null
-        ? { presupuesto: presupuestoByKey['barranca'] }
-        : await this.commonRepo.getPresupuestoMesSedesNew('6,19');
-    const presuSoloc =
-      presupuestoByKey['solochevrolet'] != null
-        ? { presupuesto: presupuestoByKey['solochevrolet'] }
-        : await this.commonRepo.getPresupuestoMesSedesNew('23');
-    const presuChev =
-      presupuestoByKey['chevropartes'] != null
-        ? { presupuesto: presupuestoByKey['chevropartes'] }
-        : await this.commonRepo.getPresupuestoMesSedesNew('4');
+    const resolvePresu = (
+      key: string,
+      centros: string,
+    ): Promise<{ presupuesto: number } | null> =>
+      presupuestoByKey[key] != null
+        ? Promise.resolve({ presupuesto: presupuestoByKey[key] })
+        : this.commonRepo.getPresupuestoMesSedesNew(centros);
 
-    const prin = await this.commonRepo.getPresupuestoDia(CENTROS_GIRON);
-    const boc = await this.commonRepo.getPresupuestoDia(CENTROS_BOCONO);
-    const ros = await this.commonRepo.getPresupuestoDia(CENTROS_ROSITA);
-    const barran = await this.commonRepo.getPresupuestoDia(CENTROS_BARRANCA);
-    const solochevr = await this.commonRepo.getPresupuestoDia(CENTROS_SOLOCH);
-    const chevrp = await this.commonRepo.getPresupuestoDia(CENTROS_CHEVRO);
+    const bodNps = '1,9,11,21,7,6,19,8,14,16,22';
+
+    const [
+      presuGiron,
+      presuBocono,
+      presuRosita,
+      presuBarranca,
+      presuSoloc,
+      presuChev,
+      prin,
+      boc,
+      ros,
+      barran,
+      solochevr,
+      chevrp,
+      toPosvRow,
+      calPacRows,
+      inventario,
+      npsIntRows,
+    ] = await Promise.all([
+      resolvePresu('giron', '1,11,9,21'),
+      resolvePresu('bocono', '8,14,16,22'),
+      resolvePresu('rosita', '7'),
+      resolvePresu('barranca', '6,19'),
+      resolvePresu('solochevrolet', '23'),
+      resolvePresu('chevropartes', '4'),
+      this.commonRepo.getPresupuestoDia(CENTROS_GIRON),
+      this.commonRepo.getPresupuestoDia(CENTROS_BOCONO),
+      this.commonRepo.getPresupuestoDia(CENTROS_ROSITA),
+      this.commonRepo.getPresupuestoDia(CENTROS_BARRANCA),
+      this.commonRepo.getPresupuestoDia(CENTROS_SOLOCH),
+      this.commonRepo.getPresupuestoDia(CENTROS_CHEVRO),
+      this.commonRepo.getPresupuestoDia(CENTROS_TODOS),
+      this.commonRepo.getCalificacionSedeGeneral(),
+      this.commonRepo.getInformeInventario(),
+      this.commonRepo.getDataNpsInternoSedes(bodNps),
+    ]);
 
     const pct = (total: number, presupuesto: number): number =>
       presupuesto > 0 ? Math.round((total / presupuesto) * 10000) / 100 : 0;
@@ -164,24 +179,18 @@ export class AdministracionService {
       ? pct(chevrp?.total ?? 0, presuChev.presupuesto)
       : undefined;
 
-    const toPosvRow = await this.commonRepo.getPresupuestoDia(CENTROS_TODOS);
     base.to_posv = toPosvRow?.total ?? undefined;
-
-    const calPacRows = await this.commonRepo.getCalificacionSedeGeneral();
     base.cal_pac =
       calPacRows.length > 0 && calPacRows[0].Calificacion != null
         ? { Calificacion: calPacRows[0].Calificacion }
         : undefined;
 
-    const inventario = await this.commonRepo.getInformeInventario();
     let valToInv = 0;
     for (const row of inventario) {
       valToInv += (row.Promedio ?? 0) * (row.stock ?? 0);
     }
     base.to_inv = valToInv > 0 ? valToInv : undefined;
 
-    const bodNps = '1,9,11,21,7,6,19,8,14,16,22';
-    const npsIntRows = await this.commonRepo.getDataNpsInternoSedes(bodNps);
     let enc0a6 = 0,
       enc7a8 = 0,
       enc9a10 = 0;
@@ -249,15 +258,16 @@ export class AdministracionService {
       const n = norm(nombre);
       const alias = aliasTallerLookup[n] ?? n;
       const metaFromLegacy = metaTallerByName[alias];
-      const presupuestoRow =
-        metaFromLegacy != null
-          ? { presupuesto: metaFromLegacy }
-          : await this.commonRepo.getPresupuestoMesSedesNew(centros);
-      const totalRow =
-        await this.commonRepo.getTotalPresupuestoByCentros(centros);
-      const moRow = await this.commonRepo.getPresupuestoMo(centros);
-      const totRow = await this.commonRepo.getPresupuestoTot(centros);
-      const repRow = await this.commonRepo.getPresupuestoRep(centros);
+      const [presupuestoRow, totalRow, moRow, totRow, repRow] =
+        await Promise.all([
+          metaFromLegacy != null
+            ? Promise.resolve({ presupuesto: metaFromLegacy })
+            : this.commonRepo.getPresupuestoMesSedesNew(centros),
+          this.commonRepo.getTotalPresupuestoByCentros(centros),
+          this.commonRepo.getPresupuestoMo(centros),
+          this.commonRepo.getPresupuestoTot(centros),
+          this.commonRepo.getPresupuestoRep(centros),
+        ]);
       const presupuesto = presupuestoRow?.presupuesto ?? 0;
       const total = totalRow?.total ?? 0;
       const porcentaje =
@@ -274,69 +284,122 @@ export class AdministracionService {
       };
     };
 
-    // Girón: Diesel / Gasolina / Colisión / Mostrador.
-    const talleresGiron = [
-      await buildTaller('40', 'Taller Diesel Girón'),
-      await buildTaller('4', 'Taller Gasolina Girón'),
-      await buildTaller('33,45', 'Taller Colisión Girón'),
-      await buildTaller('3', 'Mostrador Girón'),
+    const tallerSpecs: Array<{
+      key: string;
+      sede: string;
+      centros: string;
+      nombre: string;
+    }> = [
+      {
+        key: 'giron',
+        sede: 'Girón',
+        centros: '40',
+        nombre: 'Taller Diesel Girón',
+      },
+      {
+        key: 'giron',
+        sede: 'Girón',
+        centros: '4',
+        nombre: 'Taller Gasolina Girón',
+      },
+      {
+        key: 'giron',
+        sede: 'Girón',
+        centros: '33,45',
+        nombre: 'Taller Colisión Girón',
+      },
+      { key: 'giron', sede: 'Girón', centros: '3', nombre: 'Mostrador Girón' },
+      {
+        key: 'rosita',
+        sede: 'La Rosita',
+        centros: '16',
+        nombre: 'Taller Gasolina La Rosita',
+      },
+      {
+        key: 'rosita',
+        sede: 'La Rosita',
+        centros: '17',
+        nombre: 'Mostrador La Rosita',
+      },
+      {
+        key: 'barranca',
+        sede: 'Barrancabermeja',
+        centros: '70',
+        nombre: 'Taller Diesel Barrancabermeja',
+      },
+      {
+        key: 'barranca',
+        sede: 'Barrancabermeja',
+        centros: '13',
+        nombre: 'Taller Gasolina Barrancabermeja',
+      },
+      {
+        key: 'barranca',
+        sede: 'Barrancabermeja',
+        centros: '11',
+        nombre: 'Mostrador Barrancabermeja',
+      },
+      {
+        key: 'bocono',
+        sede: 'Cúcuta Boconó',
+        centros: '80',
+        nombre: 'Taller Diesel Boconó',
+      },
+      {
+        key: 'bocono',
+        sede: 'Cúcuta Boconó',
+        centros: '29',
+        nombre: 'Taller Gasolina Boconó',
+      },
+      {
+        key: 'bocono',
+        sede: 'Cúcuta Boconó',
+        centros: '31,46',
+        nombre: 'Taller Colisión Boconó',
+      },
+      {
+        key: 'bocono',
+        sede: 'Cúcuta Boconó',
+        centros: '28',
+        nombre: 'Mostrador Boconó',
+      },
+      {
+        key: 'solochevrolet',
+        sede: 'Solochevrolet',
+        centros: '60',
+        nombre: 'Solochevrolet',
+      },
+      {
+        key: 'chevropartes',
+        sede: 'Chevropartes',
+        centros: '15',
+        nombre: 'Chevropartes',
+      },
     ];
-    sedesTalleres.push({
-      key: 'giron',
-      sede: 'Girón',
-      talleres: talleresGiron,
-    });
 
-    // La Rosita: Taller gasolina / Mostrador.
-    const talleresRosita = [
-      await buildTaller('16', 'Taller Gasolina La Rosita'),
-      await buildTaller('17', 'Mostrador La Rosita'),
+    const built = await mapInBatches(tallerSpecs, 3, async (spec) => ({
+      key: spec.key,
+      sede: spec.sede,
+      taller: await buildTaller(spec.centros, spec.nombre),
+    }));
+
+    const groupOrder = [
+      { key: 'giron', sede: 'Girón' },
+      { key: 'rosita', sede: 'La Rosita' },
+      { key: 'barranca', sede: 'Barrancabermeja' },
+      { key: 'bocono', sede: 'Cúcuta Boconó' },
+      { key: 'solochevrolet', sede: 'Solochevrolet' },
+      { key: 'chevropartes', sede: 'Chevropartes' },
     ];
-    sedesTalleres.push({
-      key: 'rosita',
-      sede: 'La Rosita',
-      talleres: talleresRosita,
-    });
-
-    // Barrancabermeja: Diesel / Gasolina / Mostrador.
-    const talleresBarranca = [
-      await buildTaller('70', 'Taller Diesel Barrancabermeja'),
-      await buildTaller('13', 'Taller Gasolina Barrancabermeja'),
-      await buildTaller('11', 'Mostrador Barrancabermeja'),
-    ];
-    sedesTalleres.push({
-      key: 'barranca',
-      sede: 'Barrancabermeja',
-      talleres: talleresBarranca,
-    });
-
-    // Cúcuta Boconó: Diesel / Gasolina / Colisión / Mostrador.
-    const talleresBocono = [
-      await buildTaller('80', 'Taller Diesel Boconó'),
-      await buildTaller('29', 'Taller Gasolina Boconó'),
-      await buildTaller('31,46', 'Taller Colisión Boconó'),
-      await buildTaller('28', 'Mostrador Boconó'),
-    ];
-    sedesTalleres.push({
-      key: 'bocono',
-      sede: 'Cúcuta Boconó',
-      talleres: talleresBocono,
-    });
-
-    // Solochevrolet y Chevropartes: solo mostrador general por ahora.
-    const talleresSolochevrolet = [await buildTaller('60', 'Solochevrolet')];
-    sedesTalleres.push({
-      key: 'solochevrolet',
-      sede: 'Solochevrolet',
-      talleres: talleresSolochevrolet,
-    });
-
-    const talleresChevropartes = [await buildTaller('15', 'Chevropartes')];
-    sedesTalleres.push({
-      key: 'chevropartes',
-      sede: 'Chevropartes',
-      talleres: talleresChevropartes,
-    });
+    for (const g of groupOrder) {
+      sedesTalleres.push({
+        key: g.key,
+        sede: g.sede,
+        talleres: built
+          .filter((row) => row.key === g.key)
+          .map((row) => row.taller),
+      });
+    }
 
     base.sedes_talleres = sedesTalleres;
 

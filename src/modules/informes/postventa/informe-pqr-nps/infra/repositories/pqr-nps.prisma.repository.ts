@@ -15,13 +15,23 @@ import {
   PqrNpsVehiculoInfoEntity,
   PqrNpsVerbalizacionEntity,
 } from '../../domain/pqr-nps.entity';
+import { clampPageLimit } from '../../../../../../core/infra/pagination';
+import type { PaginatedResult } from '../../../../../../core/infra/pagination';
 
 @Injectable()
 export class PqrNpsPrismaRepository implements IPqrNpsRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async listar(filtros: FiltrosPqrNps): Promise<PqrNpsItemEntity[]> {
+  async listar(
+    filtros: FiltrosPqrNps,
+  ): Promise<PaginatedResult<PqrNpsItemEntity>> {
     const estado = filtros.estado ?? 'abiertos';
+    const { pagina, limite, offset } = clampPageLimit(
+      filtros.pagina,
+      filtros.limite,
+    );
+    const q = filtros.q?.trim() ?? '';
+    const like = q ? `%${q}%` : null;
 
     const gmSql = this.buildEncuestasGmSql(estado);
     const codSql = this.buildPqrCodieselSql(estado);
@@ -36,8 +46,29 @@ export class PqrNpsPrismaRepository implements IPqrNpsRepository {
       ${codiSql}
       UNION ALL
       ${qrSql}
-      ORDER BY fecha DESC
     `;
+
+    const filterSql = like
+      ? Prisma.sql`WHERE (
+          placa LIKE ${like}
+          OR cliente LIKE ${like}
+          OR orden LIKE ${like}
+          OR sede LIKE ${like}
+          OR fuente LIKE ${like}
+          OR tecnico LIKE ${like}
+        )`
+      : Prisma.empty;
+
+    const countRows = await this.prisma.$queryRaw<
+      Array<{ total: number | bigint }>
+    >(Prisma.sql`
+      SELECT COUNT_BIG(*) AS total
+      FROM (
+        ${unionSql}
+      ) AS pqr
+      ${filterSql}
+    `);
+    const total = Number(countRows[0]?.total ?? 0);
 
     const rows = await this.prisma.$queryRaw<
       {
@@ -66,37 +97,50 @@ export class PqrNpsPrismaRepository implements IPqrNpsRepository {
         comentarios_final_caso: string | null;
         tipificacion_cierre: string | null;
       }[]
-    >(unionSql);
+    >(Prisma.sql`
+      SELECT *
+      FROM (
+        ${unionSql}
+      ) AS pqr
+      ${filterSql}
+      ORDER BY fecha DESC
+      OFFSET ${offset} ROWS FETCH NEXT ${limite} ROWS ONLY
+    `);
 
-    return rows.map(
-      (r) =>
-        new PqrNpsItemEntity({
-          fuente: r.fuente,
-          id: r.id,
-          pqrNpsId: r.pqr_nps_id,
-          sede: r.sede,
-          area: r.area,
-          fecha: r.fecha,
-          placa: r.placa,
-          cliente: r.cliente,
-          modeloVh: r.modelo_vh,
-          orden: r.orden,
-          mail: r.mail,
-          telefono: r.telefono,
-          servicio: r.servicio,
-          satisfaccionConcesionario: r.satisfaccion_concesionario,
-          satisfaccionTrabajo: r.satisfaccion_trabajo,
-          vhReparadoOk: r.vh_reparado_ok,
-          recomendacionMarca: r.recomendacion_marca,
-          comentarios: r.comentarios,
-          tecnico: r.tecnico,
-          tipificacionEncuesta: r.tipificacion_encuesta,
-          contactoCliente: r.contacto_cliente,
-          estadoCaso: r.estado_caso,
-          comentariosFinalCaso: r.comentarios_final_caso,
-          tipificacionCierre: r.tipificacion_cierre,
-        }),
-    );
+    return {
+      items: rows.map(
+        (r) =>
+          new PqrNpsItemEntity({
+            fuente: r.fuente,
+            id: r.id,
+            pqrNpsId: r.pqr_nps_id,
+            sede: r.sede,
+            area: r.area,
+            fecha: r.fecha,
+            placa: r.placa,
+            cliente: r.cliente,
+            modeloVh: r.modelo_vh,
+            orden: r.orden,
+            mail: r.mail,
+            telefono: r.telefono,
+            servicio: r.servicio,
+            satisfaccionConcesionario: r.satisfaccion_concesionario,
+            satisfaccionTrabajo: r.satisfaccion_trabajo,
+            vhReparadoOk: r.vh_reparado_ok,
+            recomendacionMarca: r.recomendacion_marca,
+            comentarios: r.comentarios,
+            tecnico: r.tecnico,
+            tipificacionEncuesta: r.tipificacion_encuesta,
+            contactoCliente: r.contacto_cliente,
+            estadoCaso: r.estado_caso,
+            comentariosFinalCaso: r.comentarios_final_caso,
+            tipificacionCierre: r.tipificacion_cierre,
+          }),
+      ),
+      total,
+      pagina,
+      limite,
+    };
   }
 
   async obtenerGestion(

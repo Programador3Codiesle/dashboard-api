@@ -7,10 +7,11 @@ import { LoginDto } from '../../application/dto/login.dto';
 export class LoginUseCase {
   constructor(private readonly authService: AuthService) {}
 
-  async execute(dto: LoginDto) {
+  async execute(dto: LoginDto, clientIp?: string) {
     const user = await this.authService.validateUser(
       dto.nit_usuario,
       dto.password,
+      clientIp,
     );
     return this.authService.login(user);
   }

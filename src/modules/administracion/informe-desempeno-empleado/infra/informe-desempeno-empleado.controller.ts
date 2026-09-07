@@ -1,6 +1,8 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 import { DesempenoEmpleadoFacade } from '../application/desempeno-empleado.facade';
 
+@UseGuards(JwtAuthGuard)
 @Controller('informes/informe-desempeno-empleado')
 export class InformeDesempenoEmpleadoController {
   constructor(private readonly facade: DesempenoEmpleadoFacade) {}

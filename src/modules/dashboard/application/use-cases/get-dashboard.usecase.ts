@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ForbiddenException } from '@nestjs/common';
 import { IDashboardCommonRepository } from '../../domain/dashboard-common.repository';
+import { AuthService } from '../../../auth/infra/auth.service';
 import {
   PERFIL_JEFE_TALLER,
   PERFIL_JEFE_TALLER_ALT,
@@ -32,6 +33,7 @@ export class GetDashboardUseCase {
     private readonly comprasService: ComprasService,
     private readonly asesorRepService: AsesorRepuestoService,
     private readonly mantenimientoService: MantenimientoService,
+    private readonly authService: AuthService,
   ) {}
 
   async execute(
@@ -44,6 +46,12 @@ export class GetDashboardUseCase {
     idEmpresa?: number,
   ): Promise<DashboardResponseDto> {
     const perfilNum = typeof perfil === 'string' ? Number(perfil) : perfil;
+    if (idEmpresa != null) {
+      const asignadas = await this.authService.getEmpresasAsignadas(nitUsuario);
+      if (!asignadas.includes(idEmpresa)) {
+        throw new ForbiddenException('Empresa no asignada al usuario');
+      }
+    }
     const fechaRow = await this.commonRepo.getFecha();
     const fechaActual =
       fechaRow?.fecha_actual ?? new Date().toISOString().slice(0, 10);

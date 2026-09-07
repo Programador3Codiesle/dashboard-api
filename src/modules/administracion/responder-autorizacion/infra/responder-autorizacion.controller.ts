@@ -1,10 +1,12 @@
 import { Controller, Get, Query, Res } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import { ConfigService } from '@nestjs/config';
 import { getFrontendBaseUrl } from '../../../../core/config/env-urls';
 import { Response } from 'express';
 import { ResponderAutorizacionQueryDto } from '../application/dto/responder-autorizacion-query.dto';
 import { ResponderAutorizacionUseCase } from '../application/use-cases/responder-autorizacion.usecase';
 
+@SkipThrottle()
 @Controller('administracion/responder')
 export class ResponderAutorizacionController {
   constructor(

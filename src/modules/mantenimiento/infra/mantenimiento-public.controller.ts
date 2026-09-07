@@ -1,9 +1,11 @@
 import { Controller, Get, Header, Query, Res } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { MantenimientoFacade } from '../application/mantenimiento.facade';
 import { RetiroPublicoQueryDto } from '../application/dto/mantenimiento-query.dto';
 
 /** Endpoints públicos (sin JWT) para links de email de retiro — equivalencia legacy */
+@SkipThrottle()
 @Controller('mantenimiento/publico')
 export class MantenimientoPublicController {
   constructor(private readonly facade: MantenimientoFacade) {}

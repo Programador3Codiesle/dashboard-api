@@ -5,9 +5,13 @@ import {
   PqrNpsVehiculoInfoEntity,
   PqrNpsVerbalizacionEntity,
 } from './pqr-nps.entity';
+import type { PaginatedResult } from '../../../../../core/infra/pagination';
 
 export interface FiltrosPqrNps {
   estado?: 'abiertos' | 'cerrados' | 'todos';
+  pagina?: number;
+  limite?: number;
+  q?: string;
 }
 
 export interface ActualizarPqrNpsPayload {
@@ -42,7 +46,9 @@ export interface CrearVerbalizacionPayload {
 }
 
 export abstract class IPqrNpsRepository {
-  abstract listar(filtros: FiltrosPqrNps): Promise<PqrNpsItemEntity[]>;
+  abstract listar(
+    filtros: FiltrosPqrNps,
+  ): Promise<PaginatedResult<PqrNpsItemEntity>>;
 
   abstract obtenerGestion(
     fuente: string,

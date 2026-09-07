@@ -6,6 +6,7 @@ import {
 import { SEDES_DETALLE } from '../../domain/presupuesto-drilldown.config';
 import { CODIESEL_EMPRESA_ID } from '../../shared/utils/assert-codiesel.util';
 import { clampRestante, safeDiv } from '../utils/presupuesto-math';
+import { mapInBatches } from '../../../../core/infra/async-batch';
 
 @Injectable()
 export class ObtenerSedesDetalleUseCase {
@@ -25,8 +26,10 @@ export class ObtenerSedesDetalleUseCase {
       this.repo.getDiaActual(),
     ]);
 
-    return Promise.all(
-      SEDES_DETALLE.map(async (cfg): Promise<SedeDetalleDto> => {
+    return mapInBatches(
+      SEDES_DETALLE,
+      2,
+      async (cfg): Promise<SedeDetalleDto> => {
         const [metaMes, totalDia, tot, moRaw, repTall, repMos] =
           await Promise.all([
             this.repo.getMetaMes(cfg.metaSede, fechaIni, fechaFin),
@@ -67,7 +70,7 @@ export class ObtenerSedesDetalleUseCase {
           repuestosMostrador: repMos,
           conDetalleTaller: cfg.conDetalleTaller,
         };
-      }),
+      },
     );
   }
 }

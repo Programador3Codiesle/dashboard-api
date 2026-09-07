@@ -42,7 +42,13 @@ export class EstadoTallerController {
       query.id_empresa > 0
         ? query.id_empresa
         : undefined;
-    return this.facade.obtenerPanel(this.getNit(req), query.bodega, idEmpresa);
+    return this.facade.obtenerPanel(
+      this.getNit(req),
+      query.bodega,
+      idEmpresa,
+      query.pagina,
+      query.limite,
+    );
   }
 
   @Get('total-abiertas')

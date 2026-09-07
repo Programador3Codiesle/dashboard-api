@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { AuthModule } from '../../auth/infra/auth.module';
 import { DashboardController } from './dashboard.controller';
+import { DashboardCacheInterceptor } from './dashboard-cache.interceptor';
 import { GetDashboardUseCase } from '../application/use-cases/get-dashboard.usecase';
 import {
   DashboardTecnicoPrismaRepository,
@@ -31,9 +33,11 @@ import { IMantenimientoDashboardRepository } from '../domain/mantenimiento.repos
 import { IGerenciaDashboardRepository } from '../domain/gerencia.repository';
 
 @Module({
+  imports: [AuthModule],
   controllers: [DashboardController],
   providers: [
     GetDashboardUseCase,
+    DashboardCacheInterceptor,
     // Repositorios especializados
     {
       provide: IDashboardCommonRepository,

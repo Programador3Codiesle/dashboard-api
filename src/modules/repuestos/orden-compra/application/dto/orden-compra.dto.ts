@@ -1,6 +1,5 @@
 import {
   IsArray,
-  IsIn,
   IsInt,
   IsNotEmpty,
   IsOptional,
@@ -18,6 +17,18 @@ export class ListarOrdenCompraDto {
   @IsString()
   @IsNotEmpty()
   fechaFin!: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  pagina?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  limite?: number;
 }
 
 export class OrdenCompraItemDto {
