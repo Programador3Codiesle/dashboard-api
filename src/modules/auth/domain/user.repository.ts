@@ -1,5 +1,12 @@
 import { User } from './user.entity';
 
+export type StoredRefreshToken = {
+  id: number;
+  refreshTokenHash: string;
+  revokedAt: Date | null;
+  expiresAt: Date;
+};
+
 export abstract class IUserRepository {
   abstract findByEmail(nit_usuario: number): Promise<User | null>;
   abstract findById(id: string): Promise<User | null>;
@@ -14,5 +21,10 @@ export abstract class IUserRepository {
   abstract updateRefreshToken(
     id: string,
     refreshTokenHash: string | null,
+  ): Promise<void>;
+  abstract findUsableRefreshTokens(id: string): Promise<StoredRefreshToken[]>;
+  abstract rotateRefreshToken(
+    id: string,
+    refreshTokenHash: string,
   ): Promise<void>;
 }

@@ -253,7 +253,15 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  profile(@Req() req: Request) {
-    return readRequestUser(req);
+  async profile(@Req() req: Request) {
+    const jwtUser = readRequestUser(req);
+    const userId = jwtUser?.sub;
+    const sessionUser = userId
+      ? await this.authService.getSessionUser(userId)
+      : null;
+    return {
+      ...jwtUser,
+      user: sessionUser ?? undefined,
+    };
   }
 }

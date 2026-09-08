@@ -138,9 +138,23 @@ export class AuthService {
       { expiresIn: '7d' },
     );
 
-    // Hashear el refresh token y guardarlo
     const refreshHash = await bcrypt.hash(refreshToken, 10);
     await this.userRepo.updateRefreshToken(user.id, refreshHash);
+
+    return {
+      user: await this.buildPublicUser(user),
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  async getSessionUser(userId: string) {
+    const user = await this.userRepo.findById(userId);
+    if (!user) return null;
+    return this.buildPublicUser(user);
+  }
+
+  private async buildPublicUser(user: User) {
     const perfil = Number(user.perfil_postventa);
     const perfilValido = !Number.isNaN(perfil);
     const [
@@ -166,19 +180,15 @@ export class AuthService {
     ]);
 
     return {
-      user: {
-        id: user.id,
-        nit_usuario: user.nit_usuario,
-        perfil_postventa: user.perfil_postventa,
-        nombre_usuario: user.nombre_usuario,
-        nom_perfil: nomPerfil ?? undefined,
-        empresas_asignadas: empresasAsignadas,
-        menus_permitidos: menusPermitidos,
-        submenus_permitidos: submenusPermitidos,
-        trimenus_permitidos: trimenusPermitidos,
-      },
-      accessToken,
-      refreshToken,
+      id: user.id,
+      nit_usuario: user.nit_usuario,
+      perfil_postventa: user.perfil_postventa,
+      nombre_usuario: user.nombre_usuario,
+      nom_perfil: nomPerfil ?? undefined,
+      empresas_asignadas: empresasAsignadas,
+      menus_permitidos: menusPermitidos,
+      submenus_permitidos: submenusPermitidos,
+      trimenus_permitidos: trimenusPermitidos,
     };
   }
 
@@ -221,27 +231,33 @@ export class AuthService {
     }
 
     const user = await this.userRepo.findById(userId);
-    if (!user || !user.refreshTokenHash)
-      throw new UnauthorizedException('Refresh token inválido');
+    if (!user) throw new UnauthorizedException('Refresh token inválido');
 
-    const valid = await bcrypt.compare(
-      presentedRefreshToken,
-      user.refreshTokenHash,
-    );
-    if (!valid) throw new UnauthorizedException('Refresh token inválido');
+    const candidates = await this.userRepo.findUsableRefreshTokens(user.id);
+    let matched = false;
+    for (const token of candidates) {
+      const valid = await bcrypt.compare(
+        presentedRefreshToken,
+        token.refreshTokenHash,
+      );
+      if (valid) {
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) throw new UnauthorizedException('Refresh token inválido');
 
     const accessToken = this.jwtService.sign(
       { sub: user.id, nit: user.nit_usuario, role: user.perfil_postventa },
       { expiresIn: '15m' },
     );
 
-    // Rotación de refresh token: emitir nuevo y guardar hash
     const newRefreshToken = this.jwtService.sign(
       { sub: user.id },
       { expiresIn: '7d' },
     );
     const newHash = await bcrypt.hash(newRefreshToken, 10);
-    await this.userRepo.updateRefreshToken(user.id, newHash);
+    await this.userRepo.rotateRefreshToken(user.id, newHash);
 
     return { accessToken, refreshToken: newRefreshToken };
   }
