@@ -52,9 +52,8 @@ export class UserPrismaRepository implements IUserRepository {
 
   async findTrimenusByPerfil(perfil: number): Promise<number[]> {
     const trimenus = await this.prisma.$queryRaw<Array<{ id_trimenu: number }>>`
-      SELECT DISTINCT CAST(t.id_trimenu AS INT) AS id_trimenu
+      SELECT DISTINCT CAST(tp.id_trimenu AS INT) AS id_trimenu
       FROM postv_trimenu_perfil tp
-      INNER JOIN postv_trimenu t ON t.id_trimenu = tp.id_trimenu
       WHERE tp.id_perfil = ${perfil}
       ORDER BY id_trimenu
     `;
