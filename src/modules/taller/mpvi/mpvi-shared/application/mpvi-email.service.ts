@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { getPublicEmailBaseUrl } from '../../../../../core/config/env-urls';
+import {
+  emailPruebasInbox,
+  isEmailModoPruebas,
+} from '../../../../../core/infra/email/email-modo-pruebas';
 import { EmailService } from '../../../../../core/infra/email/email.service';
 import { IMpviCotizacionRepository } from '../domain/mpvi-cotizacion.repository';
 import { MpviLinkService } from './mpvi-link.service';
-
-const CORREO_PRUEBAS_DEFAULT = 'programador3@codiesel.co';
 
 @Injectable()
 export class MpviEmailService {
@@ -16,7 +18,9 @@ export class MpviEmailService {
     private readonly repo: IMpviCotizacionRepository,
   ) {}
 
+  /** El flag global EMAIL_MODO_PRUEBAS manda sobre MPVI_MODO_PRUEBAS. */
   private isModoPruebas(): boolean {
+    if (isEmailModoPruebas(this.config)) return true;
     const modo = this.config.get<string>('MPVI_MODO_PRUEBAS');
     if (modo !== undefined && modo !== '') {
       return modo === 'true' || modo === '1';
@@ -25,10 +29,7 @@ export class MpviEmailService {
   }
 
   private correoPruebas(): string {
-    return (
-      this.config.get<string>('MPVI_CORREO_PRUEBAS')?.trim() ||
-      CORREO_PRUEBAS_DEFAULT
-    );
+    return emailPruebasInbox(this.config);
   }
 
   private obtenerDestinatario(correoCliente: string): string {

@@ -1,12 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import type Mail from 'nodemailer/lib/mailer';
+import { emailPruebasInbox, isEmailModoPruebas } from './email-modo-pruebas';
 
 export type SendEmailParams = {
   to: string[];
   subject: string;
   html: string;
+  cc?: string[];
   bcc?: string[];
   attachments?: Array<{
     filename: string;
@@ -17,8 +19,11 @@ export type SendEmailParams = {
 
 @Injectable()
 export class EmailService {
+  private readonly logger = new Logger(EmailService.name);
   private readonly transporter: nodemailer.Transporter | null;
   private readonly from: Mail.Address | string | null;
+  private readonly modoPruebas: boolean;
+  private readonly inboxPruebas: string;
 
   constructor(private readonly config: ConfigService) {
     const host = this.config.get<string>('SMTP_HOST');
@@ -27,6 +32,23 @@ export class EmailService {
     const pass = this.config.get<string>('SMTP_PASS');
     const fromAddress = this.config.get<string>('SMTP_FROM') ?? user ?? '';
     const fromName = this.config.get<string>('SMTP_FROM_NAME') ?? '';
+
+    this.modoPruebas = isEmailModoPruebas(this.config);
+    this.inboxPruebas = emailPruebasInbox(this.config);
+
+    if (this.modoPruebas) {
+      this.logger.warn(
+        `EMAIL_MODO_PRUEBAS activo (NODE_ENV=${process.env.NODE_ENV ?? 'undefined'}). ` +
+          `Todos los correos se redirigen a ${this.inboxPruebas}. ` +
+          `No salen a clientes ni a destinatarios de base de datos.`,
+      );
+    } else {
+      this.logger.warn(
+        `EMAIL_MODO_PRUEBAS inactivo (NODE_ENV=${process.env.NODE_ENV ?? 'undefined'}). ` +
+          `Los correos salen a destinatarios reales (clientes, jefes, BCC). ` +
+          `Para pruebas con BD de producción ponga EMAIL_MODO_PRUEBAS=true.`,
+      );
+    }
 
     if (!host || !user || !pass || !fromAddress) {
       this.transporter = null;
@@ -44,7 +66,6 @@ export class EmailService {
       },
     });
 
-    // Nodemailer types: si enviamos Address, "name" debe ser string (no undefined).
     this.from = fromName
       ? { address: fromAddress, name: fromName }
       : fromAddress;
@@ -66,63 +87,63 @@ export class EmailService {
       await this.transporter.sendMail({
         from: this.from,
         to: payload.to,
+        cc: payload.cc,
         bcc: payload.bcc,
         subject: payload.subject,
         html: payload.html,
         attachments: payload.attachments,
       });
       return { ok: true };
-    } catch (e: any) {
-      return { ok: false, error: e?.message ?? 'Error enviando correo' };
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : 'Error enviando correo';
+      return { ok: false, error: message };
     }
   }
 
-  /** En desarrollo redirige todos los correos al buzón de pruebas. */
+  /**
+   * Con EMAIL_MODO_PRUEBAS=true (también en NODE_ENV=production) redirige
+   * to/cc/bcc al buzón de pruebas y deja trazables los destinatarios originales.
+   */
   private applyDevRedirect(params: SendEmailParams): SendEmailParams {
-    if (!this.isModoPruebasCorreo()) {
+    if (!this.modoPruebas) {
       return params;
     }
 
-    const devInbox = this.correoPruebas();
     const destinatariosOriginales = [
       ...params.to,
+      ...(params.cc ?? []).map((c) => `(cc) ${c}`),
       ...(params.bcc ?? []).map((b) => `(bcc) ${b}`),
     ].join(', ');
 
+    this.logger.warn(
+      `Correo redirigido a ${this.inboxPruebas}. Originales: ${destinatariosOriginales}. Asunto: ${params.subject}`,
+    );
+
     const aviso = `<p style="font-family:sans-serif;font-size:12px;color:#666;margin:0 0 12px;">
-      <strong>[MODO DESARROLLO]</strong> Destinatarios originales: ${this.escapeHtml(destinatariosOriginales)}
+      <strong>[MODO PRUEBAS]</strong> Destinatarios originales: ${this.escapeHtml(destinatariosOriginales)}
     </p>`;
 
-    const subject = params.subject.startsWith('[DEV]')
+    const prefix =
+      process.env.NODE_ENV === 'production' ? '[PRUEBAS]' : '[DEV]';
+    const alreadyPrefixed =
+      params.subject.startsWith('[DEV]') ||
+      params.subject.startsWith('[PRUEBAS]');
+    const subject = alreadyPrefixed
       ? params.subject
-      : `[DEV] ${params.subject}`;
+      : `${prefix} ${params.subject}`;
+
+    const htmlYaMarcado =
+      params.html.includes('[MODO DESARROLLO]') ||
+      params.html.includes('[MODO PRUEBAS]');
 
     return {
       ...params,
-      to: [devInbox],
+      to: [this.inboxPruebas],
+      cc: undefined,
       bcc: undefined,
       subject,
-      html:
-        params.html.includes('[MODO DESARROLLO]') ||
-        params.html.includes('[MODO PRUEBAS]')
-          ? params.html
-          : `${aviso}${params.html}`,
+      html: htmlYaMarcado ? params.html : `${aviso}${params.html}`,
     };
-  }
-
-  private isModoPruebasCorreo(): boolean {
-    const flag = this.config.get<string>('EMAIL_MODO_PRUEBAS');
-    if (flag === 'false' || flag === '0') return false;
-    if (flag === 'true' || flag === '1') return true;
-    return process.env.NODE_ENV !== 'production';
-  }
-
-  private correoPruebas(): string {
-    return (
-      this.config.get<string>('EMAIL_DEV_OVERRIDE')?.trim() ||
-      this.config.get<string>('MPVI_CORREO_PRUEBAS')?.trim() ||
-      'programador3@codiesel.co'
-    );
   }
 
   private escapeHtml(value: string): string {
