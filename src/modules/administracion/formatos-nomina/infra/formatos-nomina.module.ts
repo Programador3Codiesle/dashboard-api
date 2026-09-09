@@ -3,7 +3,7 @@ import { FormatosNominaController } from './formatos-nomina.controller';
 import { FormatosNominaFacade } from '../application/formatos-nomina.facade';
 import { ObtenerFormatosUseCase } from '../application/use-cases/obtener-formatos.usecase';
 import { IFormatoNominaRepository } from '../domain/formato-nomina.repository';
-import { FormatoNominaPrismaRepository } from './repositories/formato-nomina.prisma.repository';
+import { FormatoNominaStaticRepository } from './repositories/formato-nomina.static.repository';
 
 @Module({
   controllers: [FormatosNominaController],
@@ -12,7 +12,7 @@ import { FormatoNominaPrismaRepository } from './repositories/formato-nomina.pri
     ObtenerFormatosUseCase,
     {
       provide: IFormatoNominaRepository,
-      useClass: FormatoNominaPrismaRepository,
+      useClass: FormatoNominaStaticRepository,
     },
   ],
   exports: [FormatosNominaFacade],
