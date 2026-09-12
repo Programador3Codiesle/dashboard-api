@@ -7,7 +7,7 @@ export class ListaHorasExtrasFacade {
     private readonly obtenerHorasExtrasUC: ObtenerHorasExtrasDiaActualUseCase,
   ) {}
 
-  obtenerDiaActual() {
-    return this.obtenerHorasExtrasUC.execute();
+  obtenerDiaActual(sede: string) {
+    return this.obtenerHorasExtrasUC.execute(sede);
   }
 }

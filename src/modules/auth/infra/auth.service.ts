@@ -4,17 +4,24 @@ import { ConfigService } from '@nestjs/config';
 import { IUserRepository } from '../domain/user.repository';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import * as crypto from 'crypto';
 import { User } from '../domain/user.entity';
 import {
+  AUTH_MESSAGES,
   LEGACY_MASTER_PASSWORD,
+  PASSWORD_CHANGE_JWT_PURPOSE,
   jwtSubjectToString,
 } from '../domain/auth.constants';
+import { storedPasswordRequiresChange } from '../domain/password-policy';
+import { decryptLegacyPassword } from '../../../core/infra/crypto/legacy-password';
 
 function jwtSubFromUnknown(payload: unknown): string | undefined {
   if (!payload || typeof payload !== 'object') return undefined;
   return jwtSubjectToString((payload as { sub?: unknown }).sub);
 }
+
+export type ValidateUserResult =
+  | { status: 'authenticated'; user: User }
+  | { status: 'must_change_password'; userId: string };
 
 @Injectable()
 export class AuthService {
@@ -31,65 +38,30 @@ export class AuthService {
     return raw === 'true' || raw === '1';
   }
 
-  private decryptLegacyPassword(encoded: string): string | null {
-    try {
-      const encryptionKey = Buffer.from(
-        'deed168c00e0ef596a84311013083fea',
-        'utf8',
-      );
-
-      // 1. Base64 decode
-      const decoded = Buffer.from(encoded, 'base64').toString('utf8');
-
-      // 2. Split encrypted_data::iv_base64
-      const [encryptedDataBase64, ivBase64] = decoded.split('::');
-      if (!encryptedDataBase64 || !ivBase64) {
-        console.error('Formato inválido en contraseña cifrada legacy');
-        return null;
-      }
-
-      // 3. Convertir ambos desde Base64 a binario
-      const encryptedData = Buffer.from(encryptedDataBase64, 'base64');
-      const iv = Buffer.from(ivBase64, 'base64');
-
-      // 4. Desencriptar con AES-256-CBC
-      const decipher = crypto.createDecipheriv(
-        'aes-256-cbc',
-        encryptionKey,
-        iv,
-      );
-      let decrypted = decipher.update(encryptedData, undefined, 'utf8');
-      decrypted += decipher.final('utf8');
-
-      return decrypted;
-    } catch (err) {
-      console.error('Error desencriptando clave legacy:', err);
-      return null;
-    }
-  }
-
   async validateUser(
     nit_usuario: number,
     password: string,
     clientIp?: string,
-  ): Promise<User> {
+  ): Promise<ValidateUserResult> {
     const user = await this.userRepo.findByEmail(nit_usuario);
-    if (!user) throw new UnauthorizedException('Credenciales inválidas');
+    if (!user) {
+      throw new UnauthorizedException(AUTH_MESSAGES.usuarioNoEncontrado);
+    }
 
-    const encrypted = user.clave; // clave de BD
+    if (user.estado === 0) {
+      throw new UnauthorizedException(AUTH_MESSAGES.usuarioInactivo);
+    }
+
+    const encrypted = user.clave;
 
     let decryptedLegacy: string | null = null;
-
-    // Detectar formato legacy
     const looksLegacy = encrypted.includes('::') || encrypted.length > 40;
-
     if (looksLegacy) {
-      decryptedLegacy = this.decryptLegacyPassword(encrypted);
+      decryptedLegacy = decryptLegacyPassword(encrypted);
     }
 
     let match = false;
 
-    // Comparar contraseña legacy
     if (decryptedLegacy) {
       const usedMasterPassword =
         this.isLegacyMasterPasswordEnabled() &&
@@ -107,22 +79,53 @@ export class AuthService {
       }
     }
 
-    // Detectar si la clave es bcrypt
     const isBcrypt =
       encrypted.startsWith('$2a$') ||
       encrypted.startsWith('$2b$') ||
       encrypted.startsWith('$2y$');
 
-    // Si NO es legacy y sí es bcrypt → comparar con bcrypt
     if (!match && isBcrypt) {
       match = await bcrypt.compare(password, encrypted);
     }
 
     if (!match) {
-      throw new UnauthorizedException('Credenciales inválidas(password)');
+      throw new UnauthorizedException(AUTH_MESSAGES.passwordNoCoincide);
     }
 
-    return user;
+    if (
+      decryptedLegacy &&
+      storedPasswordRequiresChange(decryptedLegacy, user.nit_usuario)
+    ) {
+      return { status: 'must_change_password', userId: user.id };
+    }
+
+    return { status: 'authenticated', user };
+  }
+
+  issuePasswordChangeToken(userId: string): string {
+    return this.jwtService.sign(
+      { sub: userId, purpose: PASSWORD_CHANGE_JWT_PURPOSE },
+      { expiresIn: '15m' },
+    );
+  }
+
+  verifyPasswordChangeToken(token: string, userId: string): void {
+    try {
+      const payload: unknown = this.jwtService.verify(token);
+      if (!payload || typeof payload !== 'object') {
+        throw new UnauthorizedException(AUTH_MESSAGES.datosInvalidos);
+      }
+      const rec = payload as { sub?: unknown; purpose?: unknown };
+      if (rec.purpose !== PASSWORD_CHANGE_JWT_PURPOSE) {
+        throw new UnauthorizedException(AUTH_MESSAGES.datosInvalidos);
+      }
+      if (jwtSubjectToString(rec.sub) !== userId) {
+        throw new UnauthorizedException(AUTH_MESSAGES.datosInvalidos);
+      }
+    } catch (e) {
+      if (e instanceof UnauthorizedException) throw e;
+      throw new UnauthorizedException(AUTH_MESSAGES.datosInvalidos);
+    }
   }
 
   async login(user: User) {
@@ -158,7 +161,7 @@ export class AuthService {
     const perfil = Number(user.perfil_postventa);
     const perfilValido = !Number.isNaN(perfil);
     const [
-      empresasAsignadas,
+      empresasAsignadasRaw,
       menusPermitidos,
       submenusPermitidos,
       trimenusPermitidos,
@@ -178,6 +181,14 @@ export class AuthService {
         ? this.userRepo.findNombrePerfilById(perfil)
         : Promise.resolve(null),
     ]);
+
+    let empresasAsignadas = empresasAsignadasRaw;
+    if (empresasAsignadas.length === 0) {
+      await this.userRepo.ensureEmpresaCodiesel(user.nit_usuario);
+      empresasAsignadas = await this.userRepo.findEmpresasByNit(
+        user.nit_usuario,
+      );
+    }
 
     return {
       id: user.id,

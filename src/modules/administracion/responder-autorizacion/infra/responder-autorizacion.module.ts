@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { EmailModule } from '../../../../core/infra/email/email.module';
 import { GestionComprasModule } from '../../gestion-compras/infra/gestion-compras.module';
 import { NuevoAusentismoModule } from '../../nuevo-ausentismo/infra/nuevo-ausentismo.module';
 import { SolicitudTiempoSuplementarioModule } from '../../solicitud-tiempo-suplementario/infra/solicitud-tiempo-suplementario.module';
@@ -9,6 +10,7 @@ import { ResponderAutorizacionController } from './responder-autorizacion.contro
 @Module({
   imports: [
     ConfigModule,
+    EmailModule,
     GestionComprasModule,
     NuevoAusentismoModule,
     SolicitudTiempoSuplementarioModule,

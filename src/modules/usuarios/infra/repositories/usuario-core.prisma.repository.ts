@@ -185,6 +185,7 @@ export class UsuarioCoreRepository implements IUsuarioCoreRepository {
         data: {
           pass: encryptedPassword,
           num_intentos: 0,
+          estado: 1,
           estado_usuario: 1,
         },
       });

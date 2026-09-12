@@ -6,7 +6,7 @@ import { PacResumenEntity } from '../../domain/pac.entity';
 export class ObtenerPacUseCase {
   constructor(private readonly repo: IPacRepository) {}
 
-  execute(): Promise<PacResumenEntity> {
-    return this.repo.obtenerResumen();
+  execute(empresaId: number): Promise<PacResumenEntity> {
+    return this.repo.obtenerResumen(empresaId);
   }
 }

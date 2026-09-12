@@ -5,7 +5,7 @@ import { IHorasExtrasRepository } from '../../domain/horas-extras.repository';
 export class ObtenerHorasExtrasDiaActualUseCase {
   constructor(private readonly repo: IHorasExtrasRepository) {}
 
-  async execute() {
-    return this.repo.obtenerDiaActual();
+  async execute(sede: string) {
+    return this.repo.obtenerDiaActual(sede);
   }
 }

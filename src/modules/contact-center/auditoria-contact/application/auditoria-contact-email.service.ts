@@ -56,6 +56,7 @@ export class AuditoriaContactEmailService {
       to: destinatarios,
       subject: 'Auditoría Contac Center',
       html,
+      empresaId: 1,
     });
 
     return {

@@ -63,6 +63,7 @@ export class EntradasVariasEmailService {
         solicitud,
         idSolicitud,
       ),
+      empresaId: 1,
     });
     return result.ok;
   }
@@ -82,6 +83,7 @@ export class EntradasVariasEmailService {
         solicitud,
         idSolicitud,
       ),
+      empresaId: 1,
     });
     return result.ok;
   }
@@ -101,6 +103,7 @@ export class EntradasVariasEmailService {
         solicitud,
         detalle,
       ),
+      empresaId: 1,
     });
     return result.ok;
   }
@@ -117,6 +120,7 @@ export class EntradasVariasEmailService {
       bcc,
       subject: `Solicitud de Entrada Varia #${idSolicitud}`,
       html: this.htmlGestion('GESTIÓN SALIDA VARIA', solicitud, detalle),
+      empresaId: 1,
       attachments: pdf
         ? [
             {
@@ -144,6 +148,7 @@ export class EntradasVariasEmailService {
         solicitud,
         idSolicitud,
       ),
+      empresaId: 1,
     });
     return result.ok;
   }

@@ -7,25 +7,38 @@ import { ListaAusentismoEntity } from '../../domain/lista-ausentismo.entity';
 export class ListaAusentismoPrismaRepository implements IListaAusentismoRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async obtenerDiaActual(): Promise<ListaAusentismoEntity[]> {
+  async obtenerDiaActual(sede: string): Promise<ListaAusentismoEntity[]> {
     try {
-      const hoy = new Date();
-      const fecha = hoy.toISOString().split('T')[0];
-
-      // Optimizado: Usar $queryRaw con parámetro seguro
-      const results = await this.prisma.$queryRaw<any[]>`
-                SELECT 
-                    a.id_ausen, a.empleado, a.fecha_ini AS fecha, a.motivo,
-                    a.hora_ini AS hora_inicio,
-                    a.hora_fin AS hora_fin,
-                    a.autorizacion,
-                    t.nombres AS nombre
-                FROM postv_ausentismos a
-                LEFT JOIN terceros t ON t.nit_real = a.empleado
-                WHERE CAST(a.fecha_ini AS DATE) = ${fecha}
-                AND a.motivo != 'Tiempo Suplementario'
-                ORDER BY a.hora_ini ASC
-            `;
+      const results = await this.prisma.$queryRaw<
+        Array<{
+          id_ausen: bigint;
+          empleado: number | null;
+          nombre: string | null;
+          fecha: Date | null;
+          motivo: string | null;
+          hora_inicio: string | null;
+          hora_fin: string | null;
+          autorizacion: number | null;
+        }>
+      >`
+        SELECT
+          a.id_ausen,
+          a.empleado,
+          b.nombres AS nombre,
+          a.fecha_ini AS fecha,
+          a.motivo,
+          a.hora_ini AS hora_inicio,
+          a.hora_fin,
+          a.autorizacion
+        FROM postv_ausentismos a
+        INNER JOIN terceros b ON a.empleado = b.nit
+        INNER JOIN terceros j ON a.nit_usuario_resp = j.nit
+        WHERE a.autorizacion <> 2
+          AND CONVERT(date, a.fecha_ini) = CONVERT(date, GETDATE())
+          AND a.sede = ${sede}
+          AND a.confirmaporteria IS NULL
+        ORDER BY a.hora_ini ASC
+      `;
 
       return results.map(
         (r) =>
@@ -46,6 +59,20 @@ export class ListaAusentismoPrismaRepository implements IListaAusentismoReposito
     } catch (error) {
       console.error('Error obteniendo ausentismos del día:', error);
       return [];
+    }
+  }
+
+  async confirmarPorteria(id: bigint): Promise<boolean> {
+    try {
+      const affected = await this.prisma.$executeRaw`
+        UPDATE postv_ausentismos
+        SET confirmaporteria = ${'1'}
+        WHERE id_ausen = ${id}
+      `;
+      return Number(affected) > 0;
+    } catch (error) {
+      console.error('Error confirmando portería ausentismo:', error);
+      return false;
     }
   }
 }

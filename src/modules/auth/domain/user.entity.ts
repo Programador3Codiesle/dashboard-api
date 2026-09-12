@@ -7,6 +7,7 @@ export class User {
     public readonly refreshTokenHash?: string | null,
     public readonly nombre_usuario?: string,
     public readonly nombre_perfil?: string,
+    public readonly estado?: number | null,
   ) {}
 
   public changePassword(newHash: string) {
@@ -16,6 +17,9 @@ export class User {
       newHash,
       this.perfil_postventa,
       null,
+      this.nombre_usuario,
+      this.nombre_perfil,
+      this.estado,
     );
   }
 }

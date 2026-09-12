@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, Req, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 import { DesempenoEmpleadoFacade } from '../application/desempeno-empleado.facade';
 
@@ -10,6 +10,7 @@ export class InformeDesempenoEmpleadoController {
   @Get()
   listar(
     @Query('anio') anio: string,
+    @Req() req: { user?: { nit?: string | number } },
     @Query('sede') sede?: string,
     @Query('pagina') pagina?: string,
     @Query('limite') limite?: string,
@@ -20,6 +21,7 @@ export class InformeDesempenoEmpleadoController {
       sede: sede || null,
       pagina: pagina ? Number(pagina) : 1,
       limite: limite ? Number(limite) : 10,
+      nitUsuario: Number(req.user?.nit),
     });
   }
 

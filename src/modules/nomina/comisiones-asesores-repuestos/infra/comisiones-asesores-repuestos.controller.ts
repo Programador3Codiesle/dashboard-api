@@ -12,9 +12,10 @@ import {
   nominaPerfilFromRequest,
   type NominaAuthRequest,
 } from '../../shared/nomina-auth-request';
+import { CodieselEmpresaGuard } from '../../shared/utils/codiesel-empresa.guard';
 
 @Controller('nomina/comisiones-asesores-repuestos')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, CodieselEmpresaGuard)
 export class ComisionesAsesoresRepuestosController {
   constructor(private readonly facade: ComisionesAsesoresRepuestosFacade) {}
 
@@ -33,15 +34,6 @@ export class ComisionesAsesoresRepuestosController {
     if (!anoNum || anoNum < 2020) {
       throw new BadRequestException(
         'El parámetro ano es obligatorio y válido.',
-      );
-    }
-
-    const now = new Date();
-    const anoActual = now.getFullYear();
-    const mesActual = now.getMonth() + 1;
-    if (anoNum === anoActual && mesNum >= mesActual) {
-      throw new BadRequestException(
-        'No se permite consultar año y mes actual o futuro.',
       );
     }
 

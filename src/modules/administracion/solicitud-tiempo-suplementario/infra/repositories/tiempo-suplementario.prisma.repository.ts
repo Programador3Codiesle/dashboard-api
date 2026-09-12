@@ -5,6 +5,7 @@ import {
   ITiempoSuplementarioRepository,
 } from '../../domain/tiempo-suplementario.repository';
 import { TiempoSuplementarioEntity } from '../../domain/tiempo-suplementario.entity';
+import { fechaLocalYmd } from '../../../shared/fecha-local';
 
 @Injectable()
 export class TiempoSuplementarioPrismaRepository implements ITiempoSuplementarioRepository {
@@ -16,8 +17,8 @@ export class TiempoSuplementarioPrismaRepository implements ITiempoSuplementario
     data?: TiempoSuplementarioEntity;
   }> {
     try {
-      const fechaIni = data.fecha_ini.toISOString().split('T')[0];
-      const fechaSolicitud = data.fecha_solicitud.toISOString().split('T')[0];
+      const fechaIni = fechaLocalYmd(data.fecha_ini);
+      const fechaSolicitud = fechaLocalYmd(data.fecha_solicitud);
 
       const result = await this.prisma.$queryRaw<any[]>`
                 INSERT INTO postv_solicitud_hora_extra 
@@ -61,7 +62,7 @@ export class TiempoSuplementarioPrismaRepository implements ITiempoSuplementario
                     s.fecha_ini, s.hora_ini, s.hora_fin, s.fecha_solicitud, s.area, s.cargo, s.sede,
                     s.descripcion, s.autorizacion, s.autorizacionporteria, s.id_empresa
                 FROM postv_solicitud_hora_extra s
-                LEFT JOIN terceros t ON t.nit_real = s.nit_empleado
+                LEFT JOIN terceros t ON t.nit = s.nit_empleado
                 WHERE MONTH(s.fecha_ini) = ${mes} AND YEAR(s.fecha_ini) = ${anio}
                 AND s.nit_jefe = ${nit_empleado}
                 ORDER BY s.fecha_ini ASC
@@ -81,7 +82,7 @@ export class TiempoSuplementarioPrismaRepository implements ITiempoSuplementario
                     s.fecha_ini, s.hora_ini, s.hora_fin, s.fecha_solicitud, s.area, s.cargo, s.sede,
                     s.descripcion, s.autorizacion, s.autorizacionporteria, s.id_empresa
                 FROM postv_solicitud_hora_extra s
-                LEFT JOIN terceros t ON t.nit_real = s.nit_empleado
+                LEFT JOIN terceros t ON t.nit = s.nit_empleado
                 WHERE s.id_solicitud = ${id}
             `;
       if (!result || result.length === 0) return null;
@@ -97,12 +98,12 @@ export class TiempoSuplementarioPrismaRepository implements ITiempoSuplementario
     autorizacion: number,
   ): Promise<boolean> {
     try {
-      await this.prisma.$executeRaw`
+      const affected = await this.prisma.$executeRaw`
                 UPDATE postv_solicitud_hora_extra
                 SET autorizacion = ${autorizacion}
-                WHERE id_solicitud = ${id}
+                WHERE id_solicitud = ${id} AND autorizacion = 0
             `;
-      return true;
+      return Number(affected) > 0;
     } catch (error) {
       console.error(
         'Error actualizando autorización tiempo suplementario:',
@@ -110,6 +111,44 @@ export class TiempoSuplementarioPrismaRepository implements ITiempoSuplementario
       );
       return false;
     }
+  }
+
+  async obtenerNombrePorNit(nit: number): Promise<string> {
+    const rows = await this.prisma.$queryRaw<Array<{ nombres: string | null }>>`
+      SELECT TOP 1 t.nombres FROM terceros t WHERE t.nit = ${nit}
+    `;
+    return rows[0]?.nombres?.trim() || '';
+  }
+
+  async obtenerDestinosRespuesta(id: number): Promise<{
+    to: string[];
+    empresaId?: number | null;
+  }> {
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        mail_emp: string | null;
+        mail_jefe: string | null;
+        id_empresa: number | null;
+      }>
+    >`
+      SELECT DISTINCT
+        c.e_mail AS mail_emp,
+        j.correo AS mail_jefe,
+        s.id_empresa
+      FROM postv_solicitud_hora_extra s
+      LEFT JOIN postv_empleados em ON em.nit_empleado = s.nit_empleado
+      LEFT JOIN CRM_contactos c ON c.nit = em.nit_empleado
+      LEFT JOIN postv_jefes j ON j.nit_jefe = s.nit_jefe
+      WHERE s.id_solicitud = ${id}
+    `;
+    const to = [
+      ...new Set(
+        rows
+          .flatMap((r) => [r.mail_emp?.trim(), r.mail_jefe?.trim()])
+          .filter((c): c is string => !!c),
+      ),
+    ];
+    return { to, empresaId: rows[0]?.id_empresa ?? null };
   }
 
   private mapToEntity(data: any): TiempoSuplementarioEntity {

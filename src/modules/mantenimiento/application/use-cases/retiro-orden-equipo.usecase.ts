@@ -85,6 +85,7 @@ export class SolicitarRetiroUseCase {
         to,
         subject: `Solicitud retiro de equipo: ${eq.nombre_equipo}`,
         html,
+        empresaId: 1,
       });
     }
     return { ok: true, id: idRetiro };

@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import {
   IOrdenesTotRepository,
+  OrdenGeneralPendienteRow,
   PorteriaOrdGralRow,
   PorteriaTotRow,
   PorteriaVehiculoRow,
@@ -477,6 +478,49 @@ export class OrdenesTotPrismaRepository implements IOrdenesTotRepository {
       numero: toStr(r.numero),
       placa: toStr(r.placa),
       descripcion: toStr(r.descripcion),
+      fecha_ingreso: toStrOrNull(r.fecha_ingreso),
+    }));
+  }
+
+  async insertOrdenGeneral(
+    serial: string,
+    descripcion: string,
+    idUsuario: number,
+  ): Promise<void> {
+    await this.prisma.$executeRaw(
+      Prisma.sql`
+        INSERT INTO postv_vehiculos(placa, fecha_ingreso, autorizacion, usuario, tipo, contenido, orden)
+        VALUES (${serial}, SYSDATETIME(), 'SI', ${idUsuario}, 'Orden General', ${descripcion}, 'sin orden')
+      `,
+    );
+  }
+
+  async listarOrdenGeneralPendientes(
+    idUsuario: number,
+  ): Promise<OrdenGeneralPendienteRow[]> {
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        id_vehiculo: unknown;
+        placa: unknown;
+        contenido: unknown;
+        fecha_ingreso: unknown;
+      }>
+    >(
+      Prisma.sql`
+        SELECT id_vehiculo, placa, contenido,
+          CONVERT(VARCHAR, fecha_ingreso, 22) AS fecha_ingreso
+        FROM postv_vehiculos
+        WHERE usuario = ${idUsuario}
+          AND autorizacion = 'SI'
+          AND tipo = 'Orden General'
+          AND fecha_salida IS NULL
+      `,
+    );
+
+    return (rows ?? []).map((r) => ({
+      id_vehiculo: toNum(r.id_vehiculo),
+      placa: toStr(r.placa),
+      contenido: toStrOrNull(r.contenido),
       fecha_ingreso: toStrOrNull(r.fecha_ingreso),
     }));
   }

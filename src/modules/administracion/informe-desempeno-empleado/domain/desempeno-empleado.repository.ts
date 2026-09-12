@@ -5,6 +5,8 @@ export interface FiltrosDesempenoEmpleado {
   sede?: string | null;
   pagina?: number;
   limite?: number;
+  /** NIT de sesión. PHP: GH (63369607) ve todos; el resto filtra `nit_jefe`. */
+  nitUsuario: number;
 }
 
 export interface ListarDesempenoEmpleadoResultado {

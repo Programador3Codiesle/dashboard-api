@@ -508,7 +508,7 @@ export class PqrNpsPrismaRepository implements IPqrNpsRepository {
         INNER JOIN bodegas b ON b.bodega = teo.bodega
         WHERE pes.pregunta1 <= 6
           AND CONVERT(DATE, pes.fecha) >= CONVERT(DATE, '2023-06-21')
-          AND ${this.estadoClause('ppqr', estado)}
+          AND ${this.estadoClauseCodiAbiertos(estado)}
       `;
     }
 
@@ -639,6 +639,17 @@ export class PqrNpsPrismaRepository implements IPqrNpsRepository {
       WHERE CONVERT(DATE, pes.fecha) >= CONVERT(DATE, '2021-11-01')
         AND ppqr.estado_caso = 'Cerrado'
     `;
+  }
+
+  /**
+   * CODI abiertos en PHP (`get_encuestas_codi`): solo `estado_caso = 'Abierto'`.
+   * GM / QR / PQR Codiesel sí incluyen NULL; no reutilizar `estadoClause` aquí.
+   */
+  private estadoClauseCodiAbiertos(
+    estado: 'abiertos' | 'cerrados' | 'todos',
+  ): Prisma.Sql {
+    if (estado === 'todos') return Prisma.sql`1 = 1`;
+    return Prisma.sql`ppqr.estado_caso = 'Abierto'`;
   }
 
   private estadoClause(

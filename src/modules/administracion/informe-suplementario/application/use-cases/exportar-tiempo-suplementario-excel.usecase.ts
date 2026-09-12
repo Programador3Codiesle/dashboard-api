@@ -2,11 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { Workbook } from 'exceljs';
 import { ListarTiempoSuplementarioUseCase } from './listar-tiempo-suplementario.usecase';
 import { FiltrosTiempoSuplementarioDto } from '../dto/filtros-tiempo-suplementario.dto';
+import type { SesionInformeHe } from '../../domain/informe-tiempo-suplementario.repository';
+import type { InformeTiempoSuplementarioEntity } from '../../domain/informe-tiempo-suplementario.entity';
 
 const ESTADOS: Record<number, string> = {
   0: 'Pendiente',
   1: 'Aprobado',
-  2: 'Rechazado',
+  2: 'Negado',
 };
 
 @Injectable()
@@ -15,9 +17,14 @@ export class ExportarTiempoSuplementarioExcelUseCase {
     private readonly listarTiempoUC: ListarTiempoSuplementarioUseCase,
   ) {}
 
-  async execute(filtros?: FiltrosTiempoSuplementarioDto): Promise<Buffer> {
-    const items = await this.listarTiempoUC.execute(filtros);
-    const list = Array.isArray(items) ? items : [];
+  async execute(
+    filtros: FiltrosTiempoSuplementarioDto | undefined,
+    sesion: SesionInformeHe,
+  ): Promise<Buffer> {
+    const items = await this.listarTiempoUC.execute(filtros, sesion);
+    const list: InformeTiempoSuplementarioEntity[] = Array.isArray(items)
+      ? items
+      : [];
 
     const wb = new Workbook();
     const ws = wb.addWorksheet('Tiempo suplementario', {
@@ -44,7 +51,7 @@ export class ExportarTiempoSuplementarioExcelUseCase {
     };
     header.font = { bold: true, color: { argb: 'FFFFFFFF' } };
 
-    for (const item of list as any[]) {
+    for (const item of list) {
       const fecha =
         item.fecha instanceof Date
           ? item.fecha.toLocaleDateString('sv-SE', {
@@ -69,7 +76,10 @@ export class ExportarTiempoSuplementarioExcelUseCase {
       if (col && typeof col.eachCell === 'function') {
         let max = 12;
         col.eachCell({ includeEmpty: true }, (cell) => {
-          const len = (cell.value?.toString() ?? '').length;
+          const raw = cell.value;
+          const text =
+            raw == null || typeof raw === 'object' ? '' : String(raw);
+          const len = text.length;
           if (len > max) max = Math.min(len, 50);
         });
         col.width = max;

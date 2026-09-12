@@ -148,6 +148,7 @@ export class EnviarEmailCotizacionPesadosUseCase {
       bcc: bcc.length ? bcc : undefined,
       subject,
       html,
+      empresaId: idEmpresa,
       attachments: [
         {
           filename: `cotizacion-${idCotizacion}.pdf`,

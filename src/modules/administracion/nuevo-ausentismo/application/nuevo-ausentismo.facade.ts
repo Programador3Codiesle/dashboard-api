@@ -10,8 +10,12 @@ export class NuevoAusentismoFacade {
     private readonly obtenerCalendarioUC: ObtenerAusentismosCalendarioUseCase,
   ) {}
 
-  crearAusentismo(dto: CreateAusentismoDto, userId: number) {
-    return this.crearAusentismoUC.execute(dto, userId);
+  crearAusentismo(
+    dto: CreateAusentismoDto,
+    userId: number,
+    adjunto?: Express.Multer.File,
+  ) {
+    return this.crearAusentismoUC.execute(dto, userId, adjunto);
   }
 
   obtenerCalendario(mes: number, anio: number, userId: number) {

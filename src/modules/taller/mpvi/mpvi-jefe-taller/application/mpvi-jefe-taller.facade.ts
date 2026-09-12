@@ -19,8 +19,12 @@ export class MpviJefeTallerFacade {
     return this.obtenerDatosServicioUC.execute(dto.op, dto.idCotizacion);
   }
 
-  guardarDatosServicio(dto: GuardarDatosServicioDto, idUser: number) {
-    return this.guardarDatosServicioUC.execute(dto, idUser);
+  guardarDatosServicio(
+    dto: GuardarDatosServicioDto,
+    idUser: number,
+    empresaId?: number,
+  ) {
+    return this.guardarDatosServicioUC.execute(dto, idUser, empresaId);
   }
 
   imprimirMpvi(idCotizacion: number, tipo = 0, idEmpresa?: number) {

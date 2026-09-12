@@ -6,6 +6,7 @@ export interface FiltrosNpsTecnicos {
   origen: OrigenNpsTecnicos;
   sede: 'todas' | 'giron' | 'rosita' | 'bocono' | 'barranca';
   mes: number; // 0 = todos, 1-12 = mes específico
+  empresaId: number;
 }
 
 export abstract class INpsTecnicosRepository {

@@ -5,6 +5,10 @@ import { IGestionCompraRepository } from '../../domain/gestion-compra.repository
 import { EnviarAutorizacionCompraDto } from '../dto/enviar-autorizacion-compra.dto';
 import { EmailService } from '../../../../../core/infra/email/email.service';
 import { TokenRespuestaService } from '../../../../../core/infra/token-respuesta/token-respuesta.service';
+import {
+  DESTINATARIOS_AUTORIZACION_COMPRAS,
+  parseListaEmails,
+} from '../destinos-email-compras';
 
 @Injectable()
 export class EnviarAutorizacionCompraUseCase {
@@ -83,28 +87,17 @@ export class EnviarAutorizacionCompraUseCase {
           </div>
         `;
 
-    const toEmails: string[] = [];
-    const envTo = this.config.get<string>('EMAIL_AUTORIZACION_COMPRAS');
-    if (envTo) {
-      envTo
-        .split(',')
-        .map((e) => e.trim())
-        .filter(Boolean)
-        .forEach((e) => toEmails.push(e));
-    }
-    if (compra?.gerente_autoriza) {
-      const emailGerente = await this.repo.getEmailByNit(
-        compra.gerente_autoriza,
-      );
-      if (emailGerente && !toEmails.includes(emailGerente))
-        toEmails.push(emailGerente);
-    }
-    if (toEmails.length === 0) toEmails.push('programador3@codiesel.co');
+    // Compras.php solicitar_autorizacion: 3 buzones fijos, no el mail del gerente.
+    const toEmails = parseListaEmails(
+      this.config.get<string>('EMAIL_AUTORIZACION_COMPRAS'),
+      DESTINATARIOS_AUTORIZACION_COMPRAS,
+    );
 
     const mailResult = await this.emailService.sendEmail({
       to: toEmails,
       subject,
       html,
+      empresaId: compra?.id_empresa,
     });
 
     return {

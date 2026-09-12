@@ -2,9 +2,10 @@ import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 import { RelacionMargenMaterialesColoristaFacade } from '../application/relacion-margen-materiales-colorista.facade';
 import { parseYearMonthParam } from '../../shared/parse-year-month';
+import { CodieselEmpresaGuard } from '../../shared/utils/codiesel-empresa.guard';
 
 @Controller('nomina/relacion-margen-materiales-colorista')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, CodieselEmpresaGuard)
 export class RelacionMargenMaterialesColoristaController {
   constructor(
     private readonly facade: RelacionMargenMaterialesColoristaFacade,

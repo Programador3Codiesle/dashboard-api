@@ -73,6 +73,13 @@ export type TotListadoPage = {
   total: number;
 };
 
+export type OrdenGeneralPendienteRow = {
+  id_vehiculo: number;
+  placa: string;
+  contenido: string | null;
+  fecha_ingreso: string | null;
+};
+
 export abstract class IOrdenesTotRepository {
   abstract insertVehiculoORepuesto(
     placa: string,
@@ -125,4 +132,14 @@ export abstract class IOrdenesTotRepository {
   ): Promise<VehiculoPendienteRow[]>;
 
   abstract listarRepuestosCandidatos(): Promise<RepuestoCandidatoRow[]>;
+
+  abstract insertOrdenGeneral(
+    serial: string,
+    descripcion: string,
+    idUsuario: number,
+  ): Promise<void>;
+
+  abstract listarOrdenGeneralPendientes(
+    idUsuario: number,
+  ): Promise<OrdenGeneralPendienteRow[]>;
 }

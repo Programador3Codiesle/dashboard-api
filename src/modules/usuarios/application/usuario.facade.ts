@@ -20,6 +20,7 @@ import { AssignJefeUseCase } from './use-cases/assign-jefe.usecase';
 import { AssignHorarioUseCase } from './use-cases/assign-horario.usecase';
 import { AssignEmpresaUseCase } from './use-cases/assign-empresa.usecase';
 import { GetUsuariosUseCase } from './use-cases/get-usuarios.usecase';
+import { GetMiPerfilUseCase } from './use-cases/get-mi-perfil.usecase';
 
 function toUsuarioId(id: number | string): number {
   return typeof id === 'string' ? Number(id) : id;
@@ -38,10 +39,15 @@ export class UsuarioFacade {
     private readonly assignHorarioUC: AssignHorarioUseCase,
     private readonly assignEmpresaUC: AssignEmpresaUseCase,
     private readonly getUsuariosUC: GetUsuariosUseCase,
+    private readonly getMiPerfilUC: GetMiPerfilUseCase,
   ) {}
 
   async listar(page?: number, limit?: number, search?: string) {
     return this.getUsuariosUC.execute(page, limit, search);
+  }
+
+  async verMiPerfil(nit: number) {
+    return this.getMiPerfilUC.execute(nit);
   }
 
   async crearUsuario(dto: CreateUsuarioDto) {

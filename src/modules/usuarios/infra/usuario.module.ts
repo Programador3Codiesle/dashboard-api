@@ -9,6 +9,7 @@ import {
   IUsuarioJefeRepository,
   IUsuarioSedeRepository,
   IUsuarioHorarioRepository,
+  IMiPerfilRepository,
 } from '../domain/repositories';
 
 import {
@@ -17,6 +18,7 @@ import {
   UsuarioJefeRepository,
   UsuarioSedeRepository,
   UsuarioHorarioRepository,
+  MiPerfilPrismaRepository,
 } from './repositories';
 
 import { UsuarioFacade } from '../application/usuario.facade';
@@ -30,6 +32,7 @@ import { AssignJefeUseCase } from '../application/use-cases/assign-jefe.usecase'
 import { AssignHorarioUseCase } from '../application/use-cases/assign-horario.usecase';
 import { AssignEmpresaUseCase } from '../application/use-cases/assign-empresa.usecase';
 import { GetUsuariosUseCase } from '../application/use-cases/get-usuarios.usecase';
+import { GetMiPerfilUseCase } from '../application/use-cases/get-mi-perfil.usecase';
 
 /**
  * Módulo de Usuarios - Clean Architecture + DDD
@@ -69,6 +72,10 @@ import { GetUsuariosUseCase } from '../application/use-cases/get-usuarios.usecas
       provide: IUsuarioHorarioRepository,
       useClass: UsuarioHorarioRepository,
     },
+    {
+      provide: IMiPerfilRepository,
+      useClass: MiPerfilPrismaRepository,
+    },
 
     UsuarioMapper,
 
@@ -83,6 +90,7 @@ import { GetUsuariosUseCase } from '../application/use-cases/get-usuarios.usecas
     AssignHorarioUseCase,
     AssignEmpresaUseCase,
     GetUsuariosUseCase,
+    GetMiPerfilUseCase,
   ],
   exports: [
     UsuarioFacade,

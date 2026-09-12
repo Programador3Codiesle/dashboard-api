@@ -21,7 +21,6 @@ export class ChecklistEquipoPrismaRepository implements IChecklistEquipoReposito
       Prisma.sql`swcrm_check_tijera`,
       Prisma.sql`swcrm_check_hidraulicos`,
       Prisma.sql`swcrm_check_portico`,
-      Prisma.sql`swcrm_check_cabina_pintura`,
     ];
 
     const indice = filtros.op ?? 0;

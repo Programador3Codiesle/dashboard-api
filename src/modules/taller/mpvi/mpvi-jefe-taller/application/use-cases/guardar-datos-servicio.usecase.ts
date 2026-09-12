@@ -11,7 +11,11 @@ export class GuardarDatosServicioUseCase {
     private readonly emailService: MpviEmailService,
   ) {}
 
-  async execute(dto: GuardarDatosServicioDto, idUser: number) {
+  async execute(
+    dto: GuardarDatosServicioDto,
+    idUser: number,
+    empresaId?: number,
+  ) {
     const operaciones = dto.operaciones.split(',');
     const repuestos = dto.repuestos.split(',');
     const disponibilidad = dto.disponibilidad.split(',');
@@ -49,7 +53,11 @@ export class GuardarDatosServicioUseCase {
         valoresInicialesDisp,
         dto.op,
       );
-      await this.emailService.sendCorreoCotizacion(dto.idCotizacion, 2);
+      await this.emailService.sendCorreoCotizacion(
+        dto.idCotizacion,
+        2,
+        empresaId,
+      );
       return { ok: true };
     }
 
@@ -143,7 +151,11 @@ export class GuardarDatosServicioUseCase {
         valoresInicialesDisp,
         dto.op,
       );
-      await this.emailService.sendCorreoCotizacion(dto.idCotizacion, 2);
+      await this.emailService.sendCorreoCotizacion(
+        dto.idCotizacion,
+        2,
+        empresaId,
+      );
     }
 
     return { ok: true };

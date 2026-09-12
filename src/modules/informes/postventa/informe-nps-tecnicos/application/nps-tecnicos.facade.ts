@@ -16,11 +16,13 @@ export class NpsTecnicosFacade {
     origen: OrigenNpsTecnicos;
     sede: FiltrosNpsTecnicos['sede'];
     mes: number;
+    empresaId: number;
   }): Promise<NpsTecnicoRowEntity[]> {
     const filtros: FiltrosNpsTecnicos = {
       origen: params.origen,
       sede: params.sede,
       mes: params.mes,
+      empresaId: params.empresaId,
     };
 
     return this.listarNpsTecnicosUseCase.execute(filtros);

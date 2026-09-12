@@ -4,6 +4,7 @@ import { SolicitudesEvModule } from './solicitudes-ev/infra/solicitudes-ev.modul
 import { InformeEvSvModule } from './informe-ev-sv/infra/informe-ev-sv.module';
 import { InformeObsoletosModule } from './informe-obsoletos/infra/informe-obsoletos.module';
 import { OrdenCompraModule } from './orden-compra/infra/orden-compra.module';
+import { PedidosRepuestosModule } from './pedidos-repuestos/infra/pedidos-repuestos.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { OrdenCompraModule } from './orden-compra/infra/orden-compra.module';
     InformeEvSvModule,
     InformeObsoletosModule,
     OrdenCompraModule,
+    PedidosRepuestosModule,
   ],
 })
 export class RepuestosModule {}

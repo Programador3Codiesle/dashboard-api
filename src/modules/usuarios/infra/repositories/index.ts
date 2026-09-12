@@ -15,3 +15,4 @@ export { UsuarioEmpresaRepository } from './usuario-empresa.prisma.repository';
 export { UsuarioJefeRepository } from './usuario-jefe.prisma.repository';
 export { UsuarioSedeRepository } from './usuario-sede.prisma.repository';
 export { UsuarioHorarioRepository } from './usuario-horario.prisma.repository';
+export { MiPerfilPrismaRepository } from './mi-perfil.prisma.repository';

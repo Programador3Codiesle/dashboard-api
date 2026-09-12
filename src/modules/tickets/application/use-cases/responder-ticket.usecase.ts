@@ -1,19 +1,34 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ITicketRepository } from '../../domain/ticket.repository';
 import { reponderTicketDto } from '../dto/update-ticket.dto';
 import { EmailService } from '../../../../core/infra/email/email.service';
+import { destinatarioCorreoRespuestaTicket } from '../destinos-email-ticket';
+import {
+  htmlRespuestasTicket,
+  plantillaCorreoTicket,
+} from '../plantilla-correo-ticket';
+import { rutaVerTicket } from '../ruta-ver-ticket';
+import {
+  getFrontendBaseUrl,
+  getTicketsLegacyPostventaBaseUrl,
+} from '../../../../core/config/env-urls';
 
 @Injectable()
 export class ResponderTicketUseCase {
+  private readonly logger = new Logger(ResponderTicketUseCase.name);
+
   constructor(
     private readonly repo: ITicketRepository,
     private readonly emailService: EmailService,
+    private readonly config: ConfigService,
   ) {}
 
   async execute(
     ticketId: number,
     dto: reponderTicketDto,
     responderNit?: number,
+    empresaId?: number,
   ) {
     const ticket = await this.repo.findById(ticketId);
     if (!ticket) throw new NotFoundException('Ticket no encontrado');
@@ -49,12 +64,12 @@ export class ResponderTicketUseCase {
       void this.sendRespuestaEmail(
         ticketId,
         responderNit,
-        ticket.encargado_id,
-        dto.estado,
+        ticket.usuario_id,
+        empresaId,
       ).catch((error) => {
-        console.error(
-          `Error enviando correo de respuesta para ticket ${ticketId}:`,
-          error,
+        this.logger.error(
+          `Error enviando correo de respuesta para ticket ${ticketId}`,
+          error instanceof Error ? error.stack : String(error),
         );
       });
     }
@@ -69,59 +84,39 @@ export class ResponderTicketUseCase {
   private async sendRespuestaEmail(
     ticketId: number,
     responderNit?: number,
-    encargadoId?: number,
-    estado?: string,
+    usuarioId?: number,
+    empresaId?: number,
   ) {
     const context = await this.repo.getTicketEmailContext(ticketId);
     if (!context) return;
 
-    const isResponderEncargado = Boolean(
-      responderNit && encargadoId && responderNit === Number(encargadoId),
+    const to = [
+      destinatarioCorreoRespuestaTicket({
+        responderNit,
+        usuarioId,
+        correoUsuario: context.correo_usuario,
+        correoEncargado: context.correo_encargado,
+      }),
+    ];
+
+    const respuestasHtml = htmlRespuestasTicket(context.respuesta, (v) =>
+      this.escapeHtml(v),
     );
-
-    const destinatario = isResponderEncargado
-      ? context.correo_usuario?.trim()
-      : context.correo_encargado?.trim();
-
-    const to = destinatario ? [destinatario] : ['programador3@codiesel.co'];
-
-    const respuestasHtml = (context.respuesta || '')
-      .split(',')
-      .map((resp) => resp.trim())
-      .filter(Boolean)
-      .map(
-        (resp) =>
-          `<div style="padding: 10px; margin-bottom: 8px; border: 1px solid #e5e7eb; border-radius: 8px; background: #fafafa;">${this.escapeHtml(resp)}</div>`,
-      )
-      .join('');
-
-    const estadoTexto =
-      estado?.toLowerCase() === 'cerrado'
-        ? 'El ticket fue respondido y cerrado.'
-        : 'El ticket recibió una nueva respuesta.';
-
-    const html = `
-      <div style="font-family: Arial, sans-serif; margin:0; padding:20px; background:#f4f4f4;">
-        <div style="max-width: 700px; margin: 0 auto; background: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);">
-          <div style="background:#343a40; color:#ffffff; text-align:center; padding: 14px 16px; font-size:18px; font-weight:600;">
-            Ticket #${ticketId}: Nuevo mensaje
-          </div>
-          <div style="padding: 20px; color:#333333; line-height:1.5;">
-            <p style="margin:0 0 10px 0;"><strong>Asunto:</strong> ${this.escapeHtml(context.descripcion)}</p>
-            <p style="margin:0 0 16px 0;">${estadoTexto}</p>
-            ${respuestasHtml || '<p>No hay respuestas registradas.</p>'}
-          </div>
-          <div style="background:#343a40; color:#ffffff; text-align:center; padding: 10px; font-size:13px;">
-            Este correo es informativo. Por favor no responder a este mensaje.
-          </div>
-        </div>
-      </div>
-    `;
+    const html = plantillaCorreoTicket({
+      asunto: this.escapeHtml(context.descripcion),
+      respuestasHtml,
+      rutaTicket: rutaVerTicket({
+        fidPerfil: context.fid_perfil,
+        frontendBaseUrl: getFrontendBaseUrl(this.config),
+        legacyPostventaBaseUrl: getTicketsLegacyPostventaBaseUrl(this.config),
+      }),
+    });
 
     await this.emailService.sendEmail({
       to,
       subject: `Tickets #${ticketId}: Nuevo mensaje`,
       html,
+      empresaId,
     });
   }
 

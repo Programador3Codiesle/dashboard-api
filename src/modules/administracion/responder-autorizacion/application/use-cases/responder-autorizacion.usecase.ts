@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { TokenRespuestaService } from '../../../../../core/infra/token-respuesta/token-respuesta.service';
+import { EmailService } from '../../../../../core/infra/email/email.service';
 import { IGestionCompraRepository } from '../../../gestion-compras/domain/gestion-compra.repository';
 import { INuevoAusentismoRepository } from '../../../nuevo-ausentismo/domain/nuevo-ausentismo.repository';
 import { ITiempoSuplementarioRepository } from '../../../solicitud-tiempo-suplementario/domain/tiempo-suplementario.repository';
@@ -14,6 +15,7 @@ export interface ResponderAutorizacionResult {
 export class ResponderAutorizacionUseCase {
   constructor(
     private readonly tokenService: TokenRespuestaService,
+    private readonly emailService: EmailService,
     private readonly gestionCompraRepo: IGestionCompraRepository,
     private readonly ausentismoRepo: INuevoAusentismoRepository,
     private readonly tiempoSuplementarioRepo: ITiempoSuplementarioRepository,
@@ -66,6 +68,9 @@ export class ResponderAutorizacionUseCase {
           Number(id),
           autorizacion,
         );
+        if (ok) {
+          await this.avisarRespuestaHorasExtra(Number(id), accion);
+        }
         return {
           success: ok,
           message: ok
@@ -82,6 +87,29 @@ export class ResponderAutorizacionUseCase {
           message: 'Tipo de autorización no válido.',
           accion,
         };
+    }
+  }
+
+  private async avisarRespuestaHorasExtra(
+    id: number,
+    accion: 'aprobar' | 'rechazar',
+  ) {
+    try {
+      const destinos =
+        await this.tiempoSuplementarioRepo.obtenerDestinosRespuesta(id);
+      if (destinos.to.length === 0) return;
+      const estadoTxt = accion === 'aprobar' ? 'APROBADA' : 'RECHAZADA';
+      await this.emailService.sendEmail({
+        to: destinos.to,
+        subject: `Solicitud de trabajo en horario adicional ${estadoTxt}`,
+        html: `<p>Señor empleado, su Solicitud de trabajo en horario adicional fue ${estadoTxt}.</p>`,
+        empresaId: destinos.empresaId,
+      });
+    } catch (e) {
+      console.error(
+        'Error enviando correo de respuesta tiempo suplementario (best-effort):',
+        e,
+      );
     }
   }
 }

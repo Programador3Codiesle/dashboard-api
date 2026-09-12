@@ -6,6 +6,7 @@ export type TicketEmailContext = {
   respuesta: string | null;
   correo_usuario: string | null;
   correo_encargado: string | null;
+  fid_perfil: number | null;
 };
 
 export abstract class ITicketRepository {

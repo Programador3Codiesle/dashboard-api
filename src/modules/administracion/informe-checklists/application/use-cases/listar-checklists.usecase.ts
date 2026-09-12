@@ -19,6 +19,12 @@ export class ListarChecklistsUseCase {
       throw new BadRequestException('Debe indicar el tipo de checklist');
     }
 
+    if (filtros.op < 0 || filtros.op > 5) {
+      throw new BadRequestException(
+        'El tipo de checklist no es válido (0 a 5).',
+      );
+    }
+
     return this.repo.listar(filtros);
   }
 }

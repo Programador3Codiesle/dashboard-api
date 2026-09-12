@@ -119,9 +119,14 @@ export class TicketPrismaRepository implements ITicketRepository {
         tk.img,
         tk.respuesta,
         tk.sede,
-        CAST(NULL AS varchar(50)) AS extension
+        CAST(NULL AS varchar(50)) AS extension,
+        us.nombres AS nombre_usuario,
+        en.nombres AS nombre_encargado
       FROM tickets tk
+      LEFT JOIN terceros us ON us.nit_real = tk.usuario
+      LEFT JOIN terceros en ON en.nit_real = tk.encargado
       WHERE tk.id_ticket = ${id}
+      ORDER BY tk.fecha_creacion DESC
     `;
     const row = result[0];
     if (!row) return null;
@@ -133,7 +138,9 @@ export class TicketPrismaRepository implements ITicketRepository {
       estado: row.estado,
       fecha_creacion: row.fecha_creacion || new Date(),
       usuario_id: Number(row.usuario),
+      nombre_usuario: row.nombre_usuario || '',
       encargado_id: row.encargado ? Number(row.encargado) : undefined,
+      nombre_encargado: row.nombre_encargado || undefined,
       anydesk: row.anydesk || undefined,
       archivo_url: row.img || undefined,
       respuestas: row.respuesta || undefined,
@@ -286,6 +293,7 @@ export class TicketPrismaRepository implements ITicketRepository {
         respuesta: string | null;
         correo_usuario: string | null;
         correo_encargado: string | null;
+        fid_perfil: number | null;
       }>
     >`
       SELECT TOP 1
@@ -293,10 +301,12 @@ export class TicketPrismaRepository implements ITicketRepository {
         tk.descripcion,
         tk.respuesta,
         cu.e_mail AS correo_usuario,
-        ce.e_mail AS correo_encargado
+        ce.e_mail AS correo_encargado,
+        w.fid_perfil
       FROM tickets tk
       LEFT JOIN CRM_contactos cu ON cu.nit = tk.usuario
       LEFT JOIN CRM_contactos ce ON ce.nit = tk.encargado
+      LEFT JOIN w_sist_usuarios w ON tk.usuario = w.nit_usuario
       WHERE tk.id_ticket = ${ticketId}
       ORDER BY tk.fecha_creacion DESC
     `;
@@ -304,12 +314,15 @@ export class TicketPrismaRepository implements ITicketRepository {
     const row = result[0];
     if (!row) return null;
 
+    const fid = row.fid_perfil == null ? null : Number(row.fid_perfil);
+
     return {
       id_ticket: Number(row.id_ticket),
       descripcion: row.descripcion || 'Ticket sin asunto',
       respuesta: row.respuesta,
       correo_usuario: row.correo_usuario,
       correo_encargado: row.correo_encargado,
+      fid_perfil: fid != null && Number.isFinite(fid) ? fid : null,
     };
   }
 }

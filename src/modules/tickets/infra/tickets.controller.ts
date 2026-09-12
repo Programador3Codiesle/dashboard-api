@@ -15,18 +15,20 @@ import {
 import { FileInterceptor } from '@nestjs/platform-express';
 import { TicketFacade } from '../application/ticket.facade';
 import { JwtAuthGuard } from '../../auth/infra/jwt-auth.guard';
+import { readEmpresaIdFromCookie } from '../../../core/config/empresa-sesion';
 import {
   CreateTicketDto,
-  CreateRespuestaDto,
   ReasignarTicketDto,
 } from '../application/dto/create-ticket.dto';
-import {
-  UpdateTicketDto,
-  reponderTicketDto,
-} from '../application/dto/update-ticket.dto';
+import { reponderTicketDto } from '../application/dto/update-ticket.dto';
 import { diskStorage } from 'multer';
 import { join } from 'path';
 import * as fs from 'fs';
+
+type TicketAuthRequest = {
+  user?: { nit?: string | number };
+  cookies?: Record<string, string>;
+};
 
 @UseGuards(JwtAuthGuard)
 @Controller('tickets')
@@ -125,8 +127,13 @@ export class TicketController {
   addRespuesta(
     @Param('id') id: string,
     @Body() dto: reponderTicketDto,
-    @Req() req: any,
+    @Req() req: TicketAuthRequest,
   ) {
-    return this.facade.addRespuesta(+id, dto, Number(req?.user?.nit));
+    return this.facade.addRespuesta(
+      +id,
+      dto,
+      Number(req.user?.nit),
+      readEmpresaIdFromCookie(req.cookies),
+    );
   }
 }

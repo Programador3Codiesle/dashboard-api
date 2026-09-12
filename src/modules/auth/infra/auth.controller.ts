@@ -8,6 +8,7 @@ import {
   Res,
   UnauthorizedException,
   ForbiddenException,
+  BadRequestException,
 } from '@nestjs/common';
 import { CookieOptions } from 'express';
 import { Throttle } from '@nestjs/throttler';
@@ -19,6 +20,14 @@ import { LoginUseCase } from '../application/use-cases/login.usecase';
 import { RegisterUseCase } from '../application/use-cases/register.usecase';
 import { RefreshTokenUseCase } from '../application/use-cases/refresh-token.usecase';
 import { AuthService } from './auth.service';
+import { SolicitarCodigoRecuperacionUseCase } from '../application/use-cases/solicitar-codigo-recuperacion.usecase';
+import { ValidarCodigoRecuperacionUseCase } from '../application/use-cases/validar-codigo-recuperacion.usecase';
+import { ActualizarPasswordForzadoUseCase } from '../application/use-cases/actualizar-password-forzado.usecase';
+import {
+  RecuperarCodigoDto,
+  ValidarCodigoRecuperacionDto,
+} from '../application/dto/recuperar-password.dto';
+import { ActualizarPasswordForzadoDto } from '../application/dto/actualizar-password.dto';
 
 import { JwtAuthGuard } from './jwt-auth.guard';
 import {
@@ -70,6 +79,9 @@ export class AuthController {
     private readonly registerUseCase: RegisterUseCase,
     private readonly refreshUseCase: RefreshTokenUseCase,
     private readonly authService: AuthService,
+    private readonly solicitarCodigoUC: SolicitarCodigoRecuperacionUseCase,
+    private readonly validarCodigoUC: ValidarCodigoRecuperacionUseCase,
+    private readonly actualizarPasswordUC: ActualizarPasswordForzadoUseCase,
   ) {}
 
   private getRefreshCookieOptions(
@@ -124,15 +136,20 @@ export class AuthController {
   ) {
     const rememberSession = dto.remember ?? false;
     const clientIp = req.ip ?? req.socket?.remoteAddress;
-    const { user, accessToken, refreshToken } = await this.loginUseCase.execute(
-      dto,
-      clientIp,
-    );
+    const result = await this.loginUseCase.execute(dto, clientIp);
+
+    if (result.mustChangePassword) {
+      return {
+        mustChangePassword: true,
+        userId: result.userId,
+        changeToken: result.changeToken,
+      };
+    }
 
     // Cookies HttpOnly
     const isProduction = process.env.NODE_ENV === 'production';
 
-    res.cookie('access_token', accessToken, {
+    res.cookie('access_token', result.accessToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: 'lax',
@@ -142,7 +159,7 @@ export class AuthController {
 
     res.cookie(
       'refresh_token',
-      refreshToken,
+      result.refreshToken,
       this.getRefreshCookieOptions(isProduction, rememberSession),
     );
     res.cookie(
@@ -152,7 +169,37 @@ export class AuthController {
     );
 
     // El frontend solo necesita los datos de usuario
-    return { user };
+    return { user: result.user };
+  }
+
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post('recuperar-codigo')
+  async recuperarCodigo(@Body() dto: RecuperarCodigoDto) {
+    const result = await this.solicitarCodigoUC.execute(dto.nit);
+    if (!result.ok) {
+      throw new BadRequestException(result.message);
+    }
+    return { mail: result.mail };
+  }
+
+  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Post('recuperar-validar')
+  async recuperarValidar(@Body() dto: ValidarCodigoRecuperacionDto) {
+    const result = await this.validarCodigoUC.execute(dto.nit, dto.codigo);
+    if (!result.ok) {
+      throw new BadRequestException(result.message);
+    }
+    return { ok: true };
+  }
+
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  @Post('update-password')
+  async updatePassword(@Body() dto: ActualizarPasswordForzadoDto) {
+    const result = await this.actualizarPasswordUC.execute(dto);
+    if (!result.status) {
+      throw new BadRequestException(result.message);
+    }
+    return result;
   }
 
   @UseGuards(JwtAuthGuard)

@@ -16,4 +16,8 @@ export abstract class INuevoAusentismoRepository {
     id: bigint,
     autorizacion: number,
   ): Promise<boolean>;
+  abstract datosCorreoCreacion(nitEmpleado: number): Promise<{
+    nombre: string;
+    correosJefes: string[];
+  }>;
 }

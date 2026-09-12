@@ -20,7 +20,11 @@ export class ChecklistGuardarFacade {
     private readonly emailService: ChecklistNotificacionEmailService,
   ) {}
 
-  async guardar(dto: GuardarChecklistDto, nitUsuario: number) {
+  async guardar(
+    dto: GuardarChecklistDto,
+    nitUsuario: number,
+    empresaId?: number,
+  ) {
     if (!isChecklistTipo(dto.check)) {
       throw new BadRequestException('Tipo de checklist inválido');
     }
@@ -36,7 +40,7 @@ export class ChecklistGuardarFacade {
 
     const responsable = responsableFromData(tipo, data);
     const correos = await this.repo.obtenerCorreosJefes(nitUsuario);
-    void this.emailService.notificar(tipo, responsable, id, correos);
+    void this.emailService.notificar(tipo, responsable, id, correos, empresaId);
 
     return { ok: true, id };
   }

@@ -3,6 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import * as nodemailer from 'nodemailer';
 import type Mail from 'nodemailer/lib/mailer';
 import { emailPruebasInbox, isEmailModoPruebas } from './email-modo-pruebas';
+import {
+  resolveSmtpAccount,
+  smtpAccountKey,
+  type SmtpAccount,
+} from './smtp-empresa';
 
 export type SendEmailParams = {
   to: string[];
@@ -15,24 +20,23 @@ export type SendEmailParams = {
     content: Buffer;
     contentType: string;
   }>;
+  /** Sesión `user.empresa`. 1 Codiesel, 2 Dieselco, 3-4 Codinova. Default 1. */
+  empresaId?: number | null;
+};
+
+type SmtpClient = {
+  transporter: nodemailer.Transporter;
+  from: Mail.Address | string;
 };
 
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private readonly transporter: nodemailer.Transporter | null;
-  private readonly from: Mail.Address | string | null;
   private readonly modoPruebas: boolean;
   private readonly inboxPruebas: string;
+  private readonly clients = new Map<1 | 2 | 3, SmtpClient>();
 
   constructor(private readonly config: ConfigService) {
-    const host = this.config.get<string>('SMTP_HOST');
-    const port = Number(this.config.get<string>('SMTP_PORT') ?? 587);
-    const user = this.config.get<string>('SMTP_USER');
-    const pass = this.config.get<string>('SMTP_PASS');
-    const fromAddress = this.config.get<string>('SMTP_FROM') ?? user ?? '';
-    const fromName = this.config.get<string>('SMTP_FROM_NAME') ?? '';
-
     this.modoPruebas = isEmailModoPruebas(this.config);
     this.inboxPruebas = emailPruebasInbox(this.config);
 
@@ -49,43 +53,24 @@ export class EmailService {
           `Para pruebas con BD de producción ponga EMAIL_MODO_PRUEBAS=true.`,
       );
     }
-
-    if (!host || !user || !pass || !fromAddress) {
-      this.transporter = null;
-      this.from = null;
-      return;
-    }
-
-    this.transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth: { user, pass },
-      tls: {
-        rejectUnauthorized: false,
-      },
-    });
-
-    this.from = fromName
-      ? { address: fromAddress, name: fromName }
-      : fromAddress;
   }
 
   async sendEmail(
     params: SendEmailParams,
   ): Promise<{ ok: boolean; error?: string }> {
-    if (!this.transporter || !this.from) {
+    const client = this.getClient(params.empresaId);
+    if (!client) {
       return {
         ok: false,
-        error: 'SMTP no configurado (faltan variables de entorno).',
+        error: `SMTP no configurado para empresa ${params.empresaId ?? 1}.`,
       };
     }
 
     const payload = this.applyDevRedirect(params);
 
     try {
-      await this.transporter.sendMail({
-        from: this.from,
+      await client.transporter.sendMail({
+        from: client.from,
         to: payload.to,
         cc: payload.cc,
         bcc: payload.bcc,
@@ -98,6 +83,35 @@ export class EmailService {
       const message = e instanceof Error ? e.message : 'Error enviando correo';
       return { ok: false, error: message };
     }
+  }
+
+  private getClient(empresaId?: number | null): SmtpClient | null {
+    const key = smtpAccountKey(empresaId);
+    const cached = this.clients.get(key);
+    if (cached) return cached;
+
+    const account = resolveSmtpAccount(this.config, empresaId);
+    if (!account) return null;
+
+    const client = this.createClient(account);
+    this.clients.set(key, client);
+    return client;
+  }
+
+  private createClient(account: SmtpAccount): SmtpClient {
+    const transporter = nodemailer.createTransport({
+      host: account.host,
+      port: account.port,
+      secure: account.port === 465,
+      auth: { user: account.user, pass: account.pass },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
+    const from = account.fromName
+      ? { address: account.fromAddress, name: account.fromName }
+      : account.fromAddress;
+    return { transporter, from };
   }
 
   /**

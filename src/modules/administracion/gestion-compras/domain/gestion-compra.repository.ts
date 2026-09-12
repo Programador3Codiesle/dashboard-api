@@ -45,5 +45,4 @@ export abstract class IGestionCompraRepository {
     comentarios: string,
     archivos: string[],
   ): Promise<boolean>;
-  abstract getEmailByNit(nit: number): Promise<string | null>;
 }

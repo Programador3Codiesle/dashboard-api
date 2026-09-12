@@ -33,8 +33,8 @@ export class MpviTecnicosFacade {
     return this.obtenerStockUC.execute(dto.codRepuesto);
   }
 
-  guardarDatos(dto: GuardarDatosDto, idUser: number) {
-    return this.guardarDatosUC.execute(dto, idUser);
+  guardarDatos(dto: GuardarDatosDto, idUser: number, empresaId?: number) {
+    return this.guardarDatosUC.execute(dto, idUser, empresaId);
   }
 
   imprimirMpvi(idCotizacion: number, idEmpresa?: number) {

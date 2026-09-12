@@ -2,9 +2,10 @@ import { Controller, Get, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 import { NominaDirectorFlotasFacade } from '../application/nomina-director-flotas.facade';
 import { parseYearMonthParamStrict } from '../../shared/parse-year-month';
+import { CodieselEmpresaGuard } from '../../shared/utils/codiesel-empresa.guard';
 
 @Controller('nomina/nomina-director-flotas')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, CodieselEmpresaGuard)
 export class NominaDirectorFlotasController {
   constructor(private readonly facade: NominaDirectorFlotasFacade) {}
 

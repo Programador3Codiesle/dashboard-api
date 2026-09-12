@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../../auth/infra/jwt-auth.guard';
 import { MpviTecnicosFacade } from '../application/mpvi-tecnicos.facade';
+import { readEmpresaIdFromCookie } from '../../../../../core/config/empresa-sesion';
 import {
   GuardarDatosDto,
   ObtenerDatosDto,
@@ -42,10 +43,14 @@ export class MpviTecnicosController {
   @Post('guardar')
   guardarDatos(
     @Body() dto: GuardarDatosDto,
-    @Req() req: { user?: { sub?: number } },
+    @Req() req: { user?: { sub?: number }; cookies?: Record<string, string> },
   ) {
     const idUser = Number(req.user?.sub ?? 0);
-    return this.facade.guardarDatos(dto, idUser);
+    return this.facade.guardarDatos(
+      dto,
+      idUser,
+      readEmpresaIdFromCookie(req.cookies),
+    );
   }
 
   @Get('pdf/:idCotizacion')

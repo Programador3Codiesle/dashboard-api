@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { CrearOrdenGeneralDto } from './dto/crear-orden-general.dto';
 import { CrearRepuestoDto } from './dto/crear-repuesto.dto';
 import { CrearTotDto } from './dto/crear-tot.dto';
 import { CrearVehiculoDto } from './dto/crear-vehiculo.dto';
+import { GestionOrdenGeneralUseCase } from './use-cases/gestion-orden-general.usecase';
 import { GestionPorteriaUseCase } from './use-cases/gestion-porteria.usecase';
 import { GestionRepuestosUseCase } from './use-cases/gestion-repuestos.usecase';
 import { GestionTotUseCase } from './use-cases/gestion-tot.usecase';
@@ -14,6 +16,7 @@ export class OrdenesTotFacade {
     private readonly tot: GestionTotUseCase,
     private readonly porteria: GestionPorteriaUseCase,
     private readonly repuestos: GestionRepuestosUseCase,
+    private readonly ordenGeneral: GestionOrdenGeneralUseCase,
   ) {}
 
   crearVehiculo(dto: CrearVehiculoDto, idUsuario: number) {
@@ -72,5 +75,13 @@ export class OrdenesTotFacade {
 
   listarRepuestosCandidatos() {
     return this.repuestos.listarCandidatos();
+  }
+
+  crearOrdenGeneral(dto: CrearOrdenGeneralDto, idUsuario: number) {
+    return this.ordenGeneral.crear(dto, idUsuario);
+  }
+
+  listarOrdenGeneralPendientes(idUsuario: number) {
+    return this.ordenGeneral.listarPendientes(idUsuario);
   }
 }

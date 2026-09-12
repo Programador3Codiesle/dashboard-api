@@ -46,6 +46,7 @@ export class MpviEmailService {
   async sendCorreoCotizacion(
     idCotizacion: number,
     op: number,
+    empresaId?: number,
   ): Promise<{ ok: boolean; message: string }> {
     const encabezado = await this.repo.getEncabezado(idCotizacion);
     const cotizacion = encabezado[0];
@@ -136,6 +137,7 @@ export class MpviEmailService {
       to: [correoDestino],
       subject,
       html,
+      empresaId,
     });
 
     if (!mailResult.ok) {

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
 import { INuevoAusentismoRepository } from '../../domain/nuevo-ausentismo.repository';
 import { NuevoAusentismoEntity } from '../../domain/nuevo-ausentismo.entity';
+import { fechaLocalYmd } from '../../../shared/fecha-local';
 
 @Injectable()
 export class NuevoAusentismoPrismaRepository implements INuevoAusentismoRepository {
@@ -13,12 +14,13 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
     data?: NuevoAusentismoEntity;
   }> {
     try {
-      const fechaIni =
-        data.fecha_ini?.toISOString().split('T')[0] ||
-        new Date().toISOString().split('T')[0];
-      const fechaFin = data.fecha_fin?.toISOString().split('T')[0] || fechaIni;
+      const fechaIni = data.fecha_ini
+        ? fechaLocalYmd(data.fecha_ini)
+        : fechaLocalYmd(new Date());
+      const fechaFin = data.fecha_fin
+        ? fechaLocalYmd(data.fecha_fin)
+        : fechaIni;
 
-      // Optimizado: Usar $queryRaw con parámetros seguros
       const result = await this.prisma.$queryRaw<any[]>`
                 INSERT INTO postv_ausentismos 
                 (empleado, cargo_emp, sede, area, fecha_ini, hora_ini, fecha_fin, hora_fin, 
@@ -97,16 +99,62 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
     autorizacion: number,
   ): Promise<boolean> {
     try {
-      await this.prisma.$executeRaw`
+      const actual = await this.findById(id);
+      const nitEmpleado = actual?.empleado;
+      const jefeRows =
+        nitEmpleado != null
+          ? await this.prisma.$queryRaw<Array<{ nit_jefe: number | null }>>`
+              SELECT TOP 1 j.nit_jefe
+              FROM postv_empleado_jefe ej
+              INNER JOIN postv_jefes j ON ej.jefe = j.id_jefe
+              INNER JOIN postv_empleados e ON ej.empleado = e.id_empleado
+              WHERE e.nit_empleado = ${nitEmpleado}
+            `
+          : [];
+      const nitResp =
+        jefeRows[0]?.nit_jefe != null
+          ? Number(jefeRows[0].nit_jefe)
+          : (actual?.nit_usuario_resp ?? 0);
+
+      const affected = await this.prisma.$executeRaw`
                 UPDATE postv_ausentismos
-                SET autorizacion = ${autorizacion}
-                WHERE id_ausen = ${id}
+                SET autorizacion = ${autorizacion},
+                    nit_usuario_resp = ${nitResp}
+                WHERE id_ausen = ${id} AND autorizacion = 0
             `;
-      return true;
+      return Number(affected) > 0;
     } catch (error) {
       console.error('Error actualizando autorización ausentismo:', error);
       return false;
     }
+  }
+
+  async datosCorreoCreacion(nitEmpleado: number): Promise<{
+    nombre: string;
+    correosJefes: string[];
+  }> {
+    const nombreRows = await this.prisma.$queryRaw<
+      Array<{ nombres: string | null }>
+    >`
+      SELECT TOP 1 t.nombres
+      FROM terceros t
+      WHERE t.nit = ${nitEmpleado}
+    `;
+    const jefeRows = await this.prisma.$queryRaw<
+      Array<{ correo: string | null }>
+    >`
+      SELECT j.correo
+      FROM postv_empleado_jefe ej
+      INNER JOIN postv_jefes j ON ej.jefe = j.id_jefe
+      INNER JOIN postv_empleados e ON ej.empleado = e.id_empleado
+      WHERE e.nit_empleado = ${nitEmpleado}
+    `;
+    return {
+      nombre: nombreRows[0]?.nombres?.trim() || '',
+      correosJefes: jefeRows
+        .map((r) => r.correo?.trim())
+        .filter((c): c is string => !!c),
+    };
   }
 
   private mapToEntity(data: any): NuevoAusentismoEntity {
@@ -127,6 +175,7 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
       nit_usuario_resp: data.nit_usuario_resp
         ? Number(data.nit_usuario_resp)
         : null,
+      id_empresa: data.id_empresa != null ? Number(data.id_empresa) : null,
     });
   }
 }

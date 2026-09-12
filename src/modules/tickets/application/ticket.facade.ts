@@ -3,12 +3,8 @@ import { CreateTicketUseCase } from './use-cases/create-ticket.usecase';
 import { UpdateTicketUseCase } from './use-cases/update-ticket.usecase';
 import { GetTicketsUseCase } from './use-cases/get-tickets.usecase';
 import { ResponderTicketUseCase } from './use-cases/responder-ticket.usecase';
-import {
-  CreateTicketDto,
-  CreateRespuestaDto,
-  ReasignarTicketDto,
-} from './dto/create-ticket.dto';
-import { UpdateTicketDto, reponderTicketDto } from './dto/update-ticket.dto';
+import { CreateTicketDto, ReasignarTicketDto } from './dto/create-ticket.dto';
+import { reponderTicketDto } from './dto/update-ticket.dto';
 
 @Injectable()
 export class TicketFacade {
@@ -41,8 +37,9 @@ export class TicketFacade {
     ticketId: number,
     dto: reponderTicketDto,
     responderNit?: number,
+    empresaId?: number,
   ) {
-    return this.respondUC.execute(ticketId, dto, responderNit);
+    return this.respondUC.execute(ticketId, dto, responderNit, empresaId);
   }
   getRespuestas(ticketId: number) {
     return this.respondUC.getRespuestas(ticketId);

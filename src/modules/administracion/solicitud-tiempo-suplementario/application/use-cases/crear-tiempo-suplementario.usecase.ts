@@ -1,9 +1,12 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { ITiempoSuplementarioRepository } from '../../domain/tiempo-suplementario.repository';
 import { CreateTiempoSuplementarioDto } from '../dto/create-tiempo-suplementario.dto';
 import { EmailService } from '../../../../../core/infra/email/email.service';
 import { TokenRespuestaService } from '../../../../../core/infra/token-respuesta/token-respuesta.service';
+import {
+  EMAIL_PERSONAL_HORAS_EXTRA,
+  escapeHtmlAdmin,
+} from '../../../shared/destinos-email-admin';
 
 @Injectable()
 export class CrearTiempoSuplementarioUseCase {
@@ -11,7 +14,6 @@ export class CrearTiempoSuplementarioUseCase {
     private readonly repo: ITiempoSuplementarioRepository,
     private readonly emailService: EmailService,
     private readonly tokenRespuesta: TokenRespuestaService,
-    private readonly config: ConfigService,
   ) {}
 
   async execute(dto: CreateTiempoSuplementarioDto, userId: number) {
@@ -43,6 +45,10 @@ export class CrearTiempoSuplementarioUseCase {
 
     if (result.status && result.data?.id != null) {
       try {
+        const [nombreJefe, nombreEmp] = await Promise.all([
+          this.repo.obtenerNombrePorNit(userId),
+          this.repo.obtenerNombrePorNit(nit_empleado),
+        ]);
         const token = this.tokenRespuesta.generarToken(
           result.data.id,
           'tiempo-suplementario',
@@ -52,18 +58,21 @@ export class CrearTiempoSuplementarioUseCase {
         const fechaStr = result.data.fecha_ini
           ? new Date(result.data.fecha_ini).toISOString().split('T')[0]
           : dto.fecha_ini;
+        const jefeSafe = escapeHtmlAdmin(nombreJefe || String(userId));
+        const empSafe = escapeHtmlAdmin(nombreEmp || String(nit_empleado));
+        const sedeSafe = escapeHtmlAdmin(result.data.sede ?? dto.sede ?? '-');
         const html = `
           <div style="font-family: Arial, sans-serif; padding: 16px; background:#f8f9fa;">
             <div style="max-width: 800px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
               <div style="padding: 16px 20px; background:#111827; color:#ffffff;">
-                <h2 style="margin:0; font-size: 18px;">Solicitud de Tiempo Suplementario - Autorizaci\u00f3n</h2>
+                <h2 style="margin:0; font-size: 18px;">Solicitud para trabajar en jornada adicional</h2>
               </div>
               <div style="padding: 18px 20px; color:#111827;">
-                <p style="margin:0 0 10px 0;"><strong>\u00c1rea:</strong> ${result.data.area ?? '-'}</p>
-                <p style="margin:0 0 10px 0;"><strong>Sede:</strong> ${result.data.sede ?? '-'}</p>
+                <p style="margin:0 0 10px 0;">El Jefe ${jefeSafe} solicita que el trabajador ${empSafe} de la sede ${sedeSafe} trabaje en jornada adicional.</p>
+                <p style="margin:0 0 10px 0;"><strong>Área:</strong> ${escapeHtmlAdmin(result.data.area ?? '-')}</p>
                 <p style="margin:0 0 10px 0;"><strong>Fecha:</strong> ${fechaStr}</p>
-                <p style="margin:0 0 10px 0;"><strong>Horas:</strong> ${result.data.hora_ini ?? '-'} - ${result.data.hora_fin ?? '-'}</p>
-                <p style="margin:0 0 10px 0;"><strong>Descripci\u00f3n:</strong> ${result.data.descripcion ?? '-'}</p>
+                <p style="margin:0 0 10px 0;"><strong>Horas:</strong> ${escapeHtmlAdmin(String(result.data.hora_ini ?? '-'))} - ${escapeHtmlAdmin(String(result.data.hora_fin ?? '-'))}</p>
+                <p style="margin:0 0 10px 0;"><strong>Descripción:</strong> ${escapeHtmlAdmin(result.data.descripcion ?? '-')}</p>
                 <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 18px 0;" />
                 <p style="margin:0 0 10px 0;"><strong>Responder:</strong></p>
                 <p style="margin:0 0 8px 0;">
@@ -74,18 +83,11 @@ export class CrearTiempoSuplementarioUseCase {
             </div>
           </div>
         `;
-        const toStr =
-          this.config.get<string>('EMAIL_AUTORIZACION_TIEMPO_SUPLEMENTARIO') ??
-          'programador3@codiesel.co';
-        const toEmails = toStr
-          .split(',')
-          .map((e) => e.trim())
-          .filter(Boolean);
-        if (toEmails.length === 0) toEmails.push('programador3@codiesel.co');
         await this.emailService.sendEmail({
-          to: toEmails,
-          subject: 'Solicitud de Tiempo Suplementario - Autorización',
+          to: [EMAIL_PERSONAL_HORAS_EXTRA],
+          subject: `Solicitud para trabajar en jornada adicional ${nombreJefe || userId}`,
           html,
+          empresaId: dto.id_empresa,
         });
       } catch (e) {
         console.error(

@@ -8,3 +8,21 @@ export class EncuestaSatisfaccionResumenEntity {
     Object.assign(this, partial);
   }
 }
+
+export class EncuestaSatisfaccionTecnicoEntity {
+  nit!: string;
+  nombre!: string;
+
+  constructor(partial: Partial<EncuestaSatisfaccionTecnicoEntity>) {
+    Object.assign(this, partial);
+  }
+}
+
+export class EncuestaSatisfaccionBodegaEntity {
+  value!: string;
+  label!: string;
+
+  constructor(partial: Partial<EncuestaSatisfaccionBodegaEntity>) {
+    Object.assign(this, partial);
+  }
+}

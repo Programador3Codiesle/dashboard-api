@@ -25,6 +25,25 @@ export function getFrontendBaseUrl(config: ConfigService): string {
 }
 
 /**
+ * Base CodeIgniter de posventa para el link "Ver Ticket" de creadores ventas (fid_perfil 51–54).
+ * PHP: str_replace('postventa','ventas', base_url()).'tickets'
+ * No usar FRONTEND_URL (p. ej. /postventa2) para no generar /ventas2.
+ */
+export function getTicketsLegacyPostventaBaseUrl(
+  config: ConfigService,
+): string {
+  const url = config.get<string>('TICKETS_LEGACY_BASE_URL');
+  if (url?.trim()) {
+    const n = url.trim();
+    return n.endsWith('/') ? n : `${n}/`;
+  }
+  if (process.env.NODE_ENV === 'production') {
+    return 'https://intranet.codiesel.co/postventa/';
+  }
+  return 'http://localhost:8080/postventa/';
+}
+
+/**
  * Base pública para rutas del front en correos (PDF cotizaciones, assets).
  * Prioridad: APP_PUBLIC_URL → FRONTEND_URL → BACKEND_PUBLIC_URL.
  */

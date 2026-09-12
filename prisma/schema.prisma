@@ -1148,6 +1148,7 @@ model postv_ausentismos {
   nit_usuario_resp      Int?      @default(0, map: "DF__postv_aus__nit_u__248A1CA4")
   confirmaporteria      String?   @db.VarChar(50)
   modo_recuperar_tiempo String?   @db.VarChar(500)
+  id_empresa            Int?
 
   @@ignore
 }
@@ -2769,6 +2770,7 @@ model postv_solicitud_hora_extra {
   descripcion          String   @db.VarChar(400)
   autorizacion         Int
   autorizacionporteria String?  @db.VarChar(50)
+  id_empresa           Int?
 }
 
 model postv_solicitud_mantenimiento {

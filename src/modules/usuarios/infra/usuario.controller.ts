@@ -10,6 +10,7 @@ import {
   UseGuards,
   UseInterceptors,
   Req,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { CacheInterceptor, CacheTTL } from '@nestjs/cache-manager';
 
@@ -59,6 +60,15 @@ export class UsuarioController {
   @CacheTTL(15 * 60 * 1000)
   verSedes() {
     return this.usuarioFacade.verSedes();
+  }
+
+  @Get('mi-perfil')
+  verMiPerfil(@Req() req: { user?: { nit?: string | number } }) {
+    const nit = Number(req.user?.nit);
+    if (!Number.isFinite(nit) || nit <= 0) {
+      throw new UnauthorizedException('Sesión sin NIT');
+    }
+    return this.usuarioFacade.verMiPerfil(nit);
   }
 
   @Get('mis-jefes')

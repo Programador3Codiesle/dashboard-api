@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import {
   IUserRepository,
@@ -6,6 +7,7 @@ import {
 } from '../../domain/user.repository';
 import { User } from '../../domain/user.entity';
 import { REFRESH_REUSE_WINDOW_MS } from '../../domain/refresh-token.util';
+import { FID_PERFIL_VENTAS_BLOQUEADOS } from '../../domain/auth.constants';
 
 function toUserIdString(value: unknown): string {
   if (typeof value === 'string' && value.length > 0) return value;
@@ -22,6 +24,7 @@ type UsuarioQueryRow = {
   perfil_postventa?: string | number | null;
   nombres?: string | null;
   refresh_token_hash?: string | null;
+  estado?: number | null;
 };
 function isTokensTableMissing(error: unknown): boolean {
   if (!error || typeof error !== 'object') return false;
@@ -58,6 +61,111 @@ export class UserPrismaRepository implements IUserRepository {
     return empresas
       .map((item) => Number(item.idEmpresa))
       .filter((id) => !Number.isNaN(id));
+  }
+
+  async ensureEmpresaCodiesel(nit_usuario: number): Promise<void> {
+    const existentes = await this.prisma.$queryRaw<
+      Array<{ idEmpresa: number; estado: boolean | number | null }>
+    >`
+      SELECT idEmpresa, estado
+      FROM sw_empresa_usuario
+      WHERE idUsuario = CAST(${nit_usuario} AS DECIMAL(18,0))
+        AND idEmpresa = 1
+    `;
+    if (existentes.length === 0) {
+      await this.prisma.$executeRaw`
+        INSERT INTO sw_empresa_usuario (idEmpresa, idUsuario, estado)
+        VALUES (1, CAST(${nit_usuario} AS DECIMAL(18,0)), 1)
+      `;
+      return;
+    }
+    const activa = existentes.some(
+      (row) => row.estado === true || Number(row.estado) === 1,
+    );
+    if (!activa) {
+      await this.prisma.$executeRaw`
+        UPDATE sw_empresa_usuario
+        SET estado = 1
+        WHERE idUsuario = CAST(${nit_usuario} AS DECIMAL(18,0))
+          AND idEmpresa = 1
+      `;
+    }
+  }
+
+  async countUsuariosByNit(nit_usuario: number): Promise<number> {
+    const rows = await this.prisma.$queryRaw<Array<{ n: number }>>`
+      SELECT COUNT(*) AS n
+      FROM w_sist_usuarios u
+      WHERE u.nit_usuario = ${nit_usuario}
+    `;
+    return Number(rows[0]?.n ?? 0);
+  }
+
+  async updateCodVerificacion(
+    nit_usuario: number,
+    codigo: string,
+  ): Promise<boolean> {
+    const updated = await this.prisma.$executeRaw`
+      UPDATE w_sist_usuarios
+      SET cod_verificacion = ${codigo}
+      WHERE nit_usuario = ${nit_usuario}
+    `;
+    return Number(updated) > 0;
+  }
+
+  async findCorreoCorporativoCodiesel(
+    nit_usuario: number,
+  ): Promise<string | null> {
+    const patron = '%@codiesel.co%';
+    const rows = await this.prisma.$queryRaw<Array<{ mail: string | null }>>`
+      SELECT TOP 1 c.e_mail AS mail
+      FROM CRM_contactos c
+      WHERE c.nit = ${nit_usuario}
+        AND c.e_mail LIKE ${patron}
+    `;
+    const mail = rows[0]?.mail?.trim();
+    return mail || null;
+  }
+
+  async findUsuarioIdByCodVerificacion(
+    nit_usuario: number,
+    codigo: string,
+  ): Promise<string | null> {
+    const rows = await this.prisma.$queryRaw<
+      Array<{ id_usuario: string | number | bigint }>
+    >`
+      SELECT TOP 1 id_usuario
+      FROM w_sist_usuarios
+      WHERE nit_usuario = ${nit_usuario}
+        AND cod_verificacion = ${codigo}
+    `;
+    const id = rows[0]?.id_usuario;
+    return id == null ? null : toUserIdString(id);
+  }
+
+  async resetPasswordToNit(
+    idUsuario: string,
+    encryptedPassword: string,
+  ): Promise<boolean> {
+    const updated = await this.prisma.$executeRaw`
+      UPDATE w_sist_usuarios
+      SET pass = ${encryptedPassword}, num_intentos = 0, estado = 1
+      WHERE id_usuario = ${Number(idUsuario)}
+    `;
+    return Number(updated) > 0;
+  }
+
+  async updatePasswordForzado(
+    idUsuario: string,
+    encryptedPassword: string,
+    claveMd5: string,
+  ): Promise<boolean> {
+    const updated = await this.prisma.$executeRaw`
+      UPDATE w_sist_usuarios
+      SET pass = ${encryptedPassword}, clave = ${claveMd5}
+      WHERE id_usuario = ${Number(idUsuario)}
+    `;
+    return Number(updated) > 0;
   }
 
   async findMenusByPerfil(perfil: number): Promise<number[]> {
@@ -113,7 +221,7 @@ export class UserPrismaRepository implements IUserRepository {
   }
 
   async findByEmail(nit_usuario: number): Promise<User | null> {
-    // Optimizado: Una sola query con JOIN en lugar de 2 queries separadas (N+1)
+    // Login.php Usuarios::validar_usu — INNER JOIN terceros, excluye fid_perfil 51/53/54.
     const results = await this.prisma.$queryRaw<UsuarioQueryRow[]>`
             SELECT 
                 u.id_usuario,
@@ -121,10 +229,12 @@ export class UserPrismaRepository implements IUserRepository {
                 u.pass,
                 u.clave,
                 u.perfil_postventa,
+                u.estado,
                 t.nombres
             FROM w_sist_usuarios u
-            LEFT JOIN terceros t ON t.nit = u.nit_usuario
+            INNER JOIN terceros t ON t.nit = u.nit_usuario
             WHERE u.nit_usuario = ${nit_usuario}
+              AND u.fid_perfil NOT IN (${Prisma.join([...FID_PERFIL_VENTAS_BLOQUEADOS])})
         `;
 
     const u = results[0];
@@ -137,6 +247,8 @@ export class UserPrismaRepository implements IUserRepository {
       u.perfil_postventa?.toString() ?? 'USER',
       undefined,
       u.nombres ?? undefined,
+      undefined,
+      u.estado != null ? Number(u.estado) : null,
     );
   }
 
@@ -148,6 +260,7 @@ export class UserPrismaRepository implements IUserRepository {
                 u.pass, 
                 u.clave, 
                 u.perfil_postventa,
+                u.estado,
                 t.refresh_token_hash,
                 terc.nombres
             FROM w_sist_usuarios u
@@ -166,6 +279,8 @@ export class UserPrismaRepository implements IUserRepository {
       u.perfil_postventa?.toString() ?? 'USER',
       u.refresh_token_hash || undefined,
       u.nombres ?? undefined,
+      undefined,
+      u.estado != null ? Number(u.estado) : null,
     );
   }
 

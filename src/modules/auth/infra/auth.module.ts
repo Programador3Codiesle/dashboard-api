@@ -6,6 +6,9 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { LoginUseCase } from '../application/use-cases/login.usecase';
 import { RegisterUseCase } from '../application/use-cases/register.usecase';
 import { RefreshTokenUseCase } from '../application/use-cases/refresh-token.usecase';
+import { SolicitarCodigoRecuperacionUseCase } from '../application/use-cases/solicitar-codigo-recuperacion.usecase';
+import { ValidarCodigoRecuperacionUseCase } from '../application/use-cases/validar-codigo-recuperacion.usecase';
+import { ActualizarPasswordForzadoUseCase } from '../application/use-cases/actualizar-password-forzado.usecase';
 
 // Infra
 import { AuthService } from './auth.service';
@@ -18,10 +21,12 @@ import { AuthController } from './auth.controller';
 
 // Domain
 import { IUserRepository } from '../domain/user.repository';
+import { EmailModule } from '../../../core/infra/email/email.module';
 
 @Module({
   imports: [
     ConfigModule,
+    EmailModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (config: ConfigService) => ({
@@ -45,6 +50,9 @@ import { IUserRepository } from '../domain/user.repository';
     LoginUseCase,
     RegisterUseCase,
     RefreshTokenUseCase,
+    SolicitarCodigoRecuperacionUseCase,
+    ValidarCodigoRecuperacionUseCase,
+    ActualizarPasswordForzadoUseCase,
   ],
 
   exports: [AuthService],

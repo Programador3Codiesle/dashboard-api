@@ -12,6 +12,11 @@ export class ListarDesempenoEmpleadoUseCase {
     if (!filtros.anio || Number.isNaN(filtros.anio)) {
       throw new BadRequestException('Debe indicar el año.');
     }
+    if (!Number.isFinite(filtros.nitUsuario) || filtros.nitUsuario <= 0) {
+      throw new BadRequestException(
+        'No se pudo determinar el usuario de sesión.',
+      );
+    }
     return this.repo.listar({
       ...filtros,
       pagina:

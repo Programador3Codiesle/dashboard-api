@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { CODIESEL_EMPRESA_ID } from '../../../../../../core/config/empresa-sesion';
+import {
+  listarIdsBodegaEmpresa,
+  resolverBodegasInforme,
+} from '../../../../../../core/infra/prisma/bodegas-empresa.query';
+import { PrismaService } from '../../../../../../core/infra/prisma/prisma.service';
 import {
   FiltrosNpsTecnicos,
   INpsTecnicosRepository,
-  OrigenNpsTecnicos,
 } from '../../domain/nps-tecnicos.repository';
 import { NpsTecnicoRowEntity } from '../../domain/nps-tecnicos.entity';
-import { PrismaService } from '../../../../../../core/infra/prisma/prisma.service';
 
 type SedeFiltro = 'todas' | 'giron' | 'rosita' | 'bocono' | 'barranca';
 
@@ -49,7 +53,17 @@ export class NpsTecnicosPrismaRepository implements INpsTecnicosRepository {
   private async listarNpsInterno(
     filtros: FiltrosNpsTecnicos,
   ): Promise<NpsTecnicoRowEntity[]> {
-    const bodegas = this.mapSedeToBodegas(filtros.sede);
+    const bodegasEmpresa = await listarIdsBodegaEmpresa(
+      this.prisma,
+      filtros.empresaId,
+    );
+    const bodegas = resolverBodegasInforme(
+      filtros.empresaId,
+      this.mapSedeToBodegas(filtros.sede),
+      bodegasEmpresa,
+    );
+    if (bodegas.length === 0) return [];
+
     const meses = this.getMesesArray(filtros.mes);
 
     const rows = await this.prisma.$queryRaw<
@@ -101,6 +115,11 @@ export class NpsTecnicosPrismaRepository implements INpsTecnicosRepository {
   private async listarNpsCol(
     filtros: FiltrosNpsTecnicos,
   ): Promise<NpsTecnicoRowEntity[]> {
+    // nps_tec no tiene id_empresa; Colmotores es Codiesel (Chevrolet).
+    if (filtros.empresaId !== CODIESEL_EMPRESA_ID) {
+      return [];
+    }
+
     const year = new Date().getFullYear();
     const meses = this.getMesesArray(filtros.mes);
 
@@ -111,26 +130,25 @@ export class NpsTecnicosPrismaRepository implements INpsTecnicosRepository {
         ? Prisma.sql`1 = 1`
         : Prisma.sql`nt.sede = ${filtros.sede}`;
 
+    const mesTodos = !filtros.mes || filtros.mes === 0;
     const rows = await this.prisma.$queryRaw<
       {
         nombres: string;
         enc0a6: number | null;
         enc7a8: number | null;
         enc9a10: number | null;
-        mes: number | null;
       }[]
     >(Prisma.sql`
       SELECT
         nt.nombres,
         COUNT(CASE WHEN nt.calificacion BETWEEN 0 AND 6 THEN 'enc0a6' END) AS enc0a6,
         COUNT(CASE WHEN nt.calificacion BETWEEN 7 AND 8 THEN 'enc7a8' END) AS enc7a8,
-        COUNT(CASE WHEN nt.calificacion BETWEEN 9 AND 10 THEN 'enc9a10' END) AS enc9a10,
-        MONTH(CONVERT(DATE, nt.fecha_enc)) AS mes
+        COUNT(CASE WHEN nt.calificacion BETWEEN 9 AND 10 THEN 'enc9a10' END) AS enc9a10
       FROM nps_tec nt
       WHERE YEAR(CONVERT(DATE, nt.fecha_enc)) = ${year}
         AND MONTH(CONVERT(DATE, nt.fecha_enc)) IN (${Prisma.join(meses)})
         AND ${sedeFiltro}
-      GROUP BY nt.nombres, MONTH(CONVERT(DATE, nt.fecha_enc))
+      GROUP BY nt.nombres
     `);
 
     return rows.map((row) => {
@@ -148,8 +166,8 @@ export class NpsTecnicosPrismaRepository implements INpsTecnicosRepository {
         enc0a6,
         enc7a8,
         enc9a10,
-        mesNumero: row.mes,
-        mesNombre: this.getNombreMes(row.mes),
+        mesNumero: mesTodos ? null : filtros.mes,
+        mesNombre: mesTodos ? 'Todos' : this.getNombreMes(filtros.mes),
       });
     });
   }

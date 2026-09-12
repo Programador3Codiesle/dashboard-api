@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
+import { NIT_GESTION_HUMANA_HE } from '../../../shared/sede-porteria';
 import {
   CompetenciaDesempenoDetalle,
   DesempenoEmpleadoDetalle,
@@ -72,12 +73,14 @@ export class DesempenoEmpleadoPrismaRepository implements IDesempenoEmpleadoRepo
   async listar(
     filtros: FiltrosDesempenoEmpleado,
   ): Promise<ListarDesempenoEmpleadoResultado> {
-    const conditions: Prisma.Sql[] = [
-      Prisma.sql`ano = ${filtros.anio}`,
-    ];
+    const conditions: Prisma.Sql[] = [Prisma.sql`v.ano = ${filtros.anio}`];
 
     if (filtros.sede && filtros.sede !== '') {
-      conditions.push(Prisma.sql`sede = ${filtros.sede}`);
+      conditions.push(Prisma.sql`v.sede = ${filtros.sede}`);
+    }
+
+    if (filtros.nitUsuario !== NIT_GESTION_HUMANA_HE) {
+      conditions.push(Prisma.sql`rel.nit_jefe = ${filtros.nitUsuario}`);
     }
 
     const where =
@@ -90,15 +93,19 @@ export class DesempenoEmpleadoPrismaRepository implements IDesempenoEmpleadoRepo
 
     const countSql = Prisma.sql`
       SELECT COUNT(*) AS total
-      FROM v_inf_desempeno_empleado
+      FROM v_inf_desempeno_empleado v
+      INNER JOIN postv_rel_evaluacion_desempeno rel
+        ON rel.nit_empleado = v.nit_empleado
       ${where}
     `;
 
     const sql = Prisma.sql`
-      SELECT *
-      FROM v_inf_desempeno_empleado
+      SELECT v.*
+      FROM v_inf_desempeno_empleado v
+      INNER JOIN postv_rel_evaluacion_desempeno rel
+        ON rel.nit_empleado = v.nit_empleado
       ${where}
-      ORDER BY fecha DESC, empleado
+      ORDER BY v.fecha DESC, v.empleado
       OFFSET ${offset} ROWS
       FETCH NEXT ${limite} ROWS ONLY
     `;

@@ -33,4 +33,9 @@ export abstract class ITiempoSuplementarioRepository {
     id: number,
     autorizacion: number,
   ): Promise<boolean>;
+  abstract obtenerNombrePorNit(nit: number): Promise<string>;
+  abstract obtenerDestinosRespuesta(id: number): Promise<{
+    to: string[];
+    empresaId?: number | null;
+  }>;
 }

@@ -5,7 +5,7 @@ import { IListaAusentismoRepository } from '../../domain/lista-ausentismo.reposi
 export class ObtenerAusentismosDiaActualUseCase {
   constructor(private readonly repo: IListaAusentismoRepository) {}
 
-  async execute() {
-    return this.repo.obtenerDiaActual();
+  async execute(sede: string) {
+    return this.repo.obtenerDiaActual(sede);
   }
 }

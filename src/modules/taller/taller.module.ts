@@ -13,6 +13,7 @@ import { PygAsesoresRepuestosModule } from './pyg-asesores-repuestos/infra/pyg-a
 import { PygTecnicosModule } from './pyg-tecnicos/infra/pyg-tecnicos.module';
 import { PosiblesRetornosModule } from './posibles-retornos/infra/posibles-retornos.module';
 import { PresupuestoModule } from './presupuesto/infra/presupuesto.module';
+import { RankingTrimestralModule } from './ranking-trimestral/infra/ranking-trimestral.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { PresupuestoModule } from './presupuesto/infra/presupuesto.module';
     PygTecnicosModule,
     PosiblesRetornosModule,
     PresupuestoModule,
+    RankingTrimestralModule,
   ],
 })
 export class TallerModule {}

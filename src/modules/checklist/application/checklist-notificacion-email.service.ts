@@ -20,6 +20,7 @@ export class ChecklistNotificacionEmailService {
     responsable: string,
     idCheck: number,
     correos: string[],
+    empresaId?: number,
   ): Promise<void> {
     if (correos.length === 0) return;
 
@@ -48,6 +49,7 @@ export class ChecklistNotificacionEmailService {
       to: correos,
       subject: 'Registro Nuevo CheckList',
       html,
+      empresaId,
     });
 
     if (!result.ok) {

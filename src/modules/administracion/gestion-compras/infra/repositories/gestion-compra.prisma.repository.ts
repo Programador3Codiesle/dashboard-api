@@ -305,22 +305,6 @@ export class GestionCompraPrismaRepository implements IGestionCompraRepository {
     }
   }
 
-  async getEmailByNit(nit: number): Promise<string | null> {
-    try {
-      const result = await this.prisma.$queryRaw<any[]>`
-                SELECT mail FROM terceros WHERE (nit = ${nit} OR nit_real = ${nit}) AND mail IS NOT NULL AND LTRIM(RTRIM(ISNULL(mail, ''))) <> ''
-            `;
-      if (!result || result.length === 0) return null;
-      const row = result[0];
-      const mail = row?.mail ?? row?.Mail;
-      const email = typeof mail === 'string' ? mail.trim() : null;
-      return email && email.length > 0 ? email : null;
-    } catch (error) {
-      console.error('Error obteniendo email por NIT:', error);
-      return null;
-    }
-  }
-
   private mapToEntity(data: any): GestionCompraEntity {
     return new GestionCompraEntity({
       id_solicitud: BigInt(data.id_solicitud),

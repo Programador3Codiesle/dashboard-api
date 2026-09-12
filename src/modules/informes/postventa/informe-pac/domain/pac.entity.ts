@@ -1,5 +1,8 @@
+/** Objetivo compañía (Informes.php `$NPSGNERAL`). */
+export const PAC_NPS_COMPANY = 85;
+
 export class PacResumenEntity {
-  // NPS general
+  // NPS general (NPS_sedes)
   calificacionPac!: number;
   npsCompany!: number;
   enc06!: number;
@@ -8,6 +11,15 @@ export class PacResumenEntity {
   porcen06!: number;
   porcen78!: number;
   porcen910!: number;
+
+  // NPS interno (QR mes actual, mismos joins que PHP)
+  npsInterno!: number;
+  encInterno06!: number;
+  encInterno78!: number;
+  encInterno910!: number;
+  porcenInterno06!: number;
+  porcenInterno78!: number;
+  porcenInterno910!: number;
 
   // Presupuesto / PAC a hoy y del mes
   toDia!: number;

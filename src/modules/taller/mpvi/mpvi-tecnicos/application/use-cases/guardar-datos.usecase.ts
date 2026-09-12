@@ -11,7 +11,7 @@ export class GuardarDatosUseCase {
     private readonly emailService: MpviEmailService,
   ) {}
 
-  async execute(dto: GuardarDatosDto, idUser: number) {
+  async execute(dto: GuardarDatosDto, idUser: number, empresaId?: number) {
     const placa = dto.placa.toUpperCase();
     const cobrables = (dto.cobrables ?? '')
       .split(',')
@@ -116,7 +116,7 @@ export class GuardarDatosUseCase {
     }
 
     if (idCotizacion != null) {
-      await this.emailService.sendCorreoCotizacion(idCotizacion, 1);
+      await this.emailService.sendCorreoCotizacion(idCotizacion, 1, empresaId);
     }
 
     return {

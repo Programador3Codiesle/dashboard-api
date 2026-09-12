@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { OrdenesTotFacade } from '../application/ordenes-tot.facade';
 import { OrdenesTotPdfService } from '../application/ordenes-tot-pdf.service';
+import { GestionOrdenGeneralUseCase } from '../application/use-cases/gestion-orden-general.usecase';
 import { GestionPorteriaUseCase } from '../application/use-cases/gestion-porteria.usecase';
 import { GestionRepuestosUseCase } from '../application/use-cases/gestion-repuestos.usecase';
 import { GestionTotUseCase } from '../application/use-cases/gestion-tot.usecase';
@@ -20,6 +21,7 @@ import { OrdenesTotPrismaRepository } from './repositories/ordenes-tot.prisma.re
     GestionTotUseCase,
     GestionPorteriaUseCase,
     GestionRepuestosUseCase,
+    GestionOrdenGeneralUseCase,
     {
       provide: IOrdenesTotRepository,
       useClass: OrdenesTotPrismaRepository,

@@ -12,6 +12,7 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/infra/jwt-auth.guard';
 import { CodieselEmpresaGuard } from '../shared/utils/codiesel-empresa.guard';
+import { CrearOrdenGeneralDto } from '../application/dto/crear-orden-general.dto';
 import { CrearRepuestoDto } from '../application/dto/crear-repuesto.dto';
 import { CrearTotDto } from '../application/dto/crear-tot.dto';
 import { CrearVehiculoDto } from '../application/dto/crear-vehiculo.dto';
@@ -114,6 +115,19 @@ export class OrdenesTotController {
   @Get('repuestos/candidatos')
   repuestosCandidatos() {
     return this.facade.listarRepuestosCandidatos();
+  }
+
+  @Post('ordenes-generales')
+  crearOrdenGeneral(
+    @Req() req: AuthRequest,
+    @Body() dto: CrearOrdenGeneralDto,
+  ) {
+    return this.facade.crearOrdenGeneral(dto, this.idUsuario(req));
+  }
+
+  @Get('ordenes-generales/pendientes')
+  ordenesGeneralesPendientes(@Req() req: AuthRequest) {
+    return this.facade.listarOrdenGeneralPendientes(this.idUsuario(req));
   }
 
   private idUsuario(req: AuthRequest): number {

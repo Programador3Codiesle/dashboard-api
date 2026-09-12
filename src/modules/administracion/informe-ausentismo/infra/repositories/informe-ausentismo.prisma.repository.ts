@@ -31,10 +31,18 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
         conditions.push(Prisma.sql`a.area = ${filtros.area}`);
       }
       if (filtros?.empleado && String(filtros.empleado).trim()) {
-        const patron = `%${String(filtros.empleado).trim()}%`;
-        conditions.push(
-          Prisma.sql`(t.nombres LIKE ${patron} OR CAST(a.empleado AS VARCHAR(50)) LIKE ${patron} OR CAST(t.nit_real AS VARCHAR(50)) LIKE ${patron})`,
-        );
+        const valor = String(filtros.empleado).trim();
+        if (Number(filtros?.solo_pendientes) === 1) {
+          // GH inf_ausentismos: PHP `and nit_empleado=$nit` (NIT exacto).
+          if (/^\d+$/.test(valor)) {
+            conditions.push(Prisma.sql`a.empleado = ${valor}`);
+          }
+        } else {
+          const patron = `%${valor}%`;
+          conditions.push(
+            Prisma.sql`(t.nombres LIKE ${patron} OR CAST(a.empleado AS VARCHAR(50)) LIKE ${patron} OR CAST(t.nit_real AS VARCHAR(50)) LIKE ${patron})`,
+          );
+        }
       }
 
       // Cuando se usa para "Ausentismo sin respuesta" se debe filtrar solo los pendientes
@@ -47,10 +55,20 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
       const page = filtros?.pagina ?? 1;
       const offset = (page - 1) * limit;
 
+      const joinEmpleadosGh =
+        Number(filtros?.solo_pendientes) === 1
+          ? Prisma.sql`
+                LEFT JOIN postv_empleados e ON a.empleado = e.nit_empleado
+                LEFT JOIN terceros t ON e.nit_empleado = t.nit
+              `
+          : Prisma.sql`
+                LEFT JOIN terceros t ON t.nit_real = a.empleado
+              `;
+
       const totalResult = await this.prisma.$queryRaw<[{ total: bigint }]>`
                 SELECT COUNT(*) as total
                 FROM postv_ausentismos a
-                LEFT JOIN terceros t ON t.nit_real = a.empleado
+                ${joinEmpleadosGh}
                 WHERE ${whereClause}
             `;
       const total = Number(totalResult[0].total);
@@ -71,7 +89,7 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
                     t.nombres AS colaborador
                   
                 FROM postv_ausentismos a
-                LEFT JOIN terceros t ON t.nit_real = a.empleado
+                ${joinEmpleadosGh}
     
                 WHERE ${whereClause}
                 ORDER BY a.fecha_ini DESC

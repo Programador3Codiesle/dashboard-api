@@ -7,3 +7,4 @@ export { IUsuarioEmpresaRepository } from './usuario-empresa.repository';
 export { IUsuarioJefeRepository } from './usuario-jefe.repository';
 export { IUsuarioSedeRepository } from './usuario-sede.repository';
 export { IUsuarioHorarioRepository } from './usuario-horario.repository';
+export { IMiPerfilRepository } from './mi-perfil.repository';

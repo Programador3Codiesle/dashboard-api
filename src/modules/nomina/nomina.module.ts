@@ -5,6 +5,7 @@ import { ComisionesLaminaPinturaModule } from './comisiones-lamina-pintura/infra
 import { ComisionesTecnicosModule } from './comisiones-tecnicos/infra/comisiones-tecnicos.module';
 import { NominaDirectorFlotasModule } from './nomina-director-flotas/infra/nomina-director-flotas.module';
 import { RelacionMargenMaterialesColoristaModule } from './relacion-margen-materiales-colorista/infra/relacion-margen-materiales-colorista.module';
+import { NominaAccesoriosModule } from './nomina-accesorios/infra/nomina-accesorios.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { RelacionMargenMaterialesColoristaModule } from './relacion-margen-mater
     ComisionesTecnicosModule,
     NominaDirectorFlotasModule,
     RelacionMargenMaterialesColoristaModule,
+    NominaAccesoriosModule,
   ],
   exports: [],
 })

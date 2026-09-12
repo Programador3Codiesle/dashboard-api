@@ -14,9 +14,10 @@ import {
   nominaPerfilFromRequest,
   type NominaAuthRequest,
 } from '../../shared/nomina-auth-request';
+import { CodieselEmpresaGuard } from '../../shared/utils/codiesel-empresa.guard';
 
 @Controller('nomina/comisiones-tecnicos')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, CodieselEmpresaGuard)
 export class ComisionesTecnicosController {
   constructor(private readonly facade: ComisionesTecnicosFacade) {}
 

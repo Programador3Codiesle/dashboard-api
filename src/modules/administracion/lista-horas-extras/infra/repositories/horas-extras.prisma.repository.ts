@@ -7,23 +7,37 @@ import { HorasExtrasEntity } from '../../domain/horas-extras.entity';
 export class HorasExtrasPrismaRepository implements IHorasExtrasRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async obtenerDiaActual(): Promise<HorasExtrasEntity[]> {
+  async obtenerDiaActual(sede: string): Promise<HorasExtrasEntity[]> {
     try {
-      const hoy = new Date();
-      const fecha = hoy.toISOString().split('T')[0];
-
-      // Optimizado: Usar $queryRaw con parámetro seguro.
-      // SQL Server: text/ntext no se pueden comparar ni ordenar; usar CAST a VARCHAR/NVARCHAR.
-      const results = await this.prisma.$queryRaw<any[]>`
-                SELECT 
-                    a.id_solicitud, a.nit_empleado, a.fecha_ini AS fecha, 
-                    a.hora_ini, a.hora_fin, a.descripcion, a.autorizacion,
-                    t.nombres AS nombre_empleado
-                FROM postv_solicitud_hora_extra a
-                LEFT JOIN terceros t ON t.nit_real = a.nit_empleado
-                WHERE CONVERT(DATE, CAST(a.fecha_ini AS NVARCHAR(30))) = ${fecha}
-                ORDER BY CAST(a.hora_ini AS NVARCHAR(20)) ASC
-            `;
+      const results = await this.prisma.$queryRaw<
+        Array<{
+          id_solicitud: number;
+          nit_empleado: number;
+          fecha: Date;
+          hora_ini: string | null;
+          hora_fin: string | null;
+          descripcion: string | null;
+          autorizacion: number | null;
+          nombre_empleado: string | null;
+        }>
+      >`
+        SELECT
+          he.id_solicitud,
+          he.nit_empleado,
+          he.fecha_ini AS fecha,
+          he.hora_ini,
+          he.hora_fin,
+          he.descripcion,
+          he.autorizacion,
+          t.nombres AS nombre_empleado
+        FROM postv_solicitud_hora_extra he
+        INNER JOIN terceros t ON he.nit_empleado = t.nit
+        INNER JOIN terceros j ON he.nit_jefe = j.nit
+        WHERE he.autorizacion <> 0
+          AND CONVERT(DATE, GETDATE()) = CONVERT(DATE, he.fecha_ini)
+          AND he.sede = ${sede}
+        ORDER BY CAST(he.hora_ini AS NVARCHAR(20)) ASC
+      `;
 
       return results.map(
         (r) =>
@@ -32,8 +46,8 @@ export class HorasExtrasPrismaRepository implements IHorasExtrasRepository {
             empleado: Number(r.nit_empleado),
             nombre_empleado: r.nombre_empleado,
             fecha: new Date(r.fecha),
-            hora_ini: r.hora_ini,
-            hora_fin: r.hora_fin,
+            hora_ini: r.hora_ini != null ? String(r.hora_ini) : null,
+            hora_fin: r.hora_fin != null ? String(r.hora_fin) : null,
             descripcion: r.descripcion,
             autorizacion:
               r.autorizacion !== undefined && r.autorizacion !== null

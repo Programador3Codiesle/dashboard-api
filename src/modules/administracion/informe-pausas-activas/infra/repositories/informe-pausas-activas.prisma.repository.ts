@@ -26,22 +26,25 @@ export class InformePausasActivasPrismaRepository implements IInformePausasActiv
       conditions.push(Prisma.sql`h.nit_empleado = ${empleado}`);
     }
 
-    let fechaCondition: Prisma.Sql | null = null;
+    let fechaSubquery: Prisma.Sql | null = null;
     if (fechaDia) {
-      fechaCondition = Prisma.sql`(CONVERT(date, ps.fecha_am) = ${fechaDia} OR CONVERT(date, ps.fecha_pm) = ${fechaDia})`;
+      fechaSubquery = Prisma.sql`(CONVERT(date, fecha_am) = ${fechaDia} OR CONVERT(date, fecha_pm) = ${fechaDia})`;
     } else if (fechaMes) {
       const [year, month] = fechaMes.split('-');
       if (year && month) {
-        fechaCondition = Prisma.sql`
-          (YEAR(ps.fecha_am) = ${Number(year)} AND MONTH(ps.fecha_am) = ${Number(month)})
-          OR (YEAR(ps.fecha_pm) = ${Number(year)} AND MONTH(ps.fecha_pm) = ${Number(month)})
+        fechaSubquery = Prisma.sql`
+          (YEAR(fecha_am) = ${Number(year)} AND MONTH(fecha_am) = ${Number(month)})
+          OR (YEAR(fecha_pm) = ${Number(year)} AND MONTH(fecha_pm) = ${Number(month)})
         `;
       }
     }
 
-    if (fechaCondition) {
-      conditions.push(fechaCondition);
-    }
+    const joinPausas = fechaSubquery
+      ? Prisma.sql`LEFT JOIN (
+          SELECT * FROM postv_pausas_activas
+          WHERE ${fechaSubquery}
+        ) ps ON h.nit_empleado = ps.nit`
+      : Prisma.sql`LEFT JOIN postv_pausas_activas ps ON h.nit_empleado = ps.nit`;
 
     const whereClause =
       conditions.length > 0
@@ -56,7 +59,7 @@ export class InformePausasActivasPrismaRepository implements IInformePausasActiv
         ps.fecha_pm,
         h.sede
       FROM postv_horarios_empleados h
-      LEFT JOIN postv_pausas_activas ps ON h.nit_empleado = ps.nit
+      ${joinPausas}
       LEFT JOIN terceros t ON t.nit = h.nit_empleado
       ${whereClause}
       ORDER BY ps.fecha_am DESC, ps.fecha_pm DESC

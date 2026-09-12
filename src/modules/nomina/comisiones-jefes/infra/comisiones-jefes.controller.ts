@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  ForbiddenException,
   Get,
   Post,
   Query,
@@ -20,9 +21,12 @@ import {
   toActualizarValoresHttpResponse,
   toCheckValoresHttpResponse,
 } from '../application/mappers/comisiones-jefes.http';
+import { perfilEn } from '../../shared/perfil';
+import { PERFILES_COMISIONES_JEFES_INGRESAR_VALORES } from '../domain/comisiones-jefes.constants';
+import { CodieselEmpresaGuard } from '../../shared/utils/codiesel-empresa.guard';
 
 @Controller('nomina/comisiones-jefes')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, CodieselEmpresaGuard)
 export class ComisionesJefesController {
   constructor(private readonly facade: ComisionesJefesFacade) {}
 
@@ -75,9 +79,11 @@ export class ComisionesJefesController {
 
   @Post('check-valores')
   async checkValores(
+    @Req() req: NominaAuthRequest,
     @Body('combo_jefes') comboJefes: string,
     @Body('sede') sede: string,
   ) {
+    this.assertPuedeIngresarValores(req);
     if (!comboJefes || !sede) {
       throw new BadRequestException('combo_jefes y sede son obligatorios.');
     }
@@ -90,6 +96,7 @@ export class ComisionesJefesController {
 
   @Post('actualizar-valores')
   async actualizarValores(
+    @Req() req: NominaAuthRequest,
     @Body('combo_jefes') comboJefes: string,
     @Body('sede') sede: string,
     @Body('utilidad_sede') utilidadSede?: string,
@@ -97,6 +104,7 @@ export class ComisionesJefesController {
     @Body('bono_utilidad') bonoUtilidad?: string,
     @Body('bono_nps_int') bonoNpsInterno?: string,
   ) {
+    this.assertPuedeIngresarValores(req);
     const result = await this.facade.actualizarValores({
       comboJefes,
       sede,
@@ -110,5 +118,14 @@ export class ComisionesJefesController {
     });
 
     return toActualizarValoresHttpResponse(result);
+  }
+
+  private assertPuedeIngresarValores(req: NominaAuthRequest) {
+    const perfil = nominaPerfilFromRequest(req);
+    if (!perfilEn(perfil, PERFILES_COMISIONES_JEFES_INGRESAR_VALORES)) {
+      throw new ForbiddenException(
+        'No tiene permisos para ingresar valores de comisiones de jefes.',
+      );
+    }
   }
 }
