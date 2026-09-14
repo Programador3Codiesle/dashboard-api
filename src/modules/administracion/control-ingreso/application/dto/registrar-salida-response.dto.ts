@@ -16,7 +16,7 @@ export class RegistrarSalidaResponseDto {
     example: {
       id: 1,
       fecha_salida: '2026-01-09',
-      hora_salida: '03:10 PM',
+      hora_salida: '15:10',
       km_salida: 50000,
       placa: 'ABC123',
       tipo_vehiculo: 'Camioneta',

@@ -1,4 +1,5 @@
 import { instanceToPlain } from 'class-transformer';
+import { formatHoraHHmm } from '../../../shared/format-hora-hhmm';
 import { ControlVehiculoPresenter } from '../presenters/control-vehiculo.presenter';
 import { ListarVehiculosResponseDto } from '../../application/dto/listar-vehiculos-response.dto';
 import { RegistrarSalidaResponseDto } from '../../application/dto/registrar-salida-response.dto';
@@ -23,9 +24,8 @@ export class ControlVehiculoMapper {
       ? entity.fecha_salida.toISOString().split('T')[0]
       : null;
 
-    // Formatear hora de salida (12 horas con AM/PM)
     const horaSalidaStr = entity.fecha_salida
-      ? this.formatTime12Hours(entity.fecha_salida)
+      ? formatHoraHHmm(entity.fecha_salida)
       : null;
 
     // Formatear fecha de llegada (YYYY-MM-DD)
@@ -33,9 +33,8 @@ export class ControlVehiculoMapper {
       ? entity.fecha_llegada.toISOString().split('T')[0]
       : null;
 
-    // Formatear hora de llegada (12 horas con AM/PM)
     const horaLlegadaStr = entity.fecha_llegada
-      ? this.formatTime12Hours(entity.fecha_llegada)
+      ? formatHoraHHmm(entity.fecha_llegada)
       : null;
 
     // Determinar el modelo
@@ -83,9 +82,8 @@ export class ControlVehiculoMapper {
       ? entity.fecha_salida.toISOString().split('T')[0]
       : '';
 
-    // Formatear hora de salida (12 horas con AM/PM)
     const horaSalidaStr = entity.fecha_salida
-      ? this.formatTime12Hours(entity.fecha_salida)
+      ? formatHoraHHmm(entity.fecha_salida)
       : '';
 
     return {
@@ -121,9 +119,8 @@ export class ControlVehiculoMapper {
       ? entity.fecha_salida.toISOString().split('T')[0]
       : '';
 
-    // Formatear hora de salida (12 horas con AM/PM)
     const horaSalidaStr = entity.fecha_salida
-      ? this.formatTime12Hours(entity.fecha_salida)
+      ? formatHoraHHmm(entity.fecha_salida)
       : '';
 
     // Formatear fecha de llegada (YYYY-MM-DD)
@@ -131,9 +128,8 @@ export class ControlVehiculoMapper {
       ? entity.fecha_llegada.toISOString().split('T')[0]
       : null;
 
-    // Formatear hora de llegada (12 horas con AM/PM)
     const horaLlegadaStr = entity.fecha_llegada
-      ? this.formatTime12Hours(entity.fecha_llegada)
+      ? formatHoraHHmm(entity.fecha_llegada)
       : null;
 
     return {
@@ -158,19 +154,5 @@ export class ControlVehiculoMapper {
       id_empresa: entity.id_empresa ?? null,
       empresa_nombre: (entity as any).empresa_nombre || null,
     };
-  }
-
-  /**
-   * Formatea una fecha a formato de 12 horas con AM/PM
-   * @param date - Fecha a formatear
-   * @returns String en formato "hh:mm tt" (ej: "02:30 PM")
-   */
-  private static formatTime12Hours(date: Date): string {
-    const hours = date.getHours();
-    const minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const hours12 = hours % 12 || 12;
-    const minutesStr = minutes.toString().padStart(2, '0');
-    return `${hours12.toString().padStart(2, '0')}:${minutesStr} ${ampm}`;
   }
 }

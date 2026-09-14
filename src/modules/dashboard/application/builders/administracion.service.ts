@@ -243,7 +243,7 @@ export class AdministracionService {
       base.porcen_barranca,
     );
     pushSede('bocono', 'Cúcuta Boconó', presuBocono, base.porcen_bocono);
-    pushSede('solochevrolet', 'Solochevrolet', presuSoloc, base.porcen_soloc);
+    pushSede('solochevrolet', 'Dieselco Cúcuta', presuSoloc, base.porcen_soloc);
     pushSede('chevropartes', 'Chevropartes', presuChev, base.porcen_chev);
 
     base.sedes_presupuesto = sedesPresu.length > 0 ? sedesPresu : undefined;
@@ -365,9 +365,9 @@ export class AdministracionService {
       },
       {
         key: 'solochevrolet',
-        sede: 'Solochevrolet',
+        sede: 'Dieselco Cúcuta',
         centros: '60',
-        nombre: 'Solochevrolet',
+        nombre: 'Dieselco Cúcuta',
       },
       {
         key: 'chevropartes',
@@ -388,7 +388,7 @@ export class AdministracionService {
       { key: 'rosita', sede: 'La Rosita' },
       { key: 'barranca', sede: 'Barrancabermeja' },
       { key: 'bocono', sede: 'Cúcuta Boconó' },
-      { key: 'solochevrolet', sede: 'Solochevrolet' },
+      { key: 'solochevrolet', sede: 'Dieselco Cúcuta' },
       { key: 'chevropartes', sede: 'Chevropartes' },
     ];
     for (const g of groupOrder) {

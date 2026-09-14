@@ -7,6 +7,7 @@ import {
 } from '../../domain/informe-entradas-salidas.repository';
 import { InformeEntradasSalidasEntity } from '../../domain/informe-entradas-salidas.entity';
 import { clampPageLimit } from '../../../../../core/infra/pagination';
+import { formatHoraHHmm } from '../../../shared/format-hora-hhmm';
 
 function soloFechaSql(s: string): string {
   const t = String(s ?? '').trim();
@@ -64,7 +65,7 @@ export class InformeEntradasSalidasPrismaRepository implements IInformeEntradasS
           sede: r.sede ?? '',
           accion: r.accion ?? '',
           fechas: r.fechas ? new Date(r.fechas) : new Date(),
-          horas: r.horas ?? '',
+          horas: formatHoraHHmm(r.horas),
         }),
     );
   }

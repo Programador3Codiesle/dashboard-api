@@ -16,7 +16,7 @@ export class RegistrarLlegadaResponseDto {
     example: {
       id: 1,
       fecha_salida: '2026-01-09',
-      hora_salida: '03:10 PM',
+      hora_salida: '15:10',
       km_salida: 50000,
       placa: 'ABC123',
       tipo_vehiculo: 'Camioneta',
@@ -24,7 +24,7 @@ export class RegistrarLlegadaResponseDto {
       pasajeros: 'Carlos, Ana',
       persona_autorizo: 'María García',
       fecha_llegada: '2026-01-09',
-      hora_llegada: '05:30 PM',
+      hora_llegada: '17:30',
       km_llegada: 50100,
       observacion: 'Vehículo en buen estado',
       porteria: 'Vigilancia Giron',

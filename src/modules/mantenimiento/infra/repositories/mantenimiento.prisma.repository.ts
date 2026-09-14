@@ -13,7 +13,10 @@ import {
   type NombreEquipoOption,
   type PersonalMto,
 } from '../../domain/mantenimiento.repository';
-import { BODEGAS_MTO_IDS } from '../../domain/mantenimiento.constants';
+import {
+  BODEGAS_MTO_IDS,
+  NITS_ASIGNADOS_MTO,
+} from '../../domain/mantenimiento.constants';
 
 function asStr(v: unknown): string {
   if (v == null) return '';
@@ -465,13 +468,14 @@ export class MantenimientoPrismaRepository implements IMantenimientoRepository {
   }
 
   async listarPersonalMto(): Promise<PersonalMto[]> {
+    const nits = NITS_ASIGNADOS_MTO.map((nit) => Prisma.sql`${nit}`);
     const rows = await this.prisma.$queryRaw<Array<Record<string, unknown>>>(
       Prisma.sql`
-        SELECT u.id_usuario, t.nombres, t.nit
-        FROM w_sist_usuarios u
-        INNER JOIN terceros t ON t.nit = u.nit_usuario
-        INNER JOIN postv_perfiles p ON p.id_perfil = u.perfil_postventa
-        WHERE p.id_perfil = 46
+        SELECT ISNULL(u.id_usuario, 0) AS id_usuario, t.nombres, t.nit
+        FROM terceros t
+        LEFT JOIN w_sist_usuarios u ON t.nit = u.nit_usuario
+        WHERE t.nit IN (${Prisma.join(nits)})
+        ORDER BY t.nombres
       `,
     );
     return rows.map((r) => ({

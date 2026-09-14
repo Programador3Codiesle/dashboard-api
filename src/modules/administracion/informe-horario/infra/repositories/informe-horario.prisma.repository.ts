@@ -6,6 +6,7 @@ import {
   IInformeHorarioRepository,
 } from '../../domain/informe-horario.repository';
 import { InformeHorarioEntity } from '../../domain/informe-horario.entity';
+import { formatHoraHHmm } from '../../../shared/format-hora-hhmm';
 
 function soloFechaSql(s: string): string {
   const t = String(s ?? '').trim();
@@ -51,16 +52,16 @@ export class InformeHorarioPrismaRepository implements IInformeHorarioRepository
           sede: r.Sede ?? r.sede ?? '',
           dia: r.Dia ?? r.dia ?? '',
           fecha: r.fecha ? new Date(r.fecha) : new Date(),
-          horario_entrada_am: r.horario_entrada_am ?? null,
-          horario_salida_am: r.horario_salida_am ?? null,
-          horario_entrada_pm: r.horario_entrada_pm ?? null,
-          horario_salida_pm: r.horario_salida_pm ?? null,
-          inicio_ausentismo: r.inicio_ausentismo ?? null,
-          fin_ausentismo: r.fin_ausentismo ?? null,
-          llegada_am: r.llegada_am ?? null,
-          salida_am: r.salida_am ?? null,
-          llegada_pm: r.llegada_pm ?? null,
-          salida_pm: r.salida_pm ?? null,
+          horario_entrada_am: formatHoraHHmm(r.horario_entrada_am) || null,
+          horario_salida_am: formatHoraHHmm(r.horario_salida_am) || null,
+          horario_entrada_pm: formatHoraHHmm(r.horario_entrada_pm) || null,
+          horario_salida_pm: formatHoraHHmm(r.horario_salida_pm) || null,
+          inicio_ausentismo: formatHoraHHmm(r.inicio_ausentismo) || null,
+          fin_ausentismo: formatHoraHHmm(r.fin_ausentismo) || null,
+          llegada_am: formatHoraHHmm(r.llegada_am) || null,
+          salida_am: formatHoraHHmm(r.salida_am) || null,
+          llegada_pm: formatHoraHHmm(r.llegada_pm) || null,
+          salida_pm: formatHoraHHmm(r.salida_pm) || null,
           dif_entrada_am: toNumberOrNull(r.dif_entrada_am),
           dif_salida_am: toNumberOrNull(r.dif_salida_am),
           dif_entrada_pm: toNumberOrNull(r.dif_entrada_pm),

@@ -11,8 +11,8 @@ export class ListarVehiculosResponseDto {
   fecha_salida: string;
 
   @ApiProperty({
-    example: '02:30 PM',
-    description: 'Hora de salida en formato 12 horas',
+    example: '14:30',
+    description: 'Hora de salida en formato 24 h (HH:mm)',
   })
   hora_salida: string;
 
@@ -59,8 +59,8 @@ export class ListarVehiculosResponseDto {
   fecha_llegada?: string | null;
 
   @ApiProperty({
-    example: '05:45 PM',
-    description: 'Hora de llegada en formato 12 horas',
+    example: '17:45',
+    description: 'Hora de llegada en formato 24 h (HH:mm)',
     required: false,
     nullable: true,
   })

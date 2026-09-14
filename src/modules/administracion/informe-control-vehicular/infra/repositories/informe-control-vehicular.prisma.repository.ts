@@ -6,6 +6,7 @@ import {
   IInformeControlVehicularRepository,
 } from '../../domain/informe-control-vehicular.repository';
 import { InformeControlVehicularEntity } from '../../domain/informe-control-vehicular.entity';
+import { formatHoraHHmm } from '../../../shared/format-hora-hhmm';
 
 @Injectable()
 export class InformeControlVehicularPrismaRepository implements IInformeControlVehicularRepository {
@@ -46,7 +47,7 @@ export class InformeControlVehicularPrismaRepository implements IInformeControlV
     return new InformeControlVehicularEntity({
       id: Number(row.id),
       fecha_salida: row.fecha_salida ?? null,
-      hora_salida: row.hora_salida ?? null,
+      hora_salida: formatHoraHHmm(row.hora_salida) || null,
       km_salida:
         row.km_salida !== null && row.km_salida !== undefined
           ? Number(row.km_salida)
@@ -59,7 +60,7 @@ export class InformeControlVehicularPrismaRepository implements IInformeControlV
       pasajeros: row.pasajeros ?? null,
       persona_autorizo: row.persona_autorizo ?? null,
       fecha_llegada: row.fecha_llegada ?? null,
-      hora_llegada: row.hora_llegada ?? null,
+      hora_llegada: formatHoraHHmm(row.hora_llegada) || null,
       km_llegada:
         row.km_llegada !== null && row.km_llegada !== undefined
           ? Number(row.km_llegada)

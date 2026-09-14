@@ -9,6 +9,8 @@ export interface FiltrosComisionesLaminaPintura {
   hasta: string;
   perfilUsuario: number | null;
   nitUsuarioSesion: number | null;
+  /** PHP `load_nomina_nit`: siempre filtra por NIT de sesión, sin chequeo de perfil 1/20/24. */
+  soloNitSesion?: boolean;
 }
 
 export interface FiltrosDetalleComisionLaminaPintura {

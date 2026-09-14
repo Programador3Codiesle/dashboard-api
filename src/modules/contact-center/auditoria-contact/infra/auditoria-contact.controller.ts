@@ -61,20 +61,20 @@ export class AuditoriaContactController {
 
   @Get('agentes')
   agentes(@Req() req: CcRequest) {
-    const { perfil } = this.session(req);
-    return this.facade.getAgentes(perfil);
+    const { perfil, nit } = this.session(req);
+    return this.facade.getAgentes(perfil, nit);
   }
 
   @Get('cant-preguntas')
   cantPreguntas(@Req() req: CcRequest) {
-    const { perfil } = this.session(req);
-    return this.facade.getCantPreguntas(perfil);
+    const { perfil, nit } = this.session(req);
+    return this.facade.getCantPreguntas(perfil, nit);
   }
 
   @Get('contexto')
   contexto(@Req() req: CcRequest) {
-    const { perfil } = this.session(req);
-    return this.facade.getContextoListado(perfil);
+    const { perfil, nit } = this.session(req);
+    return this.facade.getContextoListado(perfil, nit);
   }
 
   @Post('crear')
@@ -105,8 +105,8 @@ export class AuditoriaContactController {
 
   @Post('listar-admin')
   listarAdmin(@Req() req: CcRequest, @Body() dto: ListarAuditoriasDto) {
-    const { perfil } = this.session(req);
-    return this.facade.listarAdmin(dto, perfil);
+    const { perfil, nit } = this.session(req);
+    return this.facade.listarAdmin(dto, perfil, nit);
   }
 
   @Post('listar-agente')
@@ -173,20 +173,20 @@ export class AuditoriaContactController {
 
   @Post('update-ind-estado')
   updateIndEstado(@Req() req: CcRequest, @Body() dto: UpdateIndEstadoDto) {
-    const { perfil } = this.session(req);
-    return this.facade.updateIndEstado(dto, perfil);
+    const { perfil, nit } = this.session(req);
+    return this.facade.updateIndEstado(dto, perfil, nit);
   }
 
   @Post('update-ind')
   updateInd(@Req() req: CcRequest, @Body() dto: UpdateIndDto) {
-    const { perfil } = this.session(req);
-    return this.facade.updateInd(dto, perfil);
+    const { perfil, nit } = this.session(req);
+    return this.facade.updateInd(dto, perfil, nit);
   }
 
   @Post('estado-indicador')
   estadoIndicador(@Req() req: CcRequest, @Body() dto: EstadoIndicadorDto) {
-    const { perfil } = this.session(req);
-    return this.facade.estadoIndicador(dto, perfil);
+    const { perfil, nit } = this.session(req);
+    return this.facade.estadoIndicador(dto, perfil, nit);
   }
 
   @Post('items')
@@ -196,14 +196,14 @@ export class AuditoriaContactController {
 
   @Post('add-item')
   addItem(@Req() req: CcRequest, @Body() dto: AddItemDto) {
-    const { perfil } = this.session(req);
-    return this.facade.addItem(dto, perfil);
+    const { perfil, nit } = this.session(req);
+    return this.facade.addItem(dto, perfil, nit);
   }
 
   @Post('estado-item')
   estadoItem(@Req() req: CcRequest, @Body() dto: EstadoItemDto) {
-    const { perfil } = this.session(req);
-    return this.facade.estadoItem(dto, perfil);
+    const { perfil, nit } = this.session(req);
+    return this.facade.estadoItem(dto, perfil, nit);
   }
 
   @Post('items-obs')
@@ -218,20 +218,20 @@ export class AuditoriaContactController {
 
   @Post('add-obs')
   addObs(@Req() req: CcRequest, @Body() dto: AddObsDto) {
-    const { perfil } = this.session(req);
-    return this.facade.addObs(dto, perfil);
+    const { perfil, nit } = this.session(req);
+    return this.facade.addObs(dto, perfil, nit);
   }
 
   @Post('estado-obs')
   estadoObs(@Req() req: CcRequest, @Body() dto: EstadoObsDto) {
-    const { perfil } = this.session(req);
-    return this.facade.estadoObs(dto, perfil);
+    const { perfil, nit } = this.session(req);
+    return this.facade.estadoObs(dto, perfil, nit);
   }
 
   @Post('send-email')
   sendEmail(@Req() req: CcRequest, @Body() dto: IdAuditoriaDto) {
-    const { perfil } = this.session(req);
-    return this.facade.sendEmail(dto, perfil);
+    const { perfil, nit } = this.session(req);
+    return this.facade.sendEmail(dto, perfil, nit);
   }
 
   @Post('compromiso')
@@ -242,8 +242,8 @@ export class AuditoriaContactController {
 
   @Post('inf-detalle')
   infDetalle(@Req() req: CcRequest, @Body() dto: InfDetalleDto) {
-    const { perfil } = this.session(req);
-    return this.facade.cargarInfDetalle(dto, perfil);
+    const { perfil, nit } = this.session(req);
+    return this.facade.cargarInfDetalle(dto, perfil, nit);
   }
 
   @Get('validate-cant-auditorias')

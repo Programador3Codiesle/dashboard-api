@@ -52,19 +52,19 @@ export class AuditoriaContactFacade {
     private readonly emailService: AuditoriaContactEmailService,
   ) {}
 
-  private assertAdmin(perfil: number): void {
-    if (!esAdminContactCenter(perfil)) {
+  private assertAdmin(perfil: number, nit?: number): void {
+    if (!esAdminContactCenter(perfil, nit)) {
       throw new ForbiddenException('Acceso denegado');
     }
   }
 
-  getAgentes(perfil: number) {
-    this.assertAdmin(perfil);
+  getAgentes(perfil: number, nit: number) {
+    this.assertAdmin(perfil, nit);
     return this.repo.getAllUserAgente();
   }
 
-  getCantPreguntas(perfil: number) {
-    this.assertAdmin(perfil);
+  getCantPreguntas(perfil: number, nit: number) {
+    this.assertAdmin(perfil, nit);
     return this.repo.getCantPreguntas();
   }
 
@@ -181,8 +181,8 @@ export class AuditoriaContactFacade {
     return sumaPuntos;
   }
 
-  async listarAdmin(dto: ListarAuditoriasDto, perfil: number) {
-    this.assertAdmin(perfil);
+  async listarAdmin(dto: ListarAuditoriasDto, perfil: number, nit: number) {
+    this.assertAdmin(perfil, nit);
     const rows = await this.repo.getAuditoriaAgentesAll(dto.nitAgente);
     return rows.map((row) => this.mapAuditoriaListItem(row, true));
   }
@@ -392,8 +392,8 @@ export class AuditoriaContactFacade {
     return result;
   }
 
-  async updateIndEstado(dto: UpdateIndEstadoDto, perfil: number) {
-    this.assertAdmin(perfil);
+  async updateIndEstado(dto: UpdateIndEstadoDto, perfil: number, nit: number) {
+    this.assertAdmin(perfil, nit);
     for (const [id, , puntos] of this.parseDatosInd(dto.datosInd)) {
       await this.repo.updateIndicadores(id, puntos);
     }
@@ -401,8 +401,8 @@ export class AuditoriaContactFacade {
     return { result: ok ? 1 : 0 };
   }
 
-  async updateInd(dto: UpdateIndDto, perfil: number) {
-    this.assertAdmin(perfil);
+  async updateInd(dto: UpdateIndDto, perfil: number, nit: number) {
+    this.assertAdmin(perfil, nit);
     for (const [id, , puntos] of this.parseDatosInd(dto.datosInd)) {
       await this.repo.updateIndicadores(id, puntos);
     }
@@ -410,8 +410,8 @@ export class AuditoriaContactFacade {
     return { status: ok ? 'OK' : 'ERROR' };
   }
 
-  async estadoIndicador(dto: EstadoIndicadorDto, perfil: number) {
-    this.assertAdmin(perfil);
+  async estadoIndicador(dto: EstadoIndicadorDto, perfil: number, nit: number) {
+    this.assertAdmin(perfil, nit);
     const pendientes = await this.repo.countAuditoriasPendientes();
     if (pendientes > 0) return { result: 3 };
 
@@ -430,8 +430,8 @@ export class AuditoriaContactFacade {
     }));
   }
 
-  async addItem(dto: AddItemDto, perfil: number) {
-    this.assertAdmin(perfil);
+  async addItem(dto: AddItemDto, perfil: number, nit: number) {
+    this.assertAdmin(perfil, nit);
     const idItem = await this.repo.insertItemXind(
       dto.id_indicador,
       dto.concepto,
@@ -446,8 +446,8 @@ export class AuditoriaContactFacade {
     }
   }
 
-  async estadoItem(dto: EstadoItemDto, perfil: number) {
-    this.assertAdmin(perfil);
+  async estadoItem(dto: EstadoItemDto, perfil: number, nit: number) {
+    this.assertAdmin(perfil, nit);
     const pendientes = await this.repo.countAuditoriasPendientes();
     if (pendientes > 0) return { result: 3 };
 
@@ -471,14 +471,14 @@ export class AuditoriaContactFacade {
     }));
   }
 
-  async addObs(dto: AddObsDto, perfil: number) {
-    this.assertAdmin(perfil);
+  async addObs(dto: AddObsDto, perfil: number, nit: number) {
+    this.assertAdmin(perfil, nit);
     const ok = await this.repo.insertObsXitem(dto.id_item, dto.obs);
     return { result: ok ? 1 : 0 };
   }
 
-  async estadoObs(dto: EstadoObsDto, perfil: number) {
-    this.assertAdmin(perfil);
+  async estadoObs(dto: EstadoObsDto, perfil: number, nit: number) {
+    this.assertAdmin(perfil, nit);
     const pendientes = await this.repo.countAuditoriasPendientes();
     if (pendientes > 0) return { result: 3 };
 
@@ -486,8 +486,8 @@ export class AuditoriaContactFacade {
     return { result: ok ? dto.estado : 0 };
   }
 
-  async sendEmail(dto: IdAuditoriaDto, perfil: number) {
-    this.assertAdmin(perfil);
+  async sendEmail(dto: IdAuditoriaDto, perfil: number, nit: number) {
+    this.assertAdmin(perfil, nit);
 
     const info = await this.repo.getAuditoriaEmail(dto.id_auditoria);
     if (!info) return { message: 'Error' };
@@ -552,8 +552,8 @@ export class AuditoriaContactFacade {
     return { status: ok ? 'OK' : 'ERROR' };
   }
 
-  async cargarInfDetalle(dto: InfDetalleDto, perfil: number) {
-    this.assertAdmin(perfil);
+  async cargarInfDetalle(dto: InfDetalleDto, perfil: number, nit: number) {
+    this.assertAdmin(perfil, nit);
     const [year, month] = dto.AuditoriaMes.split('-').map(Number);
     const rows = await this.repo.getDetalleAuditoria(
       dto.nitAgente,
@@ -599,9 +599,9 @@ export class AuditoriaContactFacade {
     return { cantidad };
   }
 
-  getContextoListado(perfil: number) {
+  getContextoListado(perfil: number, nit: number) {
     return {
-      esAdmin: esAdminContactCenter(perfil),
+      esAdmin: esAdminContactCenter(perfil, nit),
       esAgente: esAgenteContactCenter(perfil),
     };
   }

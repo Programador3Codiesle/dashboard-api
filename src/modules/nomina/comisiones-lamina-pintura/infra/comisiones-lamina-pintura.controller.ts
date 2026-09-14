@@ -38,6 +38,22 @@ export class ComisionesLaminaPinturaController {
     });
   }
 
+  @Get('por-nit')
+  async listarPorNit(
+    @Req() req: NominaAuthRequest,
+    @Query('desde') desde: string,
+    @Query('hasta') hasta: string,
+  ) {
+    this.validateDates(desde, hasta);
+    return this.facade.listar({
+      desde,
+      hasta,
+      perfilUsuario: nominaPerfilFromRequest(req),
+      nitUsuarioSesion: nominaNitFromRequest(req),
+      soloNitSesion: true,
+    });
+  }
+
   @Get('detalle')
   async detalle(
     @Query('desde') desde: string,

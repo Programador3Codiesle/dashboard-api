@@ -31,6 +31,13 @@ export const BODEGAS_MTO_IDS = [1, 3, 4, 6, 7, 8, 23] as const;
 export const PERFIL_MTTO = 46;
 export const PERFILES_ADMIN_MTTO = [1, 20, 26] as const;
 
+/** PHP mantenimiento.php select asignado (Quiroz, Blanco, Jiménez Acero). */
+export const NITS_ASIGNADOS_MTO = [
+  '1098745749',
+  '1043605990',
+  '1052080208',
+] as const;
+
 export const PERIODO_MESES: Record<string, number> = {
   mensual: 1,
   trimestral: 3,

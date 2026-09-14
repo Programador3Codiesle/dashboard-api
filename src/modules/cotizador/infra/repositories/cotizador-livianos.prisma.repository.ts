@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
+import { sqlFiltroAceitePorAnioModelo } from '../../domain/cotizador-livianos-aceite';
 import {
   BodegaOption,
   ClaseDescripcion,
@@ -226,6 +227,7 @@ export class CotizadorLivianosPrismaRepository implements ICotizadorLivianosRepo
       ) s2 ON a.Codigo = s2.codigo
       WHERE v.clase = ${clase} 
         AND r.Revision = ${revision}
+        ${sqlFiltroAceitePorAnioModelo(clase, yearModel)}
       ORDER BY r.Categoria ASC, r.descripcion ASC
     `;
 

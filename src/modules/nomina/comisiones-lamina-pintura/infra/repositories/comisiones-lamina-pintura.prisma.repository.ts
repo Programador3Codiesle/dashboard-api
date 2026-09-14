@@ -60,13 +60,20 @@ export class ComisionesLaminaPinturaPrismaRepository implements IComisionesLamin
   async listar(
     filtros: FiltrosComisionesLaminaPintura,
   ): Promise<ComisionLaminaPinturaEntity[]> {
-    const { desde, hasta, perfilUsuario, nitUsuarioSesion } = filtros;
-    if (!perfilEn(perfilUsuario, PERFILES_COMISIONES_LYP_PERMITIDOS)) {
+    const { desde, hasta, perfilUsuario, nitUsuarioSesion, soloNitSesion } =
+      filtros;
+    if (
+      !soloNitSesion &&
+      !perfilEn(perfilUsuario, PERFILES_COMISIONES_LYP_PERMITIDOS)
+    ) {
       throw new ForbiddenException('No tiene permisos para ver este Informe');
     }
 
+    const filtrarPorNitSesion =
+      Boolean(soloNitSesion) ||
+      perfilUsuario === PERFIL_COMISIONES_LYP_OPERARIO;
     const filtroOperario =
-      perfilUsuario === PERFIL_COMISIONES_LYP_OPERARIO && nitUsuarioSesion
+      filtrarPorNitSesion && nitUsuarioSesion
         ? Prisma.sql`AND a.operario = ${nitUsuarioSesion}`
         : Prisma.empty;
 

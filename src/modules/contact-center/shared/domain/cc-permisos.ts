@@ -1,6 +1,9 @@
 /** Perfiles administrador Contact Center (legacy auditoría / agendamiento admin) */
 export const CC_PERFILES_ADMIN = [1, 20, 54] as const;
 
+/** PHP `puedeAccederAuditoriaAdmin`: NIT extra (coordinadora Contact). */
+export const CC_NITS_ADMIN_AUDITORIA = ['37542439'] as const;
+
 /** Perfil agente Contact Center */
 export const CC_PERFIL_AGENTE = 31;
 
@@ -10,8 +13,17 @@ export const CC_PERFIL_ADMIN_LEADS = 1;
 /** Agentes hardcodeados para asignación de leads */
 export const CC_AGENTES_ASIGNACION_LEADS = [704, 830, 946, 931, 977] as const;
 
-export function esAdminContactCenter(perfil: number): boolean {
-  return (CC_PERFILES_ADMIN as readonly number[]).includes(perfil);
+export function esAdminContactCenter(
+  perfil: number,
+  nit?: number | string | null,
+): boolean {
+  if ((CC_PERFILES_ADMIN as readonly number[]).includes(perfil)) {
+    return true;
+  }
+  if (nit == null || nit === '') {
+    return false;
+  }
+  return (CC_NITS_ADMIN_AUDITORIA as readonly string[]).includes(String(nit));
 }
 
 export function esAgenteContactCenter(perfil: number): boolean {
