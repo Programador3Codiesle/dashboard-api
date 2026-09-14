@@ -5,6 +5,7 @@ import { CreateTicketUseCase } from '../application/use-cases/create-ticket.usec
 import { UpdateTicketUseCase } from '../application/use-cases/update-ticket.usecase';
 import { GetTicketsUseCase } from '../application/use-cases/get-tickets.usecase';
 import { ResponderTicketUseCase } from '../application/use-cases/responder-ticket.usecase';
+import { ResolverAdjuntoTicketUseCase } from '../application/use-cases/resolver-adjunto-ticket.usecase';
 import { ITicketRepository } from '../domain/ticket.repository';
 import { TicketPrismaRepository } from './repositories/ticket.prisma.repository';
 import { EmailModule } from '../../../core/infra/email/email.module';
@@ -18,6 +19,7 @@ import { EmailModule } from '../../../core/infra/email/email.module';
     UpdateTicketUseCase,
     GetTicketsUseCase,
     ResponderTicketUseCase,
+    ResolverAdjuntoTicketUseCase,
     { provide: ITicketRepository, useClass: TicketPrismaRepository },
   ],
   exports: [TicketFacade],

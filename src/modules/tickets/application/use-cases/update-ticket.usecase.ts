@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { ITicketRepository } from '../../domain/ticket.repository';
-import { UpdateTicketDto } from '../dto/update-ticket.dto';
 import { ReasignarTicketDto } from '../dto/create-ticket.dto';
 
 @Injectable()
@@ -13,6 +12,7 @@ export class UpdateTicketUseCase {
     return this.repo.update(id, {
       encargado_id: dto.encargado_id,
       prioridad: dto.prioridad,
+      estado: 'En Proceso',
     });
   }
 }

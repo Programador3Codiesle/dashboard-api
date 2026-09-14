@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import {
   ITicketRepository,
@@ -23,25 +24,29 @@ export class TicketPrismaRepository implements ITicketRepository {
     data: Partial<TicketEntity>,
   ): Promise<{ status: boolean; message: string; data: TicketEntity | null }> {
     try {
-      const result = await this.prisma.tickets.create({
-        data: {
-          tipo_soporte: data.tipo_soporte!,
-          anydesk: data.anydesk,
-          descripcion: data.descripcion!,
-          img: data.archivo_url,
-          prioridad: data.prioridad!,
-          estado: data.estado || 'Activo',
-          usuario: +data.usuario_id!,
-          encargado: data.encargado_id,
-          fecha_creacion: new Date(),
-          area: 'sistemas',
-        },
+      const result = await this.prisma.$transaction(async (tx) => {
+        const created = await tx.tickets.create({
+          data: {
+            tipo_soporte: data.tipo_soporte!,
+            anydesk: data.anydesk,
+            descripcion: data.descripcion!,
+            img: data.archivo_url,
+            prioridad: data.prioridad ?? '',
+            estado: data.estado || 'activo',
+            usuario: +data.usuario_id!,
+            encargado: data.encargado_id,
+            fecha_creacion: new Date(),
+            area: data.area || 'sistemas',
+          },
+        });
+        await tx.$executeRaw`
+          UPDATE tickets
+          SET sede = ${data.sede ?? ''},
+              extension = ${data.extension ?? ''}
+          WHERE id_ticket = ${created.id_ticket}
+        `;
+        return created;
       });
-      await this.prisma.$executeRaw`
-        UPDATE tickets
-        SET sede = ${data.sede ?? ''}
-        WHERE id_ticket = ${result.id_ticket}
-      `;
       // @ts-ignore
       return {
         status: true,
@@ -81,6 +86,7 @@ export class TicketPrismaRepository implements ITicketRepository {
     if (data.encargado_id !== undefined)
       updateData.encargado = data.encargado_id;
     if (data.prioridad !== undefined) updateData.prioridad = data.prioridad;
+    if (data.estado !== undefined) updateData.estado = data.estado;
 
     try {
       const result = await this.prisma.tickets.update({
@@ -119,7 +125,7 @@ export class TicketPrismaRepository implements ITicketRepository {
         tk.img,
         tk.respuesta,
         tk.sede,
-        CAST(NULL AS varchar(50)) AS extension,
+        tk.extension,
         us.nombres AS nombre_usuario,
         en.nombres AS nombre_encargado
       FROM tickets tk
@@ -161,7 +167,7 @@ export class TicketPrismaRepository implements ITicketRepository {
                 tk.fecha_creacion, 
                 tk.estado,
                 tk.sede,
-                CAST(NULL AS varchar(50)) AS extension
+                tk.extension
             FROM tickets tk
             LEFT JOIN terceros us ON us.nit_real = tk.usuario
             LEFT JOIN terceros en ON en.nit_real = tk.encargado
@@ -188,7 +194,7 @@ export class TicketPrismaRepository implements ITicketRepository {
                 tk.fecha_creacion, 
                 tk.estado,
                 tk.sede,
-                CAST(NULL AS varchar(50)) AS extension,
+                tk.extension,
                 STUFF((
                     SELECT ', ' + CAST(em2.idEmpresa AS VARCHAR(10))
                     FROM sw_empresa_usuario em2
@@ -210,9 +216,11 @@ export class TicketPrismaRepository implements ITicketRepository {
   async findFinalizados(
     page: number = DEFAULT_PAGE,
     limit: number = DEFAULT_LIMIT,
+    area?: string,
   ): Promise<TicketEntity[]> {
     const offset = (page - 1) * limit;
-    const results = await this.prisma.$queryRaw<any[]>`
+    const areaFilter = area ? Prisma.sql`AND tk.area = ${area}` : Prisma.empty;
+    const results = await this.prisma.$queryRaw<any[]>(Prisma.sql`
             SELECT 
                 tk.usuario, 
                 tk.prioridad, 
@@ -223,15 +231,15 @@ export class TicketPrismaRepository implements ITicketRepository {
                 tk.fecha_creacion, 
                 tk.estado,
                 tk.sede,
-                CAST(NULL AS varchar(50)) AS extension
+                tk.extension
             FROM tickets tk
             LEFT JOIN terceros us ON us.nit_real = tk.usuario
             LEFT JOIN terceros en ON en.nit_real = tk.encargado
-            WHERE tk.estado IN ('cerrado')
-                AND tk.fecha_creacion >= DATEADD(year, -1, GETDATE())
+            WHERE tk.estado = ${'Cerrado'}
+            ${areaFilter}
             ORDER BY tk.fecha_creacion DESC
             OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
-        `;
+        `);
 
     return results.map((r) => TicketsMapper.mapToEntity(r));
   }

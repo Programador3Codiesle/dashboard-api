@@ -1,5 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { ITicketRepository } from '../../domain/ticket.repository';
+import { esPerfilStaffTickets } from '../perfiles-tickets';
+import { areaTicketsPorNit } from '../area-tickets-por-nit';
 
 @Injectable()
 export class GetTicketsUseCase {
@@ -13,11 +15,24 @@ export class GetTicketsUseCase {
     return this.repo.findById(id);
   }
 
-  async getActivos(page?: number, limit?: number) {
+  async getActivos(page?: number, limit?: number, perfil?: number) {
+    this.assertStaff(perfil);
     return this.repo.findActivos(page, limit);
   }
 
-  async getFinalizados(page?: number, limit?: number) {
-    return this.repo.findFinalizados(page, limit);
+  async getFinalizados(
+    page?: number,
+    limit?: number,
+    perfil?: number,
+    nit?: number,
+  ) {
+    this.assertStaff(perfil);
+    return this.repo.findFinalizados(page, limit, areaTicketsPorNit(nit));
+  }
+
+  private assertStaff(perfil?: number) {
+    if (!esPerfilStaffTickets(perfil)) {
+      throw new ForbiddenException('No autorizado para ver todos los tickets');
+    }
   }
 }

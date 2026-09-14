@@ -23,6 +23,7 @@ export abstract class ITicketRepository {
   abstract findFinalizados(
     page?: number,
     limit?: number,
+    area?: string,
   ): Promise<TicketEntity[]>;
   abstract getRespuestaActual(ticketId: number): Promise<string | null>;
   abstract addRespuesta(

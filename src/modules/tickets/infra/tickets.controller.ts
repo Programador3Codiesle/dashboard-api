@@ -11,6 +11,7 @@ import {
   BadRequestException,
   UseGuards,
   Req,
+  Redirect,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { TicketFacade } from '../application/ticket.facade';
@@ -26,7 +27,7 @@ import { join } from 'path';
 import * as fs from 'fs';
 
 type TicketAuthRequest = {
-  user?: { nit?: string | number };
+  user?: { nit?: string | number; role?: string | number };
   cookies?: Record<string, string>;
 };
 
@@ -90,27 +91,57 @@ export class TicketController {
   }
 
   @Post()
-  create(@Body() dto: CreateTicketDto) {
-    return this.facade.create(dto);
+  create(@Body() dto: CreateTicketDto, @Req() req: TicketAuthRequest) {
+    const nitSesion = Number(req.user?.nit);
+    return this.facade.create({
+      ...dto,
+      usuario_id: Number.isFinite(nitSesion) ? nitSesion : dto.usuario_id,
+    });
   }
 
   @Get('activos')
-  getActivos(@Query('page') page?: string, @Query('limit') limit?: string) {
+  getActivos(
+    @Req() req: TicketAuthRequest,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
     const p = page ? parseInt(page, 10) : 1;
     const l = limit ? parseInt(limit, 10) : 50;
-    return this.facade.getActivos(p, l);
+    return this.facade.getActivos(p, l, Number(req.user?.role));
   }
 
   @Get('finalizados')
-  getFinalizados(@Query('page') page?: string, @Query('limit') limit?: string) {
+  getFinalizados(
+    @Req() req: TicketAuthRequest,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
     const p = page ? parseInt(page, 10) : 1;
     const l = limit ? parseInt(limit, 10) : 50;
-    return this.facade.getFinalizados(p, l);
+    return this.facade.getFinalizados(
+      p,
+      l,
+      Number(req.user?.role),
+      Number(req.user?.nit),
+    );
   }
 
   @Get('mis-tickets/:userId')
   getByUsuario(@Param('userId') userId: string) {
     return this.facade.getByUsuario(+userId);
+  }
+
+  /**
+   * Si el archivo está en Nest (`public/uploads/tickets`) redirige a APP_URL.
+   * Si no, redirige al PHP (`TICKETS_LEGACY_BASE_URL/public/tickets`).
+   */
+  @Get('adjunto')
+  @Redirect()
+  adjunto(@Query('file') file?: string) {
+    return {
+      url: this.facade.resolverAdjunto(file),
+      statusCode: 302,
+    };
   }
 
   @Get(':id')

@@ -1,8 +1,6 @@
 import {
-  IsEmail,
   IsOptional,
   IsString,
-  IsDate,
   IsNumber,
   IsArray,
   IsNotEmpty,
@@ -42,13 +40,19 @@ export class CreateTicketDto {
   @IsString()
   @ApiProperty({ example: 'Archivo url', description: 'Archivo url' })
   archivo_url?: string;
+  @IsOptional()
   @IsArray()
   @IsNumber({ allowNaN: false, allowInfinity: false }, { each: true })
-  @ApiProperty({ example: 'Empresa', description: 'Empresa' })
+  @ApiProperty({ example: 'Empresa', description: 'Empresa', required: false })
   empresa?: number[];
+  @IsOptional()
   @IsString()
-  @ApiProperty({ example: 'Prioridad', description: 'Prioridad' })
-  prioridad: string;
+  @ApiProperty({
+    example: '',
+    description: 'Prioridad (PHP la deja vacía al crear)',
+    required: false,
+  })
+  prioridad?: string;
   @IsNumber()
   @ApiProperty({
     example: 'Usuario ID',
