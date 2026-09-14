@@ -94,7 +94,6 @@ export class GetDashboardUseCase {
         fechaActual,
         diaFestivo,
         userId,
-        idEmpresa,
       );
     }
     if (perfilNum === PERFIL_COMPRAS) {

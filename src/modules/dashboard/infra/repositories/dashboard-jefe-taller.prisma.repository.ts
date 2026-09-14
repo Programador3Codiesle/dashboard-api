@@ -1,20 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { IJefeTallerDashboardRepository } from '../../domain/jefe-taller.repository';
+import { IDashboardCommonRepository } from '../../domain/dashboard-common.repository';
 import { VentasBodRow } from '../../domain/dashboard.repository';
 
-/**
- * Repositorio Prisma para el perfil Jefe de Taller.
- * Delega inicialmente en DashboardPrismaRepository para no duplicar SQL.
- */
 @Injectable()
 export class DashboardJefeTallerPrismaRepository implements IJefeTallerDashboardRepository {
-  constructor() {}
+  constructor(private readonly commonRepo: IDashboardCommonRepository) {}
 
   getVentasBod(
     sedesIds: string,
     mes: number,
     ano: number,
   ): Promise<VentasBodRow | null> {
-    return Promise.resolve(null);
+    return this.commonRepo.getVentasBod(sedesIds, mes, ano);
   }
 }
