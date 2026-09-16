@@ -7,6 +7,7 @@ export class TicketEntity {
   prioridad: string;
   estado: string;
   fecha_creacion: Date;
+  fecha_respuesta?: Date | null;
   usuario_id: number;
   nombre_usuario: string;
   area: string;

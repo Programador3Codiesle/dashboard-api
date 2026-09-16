@@ -8,6 +8,7 @@ export class TicketsMapper {
       prioridad: r.prioridad,
       tipo_soporte: r.tipo_soporte,
       fecha_creacion: r.fecha_creacion,
+      fecha_respuesta: r.fecha_respuesta ?? null,
       estado: r.estado,
       nombre_usuario: r.nombre_usuario,
       nombre_encargado: r.nombre_encargado,

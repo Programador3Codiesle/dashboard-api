@@ -228,7 +228,8 @@ export class TicketPrismaRepository implements ITicketRepository {
                 tk.tipo_soporte, 
                 en.nombres AS nombre_encargado, 
                 us.nombres AS nombre_usuario, 
-                tk.fecha_creacion, 
+                tk.fecha_creacion,
+                tk.fecha_respuesta,
                 tk.estado,
                 tk.sede,
                 tk.extension
@@ -237,7 +238,7 @@ export class TicketPrismaRepository implements ITicketRepository {
             LEFT JOIN terceros en ON en.nit_real = tk.encargado
             WHERE tk.estado = ${'Cerrado'}
             ${areaFilter}
-            ORDER BY tk.fecha_creacion DESC
+            ORDER BY tk.fecha_respuesta DESC, tk.id_ticket DESC
             OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
         `);
 
