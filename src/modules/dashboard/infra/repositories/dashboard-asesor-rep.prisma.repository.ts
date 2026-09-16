@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { IAsesorRepuestoDashboardRepository } from '../../domain/asesor-repuesto.repository';
+import {
+  IAsesorRepuestoDashboardRepository,
+  PresupuestoTablaSedeRow,
+} from '../../domain/asesor-repuesto.repository';
 import { ComisionRepRow } from '../../domain/dashboard.repository';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 
@@ -18,6 +21,40 @@ type ComisionSqlRow = {
 @Injectable()
 export class DashboardAsesorRepPrismaRepository implements IAsesorRepuestoDashboardRepository {
   constructor(private readonly prisma: PrismaService) {}
+
+  async getPresupuestoTablaSede(
+    ano: number,
+    mes: number,
+    idsede: number,
+  ): Promise<PresupuestoTablaSedeRow[]> {
+    const rows = await this.prisma.$queryRaw<
+      Array<{ sede: string | null; presupuesto: number | null }>
+    >`
+      SELECT sede, presupuesto
+      FROM presupuesto
+      WHERE id_bodega = ${idsede}
+        AND YEAR(fecha_ini) = ${ano}
+        AND MONTH(fecha_ini) = ${mes}
+    `;
+    return (rows ?? []).map((r) => ({
+      sede: String(r.sede ?? '').trim(),
+      presupuesto: Number(r.presupuesto ?? 0),
+    }));
+  }
+
+  async getNombresByNit(nitUsuario: number): Promise<string | null> {
+    const rows = await this.prisma.$queryRaw<Array<{ nombres: string | null }>>`
+      SELECT TOP 1 t.nombres
+      FROM w_sist_usuarios u
+      INNER JOIN terceros t ON t.nit = u.nit_usuario
+      INNER JOIN postv_perfiles p ON p.id_perfil = u.perfil_postventa
+      WHERE t.nit = ${nitUsuario}
+    `;
+    const nombre = rows[0]?.nombres;
+    return nombre != null && String(nombre).trim() !== ''
+      ? String(nombre).trim()
+      : null;
+  }
 
   private mapRowToComision(
     row: ComisionSqlRow | undefined,
@@ -78,7 +115,17 @@ export class DashboardAsesorRepPrismaRepository implements IAsesorRepuestoDashbo
         CASE WHEN SUM([Subtotal-Descuento]) = 0 THEN 0
           WHEN SUM([Subtotal-Descuento]) > 0 THEN CONVERT(decimal(10, 2), (SUM([Subtotal-Descuento] - costo) / SUM([Subtotal-Descuento])) * 100) END AS margen
       FROM v_rep_base_nomina_AMDR_base_usuarios_traslados
-      WHERE ano = ${ano} AND mes = ${mes} AND tipo_venta = 'TALLER' AND usuario = ${usuarioCode}
+      WHERE ano = ${ano} AND mes = ${mes} AND tipo_venta = 'TALLER'
+        AND usuario <> 'CRANGEL' AND usuario = ${usuarioCode}
+      GROUP BY usuario
+      UNION
+      SELECT
+        SUM(CONVERT(money, [Subtotal-Descuento])) AS venta_neta,
+        SUM(CONVERT(money, [Subtotal-Descuento] - costo)) AS utilidad,
+        CONVERT(decimal(10, 2), (SUM([Subtotal-Descuento] - costo) / SUM([Subtotal-Descuento])) * 100) AS margen
+      FROM v_rep_base_nomina_AMDR_base_usuarios_traslados
+      WHERE ano = ${ano} AND mes = ${mes} AND tipo_venta = 'TALLER'
+        AND usuario = 'CRANGEL' AND des_contable <> 'ACCESORIOS' AND usuario = ${usuarioCode}
       GROUP BY usuario
     `;
     return this.mapRowToComision(rows[0]);
@@ -114,7 +161,7 @@ export class DashboardAsesorRepPrismaRepository implements IAsesorRepuestoDashbo
         CASE WHEN SUM([Subtotal-Descuento]) = 0 THEN 0
           WHEN SUM([Subtotal-Descuento]) > 0 THEN CONVERT(decimal(10, 2), (SUM([Subtotal-Descuento] - costo) / SUM([Subtotal-Descuento])) * 100) END AS margen
       FROM v_rep_base_nomina_AMDR
-      WHERE ano = ${ano} AND mes = ${mes} AND tipo_venta = 'MOSTRADOR' AND contable = 105 AND vendedor_detalle = ${nombre}
+      WHERE ano = ${ano} AND mes = ${mes} AND tipo_venta = 'MOSTRADOR' AND usuario LIKE 'M-%' AND vendedor_detalle = ${nombre}
       GROUP BY vendedor_detalle
     `;
     return this.mapRowToComision(rows[0]);

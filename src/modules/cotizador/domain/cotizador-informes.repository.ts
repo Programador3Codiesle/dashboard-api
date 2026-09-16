@@ -1,3 +1,5 @@
+import { InformeCotizacionesVisibilidad } from './informe-cotizaciones-visibilidad';
+
 export interface CotizacionResumen {
   id_cotizacion: number;
   placa: string;
@@ -19,14 +21,19 @@ export abstract class ICotizadorInformesRepository {
   abstract listarCotizacionesLivianos(
     dateStart: string,
     dateEnd: string,
+    visibilidad: InformeCotizacionesVisibilidad,
     empresaId?: number,
   ): Promise<CotizacionResumen[]>;
 
   abstract listarCotizacionesPesados(
     dateStart: string,
     dateEnd: string,
+    visibilidad: InformeCotizacionesVisibilidad,
     empresaId?: number,
   ): Promise<CotizacionResumen[]>;
+
+  /** Sedes.php get_sedes_user: idsede vía nit_real de sesión. */
+  abstract getSedesUsuarioByNit(nitUsuario: number): Promise<number[]>;
   abstract getCotizacionLivianosById(
     idCotizacion: number,
     placa: string,

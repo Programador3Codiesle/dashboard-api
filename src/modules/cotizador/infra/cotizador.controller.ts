@@ -16,6 +16,10 @@ import { CotizadorFacade } from '../application/cotizador.facade';
 import { CrearCotizacionLivianosDTO } from '../application/use-cases/crear-cotizacion-livianos.usecase';
 import { CrearCotizacionPesadosDTO } from '../application/use-cases/crear-cotizacion-pesados.usecase';
 
+type CotizadorAuthRequest = {
+  user?: { nit?: string | number; role?: string | number };
+};
+
 @UseGuards(JwtAuthGuard)
 @Controller('cotizador')
 export class CotizadorController {
@@ -165,31 +169,39 @@ export class CotizadorController {
 
   @Get('informe-cotizaciones/livianos')
   getInformeCotizacionesLivianos(
+    @Req() req: CotizadorAuthRequest,
     @Query('dateStart') dateStart: string,
     @Query('dateEnd') dateEnd: string,
     @Query('empresa') empresa?: string,
   ) {
+    const { nitUsuario, perfilId } = this.requireSesionInforme(req);
     const empresaId =
       empresa != null && empresa !== '' ? Number(empresa) : undefined;
     return this.facade.listarCotizacionesLivianos({
       dateStart,
       dateEnd,
       empresaId,
+      nitUsuario,
+      perfilId,
     });
   }
 
   @Get('informe-cotizaciones/pesados')
   getInformeCotizacionesPesados(
+    @Req() req: CotizadorAuthRequest,
     @Query('dateStart') dateStart: string,
     @Query('dateEnd') dateEnd: string,
     @Query('empresa') empresa?: string,
   ) {
+    const { nitUsuario, perfilId } = this.requireSesionInforme(req);
     const empresaId =
       empresa != null && empresa !== '' ? Number(empresa) : undefined;
     return this.facade.listarCotizacionesPesados({
       dateStart,
       dateEnd,
       empresaId,
+      nitUsuario,
+      perfilId,
     });
   }
 
@@ -569,5 +581,21 @@ export class CotizadorController {
       filtros: body.filtros ?? {},
       campos: body.campos ?? {},
     });
+  }
+
+  private requireSesionInforme(req: CotizadorAuthRequest): {
+    nitUsuario: number;
+    perfilId: number;
+  } {
+    const nitUsuario = Number(req.user?.nit);
+    const perfilId = Number(req.user?.role);
+    if (
+      !Number.isFinite(nitUsuario) ||
+      nitUsuario <= 0 ||
+      !Number.isFinite(perfilId)
+    ) {
+      throw new UnauthorizedException('Usuario no autenticado');
+    }
+    return { nitUsuario, perfilId };
   }
 }

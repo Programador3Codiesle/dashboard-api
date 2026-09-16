@@ -211,7 +211,7 @@ export interface DashboardComprasDto extends DashboardBase {
   solicitudes_finalizadas: number;
 }
 
-/** Perfil 34: Asesor de repuestos — presupuesto por sede + gráfica ventas (placeholder). */
+/** Perfil 34: Asesor de repuestos — venta/margen/comisión del mes (asesor_rep.php). */
 export interface DashboardAsesorRepDto extends DashboardBase {
   variant: 'asesor_rep';
   /** Lista de sedes del usuario (para tabs cuando hay más de una). */

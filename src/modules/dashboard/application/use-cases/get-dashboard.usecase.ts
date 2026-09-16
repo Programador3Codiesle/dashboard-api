@@ -105,8 +105,6 @@ export class GetDashboardUseCase {
         fechaActual,
         diaFestivo,
         userId,
-        idsede,
-        idEmpresa,
       );
     }
     if (PERFIL_GERENCIA.includes(perfilNum)) {

@@ -1,10 +1,22 @@
 import type { ComisionRepRow } from './dashboard.repository';
 
+export type PresupuestoTablaSedeRow = { sede: string; presupuesto: number };
+
 /**
  * Contrato de repositorio específico para el dashboard de Asesores de Repuestos.
  * Contiene las consultas de comisiones y ventas por sede/asesor.
  */
 export abstract class IAsesorRepuestoDashboardRepository {
+  /** Informe::getPresupuesto_sede — tabla `presupuesto` (no postv_presupuesto_posventa). */
+  abstract getPresupuestoTablaSede(
+    ano: number,
+    mes: number,
+    idsede: number,
+  ): Promise<PresupuestoTablaSedeRow[]>;
+
+  /** Usuarios::getUserByNit — `terceros.nit` (no nit_real). */
+  abstract getNombresByNit(nitUsuario: number): Promise<string | null>;
+
   abstract getComisionRepMostrador(
     nombre: string,
     mes: number,

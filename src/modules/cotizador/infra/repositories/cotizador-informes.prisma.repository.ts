@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import {
   CotizacionResumen,
@@ -7,16 +8,49 @@ import {
   CotizacionRepuestoRow,
   ICotizadorInformesRepository,
 } from '../../domain/cotizador-informes.repository';
+import { InformeCotizacionesVisibilidad } from '../../domain/informe-cotizaciones-visibilidad';
 
 @Injectable()
 export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  async getSedesUsuarioByNit(nitUsuario: number): Promise<number[]> {
+    const nit = String(nitUsuario);
+    const rows = await this.prisma.$queryRaw<Array<{ idsede: number }>>`
+      SELECT usede.idsede
+      FROM sw_usuariosede usede
+      INNER JOIN w_sist_usuarios su ON usede.idusuario = su.id_usuario
+      INNER JOIN terceros t ON t.nit_real = su.nit_usuario
+      INNER JOIN bodegas b ON usede.idsede = b.bodega
+      WHERE t.nit_real = ${nit}
+    `;
+    return rows
+      .map((r) => Number(r.idsede))
+      .filter((id) => Number.isFinite(id));
+  }
+
+  private buildVisibilidadSql(
+    visibilidad: InformeCotizacionesVisibilidad,
+  ): Prisma.Sql {
+    if (visibilidad.tipo === 'todas') {
+      return Prisma.sql`1 = 1`;
+    }
+    if (visibilidad.tipo === 'bodega') {
+      if (visibilidad.bodegaIds.length === 0) {
+        return Prisma.sql`1 = 0`;
+      }
+      return Prisma.sql`CT.bodega IN (${Prisma.join(visibilidad.bodegaIds)})`;
+    }
+    return Prisma.sql`CT.usuario = ${visibilidad.nitUsuario}`;
+  }
+
   async listarCotizacionesLivianos(
     dateStart: string,
     dateEnd: string,
+    visibilidad: InformeCotizacionesVisibilidad,
     empresaId?: number,
   ): Promise<CotizacionResumen[]> {
+    const visibilidadSql = this.buildVisibilidadSql(visibilidad);
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT 
         CT.id_cotizacion,
@@ -41,6 +75,7 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
         WHERE contacto = 1
       ) Crm ON Crm.nit = CT.usuario
       WHERE CONVERT(DATE, CT.fecha_creacion) BETWEEN ${dateStart} AND ${dateEnd}
+        AND ${visibilidadSql}
         AND (
           ${empresaId ?? null} IS NULL
           OR (
@@ -75,8 +110,10 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
   async listarCotizacionesPesados(
     dateStart: string,
     dateEnd: string,
+    visibilidad: InformeCotizacionesVisibilidad,
     empresaId?: number,
   ): Promise<CotizacionResumen[]> {
+    const visibilidadSql = this.buildVisibilidadSql(visibilidad);
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT 
         CT.id_cotizacion,
@@ -101,6 +138,7 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
         WHERE contacto = 1
       ) Crm ON Crm.nit = CT.usuario
       WHERE CONVERT(DATE, CT.fecha_creacion) BETWEEN ${dateStart} AND ${dateEnd}
+        AND ${visibilidadSql}
         AND (
           ${empresaId ?? null} IS NULL
           OR (
