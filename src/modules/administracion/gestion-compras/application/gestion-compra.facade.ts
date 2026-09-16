@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CrearSolicitudCompraUseCase } from './use-cases/crear-solicitud-compra.usecase';
 import { ListarComprasUseCase } from './use-cases/listar-compras.usecase';
+import { ListarUsuariosGerenteCompraUseCase } from './use-cases/listar-usuarios-gerente-compra.usecase';
 import { CambiarEstadoCompraUseCase } from './use-cases/cambiar-estado-compra.usecase';
 import { MarcarConFacturaCompraUseCase } from './use-cases/marcar-con-factura-compra.usecase';
 import { GestionMensajesCompraUseCase } from './use-cases/gestion-mensajes-compra.usecase';
@@ -11,12 +12,14 @@ import { FiltrosComprasDto } from './dto/filtros-compras.dto';
 import { CambiarEstadoCompraDto } from './dto/cambiar-estado-compra.dto';
 import { CrearMensajeCompraDto } from './dto/crear-mensaje-compra.dto';
 import { EnviarAutorizacionCompraDto } from './dto/enviar-autorizacion-compra.dto';
+import { SesionListarCompras } from './visibilidad-compras';
 
 @Injectable()
 export class GestionCompraFacade {
   constructor(
     private readonly crearSolicitudUC: CrearSolicitudCompraUseCase,
     private readonly listarComprasUC: ListarComprasUseCase,
+    private readonly listarUsuariosGerenteUC: ListarUsuariosGerenteCompraUseCase,
     private readonly cambiarEstadoUC: CambiarEstadoCompraUseCase,
     private readonly marcarConFacturaUC: MarcarConFacturaCompraUseCase,
     private readonly gestionMensajesUC: GestionMensajesCompraUseCase,
@@ -32,8 +35,15 @@ export class GestionCompraFacade {
     return this.crearSolicitudUC.execute(dto, userId, idEmpresa);
   }
 
-  listarCompras(filtros?: FiltrosComprasDto) {
-    return this.listarComprasUC.execute(filtros);
+  listarCompras(
+    filtros: FiltrosComprasDto | undefined,
+    sesion: SesionListarCompras,
+  ) {
+    return this.listarComprasUC.execute(filtros, sesion);
+  }
+
+  listarUsuariosGerente() {
+    return this.listarUsuariosGerenteUC.execute();
   }
 
   cambiarEstado(id: bigint, dto: CambiarEstadoCompraDto) {
@@ -60,7 +70,10 @@ export class GestionCompraFacade {
     return this.enviarAutorizacionUC.execute(solicitudId, dto);
   }
 
-  exportarExcel(filtros?: FiltrosComprasDto): Promise<Buffer> {
-    return this.exportarComprasExcelUC.execute(filtros);
+  exportarExcel(
+    filtros: FiltrosComprasDto | undefined,
+    sesion: SesionListarCompras,
+  ): Promise<Buffer> {
+    return this.exportarComprasExcelUC.execute(filtros, sesion);
   }
 }

@@ -12,6 +12,7 @@ import {
   UseInterceptors,
   UploadedFiles,
   StreamableFile,
+  BadRequestException,
 } from '@nestjs/common';
 import { GestionCompraFacade } from '../application/gestion-compra.facade';
 import { CreateGestionCompraDto } from '../application/dto/create-gestion-compra.dto';
@@ -19,11 +20,33 @@ import { FiltrosComprasDto } from '../application/dto/filtros-compras.dto';
 import { CambiarEstadoCompraDto } from '../application/dto/cambiar-estado-compra.dto';
 import { CrearMensajeCompraDto } from '../application/dto/crear-mensaje-compra.dto';
 import { EnviarAutorizacionCompraDto } from '../application/dto/enviar-autorizacion-compra.dto';
+import { SesionListarCompras } from '../application/visibilidad-compras';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
+import { empresaIdDesdeCookie } from '../../../../core/config/empresa-sesion';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
-import { extname, join } from 'path';
+import { join } from 'path';
 import * as fs from 'fs';
+
+type GestionComprasAuthRequest = {
+  user?: { nit?: string | number; role?: string | number };
+  cookies?: Record<string, string>;
+};
+
+function sesionListarDesdeReq(
+  req: GestionComprasAuthRequest,
+): SesionListarCompras {
+  const nit = req.user?.nit != null ? Number(req.user.nit) : NaN;
+  if (!Number.isFinite(nit)) {
+    throw new BadRequestException('No se pudo obtener el NIT del usuario');
+  }
+  const perfil = req.user?.role != null ? Number(req.user.role) : 0;
+  return {
+    nit,
+    perfil: Number.isFinite(perfil) ? perfil : 0,
+    empresaId: empresaIdDesdeCookie(req.cookies),
+  };
+}
 
 @UseGuards(JwtAuthGuard)
 @Controller('administracion/gestion-compras')
@@ -31,40 +54,48 @@ export class GestionComprasController {
   constructor(private readonly facade: GestionCompraFacade) {}
 
   @Post()
-  crearSolicitud(@Req() req: any, @Body() dto: CreateGestionCompraDto) {
-    // usu_solicita en BD es el NIT (cédula) del solicitante, viene del JWT
-    const usuSolicitaNit = req.user?.nit != null ? Number(req.user.nit) : null;
-    if (usuSolicitaNit == null) {
-      throw new Error('No se pudo obtener el NIT del usuario');
+  crearSolicitud(
+    @Req() req: GestionComprasAuthRequest,
+    @Body() dto: CreateGestionCompraDto,
+  ) {
+    const usuSolicitaNit = req.user?.nit != null ? Number(req.user.nit) : NaN;
+    if (!Number.isFinite(usuSolicitaNit)) {
+      throw new BadRequestException('No se pudo obtener el NIT del usuario');
     }
-    // id_empresa: del body (como formato-orden-salida) o cookie 'user' como fallback
     let idEmpresa: number | undefined =
       dto.id_empresa != null ? Number(dto.id_empresa) : undefined;
-    if (idEmpresa == null && req.cookies && req.cookies['user']) {
-      try {
-        const userCookie = JSON.parse(req.cookies['user']);
-        if (userCookie && userCookie.empresa != null) {
-          idEmpresa = Number(userCookie.empresa);
-        }
-      } catch (e) {
-        console.error('Error parsing user cookie:', e);
-      }
+    if (idEmpresa == null) {
+      idEmpresa = empresaIdDesdeCookie(req.cookies);
     }
     return this.facade.crearSolicitud(dto, usuSolicitaNit, idEmpresa);
   }
 
   @Get()
-  listar(@Query() filtros: FiltrosComprasDto) {
-    return this.facade.listarCompras(filtros);
+  listar(
+    @Req() req: GestionComprasAuthRequest,
+    @Query() filtros: FiltrosComprasDto,
+  ) {
+    return this.facade.listarCompras(filtros, sesionListarDesdeReq(req));
   }
 
   @Get('exportar')
-  async exportar(@Query() filtros: FiltrosComprasDto): Promise<StreamableFile> {
-    const buffer = await this.facade.exportarExcel(filtros);
+  async exportar(
+    @Req() req: GestionComprasAuthRequest,
+    @Query() filtros: FiltrosComprasDto,
+  ): Promise<StreamableFile> {
+    const buffer = await this.facade.exportarExcel(
+      filtros,
+      sesionListarDesdeReq(req),
+    );
     return new StreamableFile(buffer, {
       type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       disposition: 'attachment; filename="gestion-compras.xlsx"',
     });
+  }
+
+  @Get('usuarios-gerente')
+  listarUsuariosGerente() {
+    return this.facade.listarUsuariosGerente();
   }
 
   @Patch(':id/estado')
@@ -90,13 +121,13 @@ export class GestionComprasController {
 
   @Post(':id/mensajes')
   crearMensaje(
-    @Req() req: any,
+    @Req() req: GestionComprasAuthRequest,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CrearMensajeCompraDto,
   ) {
-    const nitUsuario = req.user?.nit ? Number(req.user.nit) : null;
-    if (!nitUsuario) {
-      throw new Error('No se pudo obtener el NIT del usuario');
+    const nitUsuario = req.user?.nit != null ? Number(req.user.nit) : NaN;
+    if (!Number.isFinite(nitUsuario)) {
+      throw new BadRequestException('No se pudo obtener el NIT del usuario');
     }
     return this.facade.crearMensaje(BigInt(id), nitUsuario, dto);
   }

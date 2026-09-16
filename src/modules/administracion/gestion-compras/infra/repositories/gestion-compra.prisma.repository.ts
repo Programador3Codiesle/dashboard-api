@@ -1,10 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
+import { CODIESEL_EMPRESA_ID } from '../../../../../core/config/empresa-sesion';
 import {
   IGestionCompraRepository,
+  ListarComprasFiltros,
   ListarComprasResult,
   MensajeCompra,
+  UsuarioGerenteCombo,
 } from '../../domain/gestion-compra.repository';
 import { GestionCompraEntity } from '../../domain/gestion-compra.entity';
 
@@ -86,49 +89,82 @@ export class GestionCompraPrismaRepository implements IGestionCompraRepository {
     }
   }
 
-  async listar(filtros?: any): Promise<ListarComprasResult> {
+  async listar(filtros?: ListarComprasFiltros): Promise<ListarComprasResult> {
     try {
-      // Optimizado: Usar Prisma.sql para construir queries seguras
-      const conditions: Prisma.Sql[] = [Prisma.sql`1=1`];
-
-      if (filtros?.buscar) {
-        const searchTerm = '%' + filtros.buscar + '%';
-        conditions.push(
-          Prisma.sql`(gc.descri_prod LIKE ${searchTerm} OR gc.area LIKE ${searchTerm} OR us.nombres LIKE ${searchTerm})`,
-        );
+      return await this.ejecutarListar(filtros, true);
+    } catch (firstErr: unknown) {
+      const msg =
+        firstErr instanceof Error ? firstErr.message : String(firstErr);
+      const sinColumnaEmpresa =
+        msg.includes('id_empresa') || msg.includes('Invalid column name');
+      if (!sinColumnaEmpresa) {
+        throw firstErr;
       }
-
-      if (filtros?.usu_solicita) {
-        conditions.push(Prisma.sql`gc.usu_solicita = ${filtros.usu_solicita}`);
+      // Sin columna: el histórico equivale a NULL → solo Codiesel (1).
+      if (
+        filtros?.id_empresa != null &&
+        filtros.id_empresa !== CODIESEL_EMPRESA_ID
+      ) {
+        return {
+          items: [],
+          total: 0,
+          page: filtros.pagina || 1,
+          limit: filtros.limite || 10,
+        };
       }
+      return this.ejecutarListar(filtros, false);
+    }
+  }
 
-      if (filtros?.estado !== undefined) {
-        conditions.push(Prisma.sql`gc.estado = ${filtros.estado}`);
-      }
+  private async ejecutarListar(
+    filtros: ListarComprasFiltros | undefined,
+    filtrarEmpresa: boolean,
+  ): Promise<ListarComprasResult> {
+    const conditions: Prisma.Sql[] = [Prisma.sql`1=1`];
 
-      if (filtros?.estado_autorizacion !== undefined) {
-        conditions.push(
-          Prisma.sql`gc.estado_autorizacion = ${filtros.estado_autorizacion}`,
-        );
-      }
+    if (filtros?.buscar) {
+      const searchTerm = '%' + filtros.buscar + '%';
+      conditions.push(
+        Prisma.sql`(gc.descri_prod LIKE ${searchTerm} OR gc.area LIKE ${searchTerm} OR us.nombres LIKE ${searchTerm})`,
+      );
+    }
 
-      const whereClause = Prisma.join(conditions, ' AND ');
-      const limit = filtros?.limite || 10;
-      const page = filtros?.pagina || 1;
-      const offset = (page - 1) * limit;
+    if (filtros?.usu_solicita) {
+      conditions.push(Prisma.sql`gc.usu_solicita = ${filtros.usu_solicita}`);
+    }
 
-      // Contar total de registros (LEFT JOIN gerente: permite gerente_autoriza NULL)
-      const totalResult = await this.prisma.$queryRaw<[{ total: bigint }]>`
+    if (filtros?.estado !== undefined) {
+      conditions.push(Prisma.sql`gc.estado = ${filtros.estado}`);
+    }
+
+    if (filtros?.estado_autorizacion !== undefined) {
+      conditions.push(
+        Prisma.sql`gc.estado_autorizacion = ${filtros.estado_autorizacion}`,
+      );
+    }
+
+    if (filtrarEmpresa && filtros?.id_empresa != null) {
+      conditions.push(
+        Prisma.sql`ISNULL(gc.id_empresa, ${CODIESEL_EMPRESA_ID}) = ${filtros.id_empresa}`,
+      );
+    }
+
+    const whereClause = Prisma.join(conditions, ' AND ');
+    const limit = filtros?.limite || 10;
+    const page = filtros?.pagina || 1;
+    const offset = (page - 1) * limit;
+
+    const totalResult = await this.prisma.$queryRaw<[{ total: bigint }]>`
                 SELECT COUNT(*) as total
                 FROM postv_gestion_compras gc 
                 INNER JOIN terceros us ON us.nit = gc.usu_solicita
                 LEFT JOIN terceros ga ON ga.nit = gc.gerente_autoriza
                 WHERE ${whereClause}
             `;
-      const total = Number(totalResult[0].total);
+    const total = Number(totalResult[0].total);
 
-      // Obtener items paginados (LEFT JOIN gerente: permite gerente_autoriza NULL)
-      const results = await this.prisma.$queryRaw<any[]>`
+    const results = filtrarEmpresa
+      ? await this.prisma.$queryRaw<any[]>`
                 SELECT 
                     gc.id_solicitud, gc.fecha_solicitud, gc.area, gc.sede, gc.usu_solicita, 
                     gc.cargo_usu_solicita, gc.gerente_autoriza, gc.descri_prod, gc.caracteristicas, 
@@ -141,28 +177,72 @@ export class GestionCompraPrismaRepository implements IGestionCompraRepository {
                 INNER JOIN terceros us ON us.nit = gc.usu_solicita
                 LEFT JOIN terceros ga ON ga.nit = gc.gerente_autoriza
                 WHERE ${whereClause}
-                ORDER BY gc.estado ASC, gc.fecha_solicitud DESC
+                ORDER BY gc.estado_autorizacion ASC, gc.fecha_solicitud DESC, gc.id_solicitud DESC
+                OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
+            `
+      : await this.prisma.$queryRaw<any[]>`
+                SELECT 
+                    gc.id_solicitud, gc.fecha_solicitud, gc.area, gc.sede, gc.usu_solicita, 
+                    gc.cargo_usu_solicita, gc.gerente_autoriza, gc.descri_prod, gc.caracteristicas, 
+                    gc.proveedor, gc.area_cargar, gc.urgencia, gc.fecha_tentativa, gc.estado, 
+                    gc.fecha_autorizacion, gc.cotizacion_file, gc.estado_autorizacion, gc.con_factura,
+                    us.nombres as usuario_reg, us.nit as nit_usu_reg,
+                    ga.nombres as gerente, ga.nit as nit_gerente,
+                    DATEDIFF(DAY, CONVERT(DATE, gc.fecha_solicitud), CONVERT(DATE, GETDATE())) as dias_gest
+                FROM postv_gestion_compras gc 
+                INNER JOIN terceros us ON us.nit = gc.usu_solicita
+                LEFT JOIN terceros ga ON ga.nit = gc.gerente_autoriza
+                WHERE ${whereClause}
+                ORDER BY gc.estado_autorizacion ASC, gc.fecha_solicitud DESC, gc.id_solicitud DESC
                 OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
             `;
 
-      return {
-        items: results.map((r) => ({
-          ...this.mapToEntity(r),
-          // Campos adicionales del JOIN que vienen como strings/numbers
-          usuario_reg: r.usuario_reg || undefined,
-          nit_usu_reg: r.nit_usu_reg ? Number(r.nit_usu_reg) : undefined,
-          gerente: r.gerente || undefined,
-          nit_gerente: r.nit_gerente ? Number(r.nit_gerente) : undefined,
-          dias_gest: r.dias_gest ? Number(r.dias_gest) : undefined,
-        })),
-        total,
-        page,
-        limit,
-      };
-    } catch (error) {
-      console.error('Error listando compras:', error);
-      return { items: [], total: 0, page: 1, limit: 10 };
-    }
+    return {
+      items: results.map((r) => ({
+        ...this.mapToEntity(r),
+        usuario_reg: r.usuario_reg || undefined,
+        nit_usu_reg: r.nit_usu_reg ? Number(r.nit_usu_reg) : undefined,
+        gerente: r.gerente || undefined,
+        nit_gerente: r.nit_gerente ? Number(r.nit_gerente) : undefined,
+        dias_gest: r.dias_gest ? Number(r.dias_gest) : undefined,
+      })),
+      total,
+      page,
+      limit,
+    };
+  }
+
+  /**
+   * Usuarios.php getAllUsers: todos los de intranet (sin paginar, LEFT JOIN perfiles).
+   * El filtro `estado = 1` está comentado en el legado.
+   */
+  async listarUsuariosComboGerente(): Promise<UsuarioGerenteCombo[]> {
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        id_usuario: number;
+        nom_perfil: string | null;
+        nombres: string;
+        usuario: string | null;
+        nit: string;
+        estado: number | null;
+      }>
+    >`
+      SELECT
+        u.id_usuario,
+        p.nom_perfil,
+        t.nombres,
+        u.usuario,
+        CAST(t.nit AS VARCHAR(20)) AS nit,
+        u.estado
+      FROM w_sist_usuarios u
+      INNER JOIN terceros t ON t.nit = u.nit_usuario
+      LEFT JOIN postv_perfiles p ON p.id_perfil = u.perfil_postventa
+      ORDER BY t.nombres ASC
+    `;
+    return rows.map((row) => ({
+      nit: String(row.nit ?? ''),
+      nombres: row.nombres ?? '',
+    }));
   }
 
   async findById(id: bigint): Promise<GestionCompraEntity | null> {

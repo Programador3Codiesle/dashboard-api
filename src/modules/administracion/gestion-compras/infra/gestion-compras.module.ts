@@ -3,6 +3,7 @@ import { GestionComprasController } from './gestion-compras.controller';
 import { GestionCompraFacade } from '../application/gestion-compra.facade';
 import { CrearSolicitudCompraUseCase } from '../application/use-cases/crear-solicitud-compra.usecase';
 import { ListarComprasUseCase } from '../application/use-cases/listar-compras.usecase';
+import { ListarUsuariosGerenteCompraUseCase } from '../application/use-cases/listar-usuarios-gerente-compra.usecase';
 import { CambiarEstadoCompraUseCase } from '../application/use-cases/cambiar-estado-compra.usecase';
 import { MarcarConFacturaCompraUseCase } from '../application/use-cases/marcar-con-factura-compra.usecase';
 import { GestionMensajesCompraUseCase } from '../application/use-cases/gestion-mensajes-compra.usecase';
@@ -19,6 +20,7 @@ import { EmailModule } from '../../../../core/infra/email/email.module';
     GestionCompraFacade,
     CrearSolicitudCompraUseCase,
     ListarComprasUseCase,
+    ListarUsuariosGerenteCompraUseCase,
     CambiarEstadoCompraUseCase,
     MarcarConFacturaCompraUseCase,
     GestionMensajesCompraUseCase,

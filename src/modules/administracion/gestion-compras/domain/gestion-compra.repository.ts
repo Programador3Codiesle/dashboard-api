@@ -1,5 +1,20 @@
 import { GestionCompraEntity } from './gestion-compra.entity';
 
+export interface ListarComprasFiltros {
+  buscar?: string;
+  pagina?: number;
+  limite?: number;
+  estado?: number;
+  estado_autorizacion?: number;
+  usu_solicita?: number;
+  id_empresa?: number;
+}
+
+export interface UsuarioGerenteCombo {
+  nit: string;
+  nombres: string;
+}
+
 export interface ListarComprasResult {
   items: (GestionCompraEntity & {
     usuario_reg?: string;
@@ -26,7 +41,8 @@ export abstract class IGestionCompraRepository {
   abstract create(
     data: Partial<GestionCompraEntity>,
   ): Promise<{ status: boolean; message: string; data?: GestionCompraEntity }>;
-  abstract listar(filtros?: any): Promise<ListarComprasResult>;
+  abstract listar(filtros?: ListarComprasFiltros): Promise<ListarComprasResult>;
+  abstract listarUsuariosComboGerente(): Promise<UsuarioGerenteCombo[]>;
   abstract findById(id: bigint): Promise<GestionCompraEntity | null>;
   abstract cambiarEstado(
     id: bigint,

@@ -2,16 +2,22 @@ import { Injectable } from '@nestjs/common';
 import { IGestionCompraRepository } from '../../domain/gestion-compra.repository';
 import { FiltrosComprasDto } from '../dto/filtros-compras.dto';
 import { GestionCompraEntity } from '../../domain/gestion-compra.entity';
+import { SesionListarCompras, veTodasLasCompras } from '../visibilidad-compras';
 
 @Injectable()
 export class ListarComprasUseCase {
   constructor(private readonly repo: IGestionCompraRepository) {}
 
-  async execute(filtros?: FiltrosComprasDto) {
+  async execute(
+    filtros: FiltrosComprasDto | undefined,
+    sesion: SesionListarCompras,
+  ) {
     const result = await this.repo.listar({
       ...filtros,
       pagina: filtros?.pagina || 1,
       limite: filtros?.limite || 10,
+      id_empresa: sesion.empresaId,
+      usu_solicita: veTodasLasCompras(sesion.perfil) ? undefined : sesion.nit,
     });
 
     // Convertir BigInt a string y formatear fechas en horario de Bogotá para serialización JSON
@@ -52,6 +58,7 @@ export class ListarComprasUseCase {
           cotizacion_file: entity.cotizacion_file || null,
           estado_autorizacion: entity.estado_autorizacion,
           con_factura: entity.con_factura || null,
+          id_empresa: entity.id_empresa ?? null,
           // Campos adicionales del JOIN
           usuario_reg: entity.usuario_reg || null,
           nit_usu_reg: entity.nit_usu_reg || null,

@@ -2,17 +2,24 @@ import { Injectable } from '@nestjs/common';
 import { Workbook } from 'exceljs';
 import { ListarComprasUseCase } from './listar-compras.usecase';
 import { FiltrosComprasDto } from '../dto/filtros-compras.dto';
+import { SesionListarCompras } from '../visibilidad-compras';
 
 @Injectable()
 export class ExportarComprasExcelUseCase {
   constructor(private readonly listarComprasUC: ListarComprasUseCase) {}
 
-  async execute(filtros?: FiltrosComprasDto): Promise<Buffer> {
-    const { items } = await this.listarComprasUC.execute({
-      ...filtros,
-      pagina: 1,
-      limite: 50000,
-    });
+  async execute(
+    filtros: FiltrosComprasDto | undefined,
+    sesion: SesionListarCompras,
+  ): Promise<Buffer> {
+    const { items } = await this.listarComprasUC.execute(
+      {
+        ...filtros,
+        pagina: 1,
+        limite: 50000,
+      },
+      sesion,
+    );
 
     const wb = new Workbook();
     const ws = wb.addWorksheet('Gestión de compras', {
