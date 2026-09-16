@@ -3,6 +3,7 @@ import { PrismaModule } from '../../../../core/infra/prisma/prisma.module';
 import { InformeEntradasSalidasController } from './informe-entradas-salidas.controller';
 import { InformeEntradasSalidasFacade } from '../application/informe-entradas-salidas.facade';
 import { ListarEntradasSalidasUseCase } from '../application/use-cases/listar-entradas-salidas.usecase';
+import { ListarEmpleadosComboEntradasSalidasUseCase } from '../application/use-cases/listar-empleados-combo-entradas-salidas.usecase';
 import { IInformeEntradasSalidasRepository } from '../domain/informe-entradas-salidas.repository';
 import { InformeEntradasSalidasPrismaRepository } from './repositories/informe-entradas-salidas.prisma.repository';
 
@@ -12,6 +13,7 @@ import { InformeEntradasSalidasPrismaRepository } from './repositories/informe-e
   providers: [
     InformeEntradasSalidasFacade,
     ListarEntradasSalidasUseCase,
+    ListarEmpleadosComboEntradasSalidasUseCase,
     {
       provide: IInformeEntradasSalidasRepository,
       useClass: InformeEntradasSalidasPrismaRepository,

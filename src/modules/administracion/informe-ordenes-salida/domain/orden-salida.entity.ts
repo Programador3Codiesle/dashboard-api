@@ -6,6 +6,8 @@ export class OrdenSalidaEntity {
   tipoSalida!: number;
   explicacion!: string;
   fecha_salida!: string;
+  /** PHP load_tabla: columna Fecha Orden = fecha_reg */
+  fecha_reg!: string | null;
   placa!: string | null;
   conductor!: string | null;
   quienSale!: string | null;

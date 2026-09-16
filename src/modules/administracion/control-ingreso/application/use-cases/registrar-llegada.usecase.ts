@@ -11,14 +11,17 @@ export class RegistrarLlegadaUseCase {
   async execute(
     id: number,
     dto: RegistrarLlegadaDto,
+    idEmpresa: number,
   ): Promise<RegistrarLlegadaResponseDto> {
-    const fechaLlegada = new Date(); // Obtener fecha actual desde el use case
+    const observacion = dto.observacion?.trim()
+      ? dto.observacion.trim()
+      : undefined;
 
     const result = await this.repo.registrarLlegada(
       id,
-      fechaLlegada,
       BigInt(dto.km_llegada),
-      dto.observacion,
+      idEmpresa,
+      observacion,
     );
 
     if (result.data) {

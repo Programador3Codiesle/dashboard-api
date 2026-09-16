@@ -75,7 +75,6 @@ export class ObtenerCitasProgramadasFechaUseCase {
   ): Promise<CitaEntradaEntity[]> {
     const sedes = await this.repo.getSedesUsuario(nitUsuario);
     const bodegaIds = sedes.map((s) => s.idsede);
-    const rows = await this.repo.getCitasEntradaVhFecha(bodegaIds, fecha);
-    return rows.filter((c) => ESTADOS_PROGRAMADAS.has(c.descripcionEstado));
+    return this.repo.getCitasEntradaVhFecha(bodegaIds, fecha);
   }
 }

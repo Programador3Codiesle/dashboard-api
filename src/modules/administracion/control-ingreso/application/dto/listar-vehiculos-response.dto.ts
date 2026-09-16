@@ -99,6 +99,14 @@ export class ListarVehiculosResponseDto {
   taller?: string | null;
 
   @ApiProperty({
+    example: 'Vigilancia Giron',
+    description: 'Portería (perfil de vigilancia)',
+    required: false,
+    nullable: true,
+  })
+  porteria?: string | null;
+
+  @ApiProperty({
     example: 'CODIESEL',
     description: 'Nombre de la empresa',
     required: false,

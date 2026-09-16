@@ -9,8 +9,15 @@ export interface FiltrosEntradasSalidas {
   limite?: number;
 }
 
+/** Combo PHP horario.php: Usuarios::getUserAlls (nit + nombres). */
+export interface EmpleadoComboEntradasSalidas {
+  nit: string;
+  nombres: string;
+}
+
 export abstract class IInformeEntradasSalidasRepository {
   abstract listar(
     params: FiltrosEntradasSalidas,
   ): Promise<InformeEntradasSalidasEntity[]>;
+  abstract listarEmpleadosCombo(): Promise<EmpleadoComboEntradasSalidas[]>;
 }

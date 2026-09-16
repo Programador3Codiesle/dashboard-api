@@ -50,6 +50,9 @@ export class ControlVehiculoPresenter {
   taller?: string | null;
 
   @Expose()
+  porteria?: string | null;
+
+  @Expose()
   empresa_nombre?: string | null;
 
   constructor(partial: Partial<ControlVehiculoPresenter>) {

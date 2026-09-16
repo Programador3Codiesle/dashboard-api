@@ -7,6 +7,8 @@ export interface FiltrosOrdenSalida {
   area?: string | null;
   sede?: string | null;
   tipoSalida?: number | null;
+  /** Cookie `user.empresa`. NULL en tabla = Codiesel (1). */
+  empresaId?: number | null;
   /** JWT `sub` -> id_usuario legacy */
   idUsuario?: number | null;
   /** JWT `nit` -> nit_user legacy */

@@ -24,7 +24,7 @@ export class RegistrarVehiculoSinCitaUseCase {
       throw new BadRequestException('Por favor llene todos los campos');
     }
 
-    if (placaNorm.length !== 6) {
+    if (placaNorm.length !== 6 || !/^[A-Z]{3}[0-9]{3}$/.test(placaNorm)) {
       throw new BadRequestException(
         'El número de dígitos de la placa no coincide',
       );

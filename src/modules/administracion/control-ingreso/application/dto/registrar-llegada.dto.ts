@@ -1,9 +1,10 @@
-import { IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegistrarLlegadaDto {
   @IsNumber()
-  @ApiProperty({ example: 50100, description: 'Kilometraje de llegada' })
+  @Min(1)
+  @ApiProperty({ example: 50100, description: 'Kilometraje de llegada (> 0)' })
   km_llegada: number;
 
   @IsOptional()

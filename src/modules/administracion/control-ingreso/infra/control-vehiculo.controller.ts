@@ -11,6 +11,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
+import { empresaIdDesdeCookie } from '../../../../core/config/empresa-sesion';
 import { ControlVehiculoFacade } from '../application/control-vehiculo.facade';
 import { RegistrarLlegadaDto } from '../application/dto/registrar-llegada.dto';
 import { RegistrarSalidaDto } from '../application/dto/registrar-salida.dto';
@@ -19,18 +20,6 @@ type AuthRequest = {
   cookies?: Record<string, string>;
   user?: { sub?: string; role?: string | number };
 };
-
-function empresaFromCookie(req: AuthRequest): number | undefined {
-  const raw = req.cookies?.['user'];
-  if (!raw) return undefined;
-  try {
-    const parsed = JSON.parse(raw) as { empresa?: unknown };
-    if (parsed.empresa != null) return Number(parsed.empresa);
-  } catch {
-    /* ignore */
-  }
-  return undefined;
-}
 
 @UseGuards(JwtAuthGuard)
 @Controller('administracion/control-vehiculos')
@@ -44,20 +33,25 @@ export class ControlVehiculoController {
     if (!perfil) {
       throw new BadRequestException('No se pudo obtener el perfil del usuario');
     }
-    const idEmpresa = empresaFromCookie(req);
-    const payload: RegistrarSalidaDto = {
-      ...dto,
-      ...(idEmpresa != null ? { id_empresa: idEmpresa } : {}),
-    };
-    return this.facade.registrarSalida(payload, Number(userId), perfil);
+    return this.facade.registrarSalida(
+      dto,
+      Number(userId),
+      perfil,
+      empresaIdDesdeCookie(req.cookies),
+    );
   }
 
   @Put(':id/llegada')
   registrarLlegada(
+    @Req() req: AuthRequest,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: RegistrarLlegadaDto,
   ) {
-    return this.facade.registrarLlegada(id, dto);
+    return this.facade.registrarLlegada(
+      id,
+      dto,
+      empresaIdDesdeCookie(req.cookies),
+    );
   }
 
   @Get('vehiculos/modelos')
@@ -68,6 +62,9 @@ export class ControlVehiculoController {
   @Get()
   listar(@Req() req: AuthRequest) {
     const perfil = req.user?.role != null ? Number(req.user.role) : undefined;
-    return this.facade.listarVehiculos(perfil);
+    return this.facade.listarVehiculos(
+      perfil,
+      empresaIdDesdeCookie(req.cookies),
+    );
   }
 }

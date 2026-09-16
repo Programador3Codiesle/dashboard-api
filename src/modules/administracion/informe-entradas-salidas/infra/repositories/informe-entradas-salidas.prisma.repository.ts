@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
 import {
+  EmpleadoComboEntradasSalidas,
   FiltrosEntradasSalidas,
   IInformeEntradasSalidasRepository,
 } from '../../domain/informe-entradas-salidas.repository';
@@ -68,5 +69,42 @@ export class InformeEntradasSalidasPrismaRepository implements IInformeEntradasS
           horas: formatHoraHHmm(r.horas),
         }),
     );
+  }
+
+  /**
+   * Usuarios.php getUserAlls: intranet + terceros, sin filtro de estado.
+   * ORDER BY nombres es solo presentación del combo (PHP no ordenaba).
+   */
+  async listarEmpleadosCombo(): Promise<EmpleadoComboEntradasSalidas[]> {
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        id_usuario: number;
+        nombres: string | null;
+        usuario: string | null;
+        nit: string | number | null;
+        estado: number | null;
+      }>
+    >`
+      SELECT
+        u.id_usuario,
+        t.nombres AS nombres,
+        u.usuario,
+        CAST(t.nit AS VARCHAR(20)) AS nit,
+        u.estado
+      FROM w_sist_usuarios u
+      INNER JOIN terceros t ON t.nit = u.nit_usuario
+      ORDER BY t.nombres ASC
+    `;
+
+    const seen = new Set<string>();
+    const empleados: EmpleadoComboEntradasSalidas[] = [];
+    for (const row of rows) {
+      const nit = String(row.nit ?? '').trim();
+      const nombres = String(row.nombres ?? '').trim();
+      if (!nit || !nombres || seen.has(nit)) continue;
+      seen.add(nit);
+      empleados.push({ nit, nombres });
+    }
+    return empleados;
   }
 }

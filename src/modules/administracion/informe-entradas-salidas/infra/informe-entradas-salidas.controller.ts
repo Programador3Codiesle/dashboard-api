@@ -7,6 +7,11 @@ import { InformeEntradasSalidasFacade } from '../application/informe-entradas-sa
 export class InformeEntradasSalidasController {
   constructor(private readonly facade: InformeEntradasSalidasFacade) {}
 
+  @Get('empleados')
+  listarEmpleadosCombo() {
+    return this.facade.listarEmpleadosCombo();
+  }
+
   @Get()
   listar(
     @Query('sede') sede: string,

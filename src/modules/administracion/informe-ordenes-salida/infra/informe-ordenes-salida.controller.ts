@@ -9,12 +9,18 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
+import { empresaIdDesdeCookie } from '../../../../core/config/empresa-sesion';
 import { OrdenesSalidaFacade } from '../application/ordenes-salida.facade';
 
 type JwtRequestUser = {
   sub?: string | number;
   nit?: string | number;
   role?: string | number;
+};
+
+type AuthRequest = {
+  user?: JwtRequestUser;
+  cookies?: Record<string, string>;
 };
 
 @UseGuards(JwtAuthGuard)
@@ -24,7 +30,7 @@ export class InformeOrdenesSalidaController {
 
   @Get()
   listar(
-    @Req() req: { user?: JwtRequestUser },
+    @Req() req: AuthRequest,
     @Query('fechaIni') fechaIni?: string,
     @Query('fechaFin') fechaFin?: string,
     @Query('jefe') jefe?: string,
@@ -36,6 +42,8 @@ export class InformeOrdenesSalidaController {
     const idUsuario = u?.sub != null && u.sub !== '' ? Number(u.sub) : null;
     const nitUsuario = u?.nit != null && u.nit !== '' ? String(u.nit) : null;
     const perfil = u?.role != null && u.role !== '' ? Number(u.role) : null;
+    const tipo =
+      tipoSalida != null && tipoSalida !== '' ? Number(tipoSalida) : NaN;
 
     return this.facade.listar({
       fechaIni: fechaIni || null,
@@ -43,7 +51,8 @@ export class InformeOrdenesSalidaController {
       jefe: jefe || null,
       area: area || null,
       sede: sede || null,
-      tipoSalida: tipoSalida ? Number(tipoSalida) : null,
+      tipoSalida: Number.isFinite(tipo) ? tipo : null,
+      empresaId: empresaIdDesdeCookie(req.cookies),
       idUsuario:
         idUsuario != null && Number.isFinite(idUsuario) ? idUsuario : null,
       nitUsuario,

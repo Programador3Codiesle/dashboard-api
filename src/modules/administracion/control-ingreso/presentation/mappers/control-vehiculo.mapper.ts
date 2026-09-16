@@ -4,92 +4,67 @@ import { ControlVehiculoPresenter } from '../presenters/control-vehiculo.present
 import { ListarVehiculosResponseDto } from '../../application/dto/listar-vehiculos-response.dto';
 import { RegistrarSalidaResponseDto } from '../../application/dto/registrar-salida-response.dto';
 import { RegistrarLlegadaResponseDto } from '../../application/dto/registrar-llegada-response.dto';
+import { ControlVehiculoListRow } from '../../domain/control-vehiculo.repository';
 import { ControlVehiculoEntity } from '../../domain/control-vehiculo.entity';
 
+function formatFechaYmdLocal(value: Date | null | undefined): string | null {
+  if (!value || Number.isNaN(value.getTime())) return null;
+  const y = value.getFullYear();
+  const m = String(value.getMonth() + 1).padStart(2, '0');
+  const d = String(value.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 export class ControlVehiculoMapper {
-  /**
-   * Mapea la entidad ControlVehiculoEntity al DTO de respuesta usando el presenter
-   * @param entity - Entidad de dominio
-   * @param modeloDescripcion - Descripción del modelo (opcional, viene del JOIN)
-   * @param empresaNombre - Nombre de la empresa (opcional, viene del JOIN)
-   * @returns DTO de respuesta para la API
-   */
   static toListResponseDto(
-    entity: ControlVehiculoEntity,
-    modeloDescripcion?: string,
-    empresaNombre?: string,
+    entity: ControlVehiculoListRow,
   ): ListarVehiculosResponseDto {
-    // Formatear fecha de salida (YYYY-MM-DD)
-    const fechaSalidaStr = entity.fecha_salida
-      ? entity.fecha_salida.toISOString().split('T')[0]
-      : null;
-
-    const horaSalidaStr = entity.fecha_salida
-      ? formatHoraHHmm(entity.fecha_salida)
-      : null;
-
-    // Formatear fecha de llegada (YYYY-MM-DD)
-    const fechaLlegadaStr = entity.fecha_llegada
-      ? entity.fecha_llegada.toISOString().split('T')[0]
-      : null;
-
-    const horaLlegadaStr = entity.fecha_llegada
-      ? formatHoraHHmm(entity.fecha_llegada)
-      : null;
-
-    // Determinar el modelo
     let modelo = 'No definido';
     if (entity.modelo === -1) {
-      modelo = entity.otra_marca || 'No definido';
+      modelo = entity.otra_marca || entity.modelo_descripcion || 'No definido';
     } else if (entity.modelo && entity.modelo > 0) {
-      modelo = modeloDescripcion || 'No definido';
+      modelo = entity.modelo_descripcion || 'No definido';
     }
 
     const presenter = new ControlVehiculoPresenter({
       id: entity.id != null ? Number(entity.id) : 0,
-      fecha_salida: fechaSalidaStr || '',
-      hora_salida: horaSalidaStr || '',
+      fecha_salida:
+        entity.fecha_salida_fmt ||
+        formatFechaYmdLocal(entity.fecha_salida) ||
+        '',
+      hora_salida:
+        entity.hora_salida_fmt || formatHoraHHmm(entity.fecha_salida) || '',
       km_salida: entity.km_salida != null ? Number(entity.km_salida) : 0,
       placa: entity.placa || '',
       tipo_vehiculo: entity.tipo_vehiculo || '',
-      modelo: modelo,
+      modelo,
       conductor: entity.conductor || '',
       pasajeros: entity.pasajeros || null,
       persona_autorizo: entity.persona_autorizo || null,
-      fecha_llegada: fechaLlegadaStr || null,
-      hora_llegada: horaLlegadaStr || null,
+      fecha_llegada:
+        entity.fecha_llegada_fmt ??
+        formatFechaYmdLocal(entity.fecha_llegada ?? null),
+      hora_llegada:
+        entity.hora_llegada_fmt ??
+        (entity.fecha_llegada ? formatHoraHHmm(entity.fecha_llegada) : null),
       km_llegada: entity.km_llegada != null ? Number(entity.km_llegada) : null,
       observacion: entity.observacion || null,
       placa_vh_remolcado: entity.placa_vh_remolcado || null,
-      taller: entity.taller && entity.taller !== 'N/A' ? entity.taller : null,
-      empresa_nombre: empresaNombre || null,
+      taller: entity.taller || null,
+      porteria: entity.porteria || null,
+      empresa_nombre: entity.empresa_nombre || null,
     });
 
-    // Convierte el presenter a objeto plano respetando los decoradores @Expose/@Exclude
     return instanceToPlain(presenter) as ListarVehiculosResponseDto;
   }
 
-  /**
-   * Mapea la entidad ControlVehiculoEntity al DTO de respuesta para registrarSalida
-   * @param entity - Entidad de dominio
-   * @returns DTO de respuesta para la API
-   */
   static toRegistrarSalidaResponseDto(
     entity: ControlVehiculoEntity,
   ): RegistrarSalidaResponseDto['data'] {
-    // Formatear fecha de salida (YYYY-MM-DD)
-    const fechaSalidaStr = entity.fecha_salida
-      ? entity.fecha_salida.toISOString().split('T')[0]
-      : '';
-
-    const horaSalidaStr = entity.fecha_salida
-      ? formatHoraHHmm(entity.fecha_salida)
-      : '';
-
     return {
       id: entity.id != null ? Number(entity.id) : 0,
-      fecha_salida: fechaSalidaStr,
-      hora_salida: horaSalidaStr,
+      fecha_salida: formatFechaYmdLocal(entity.fecha_salida) || '',
+      hora_salida: formatHoraHHmm(entity.fecha_salida) || '',
       km_salida: entity.km_salida != null ? Number(entity.km_salida) : 0,
       placa: entity.placa || '',
       tipo_vehiculo: entity.tipo_vehiculo || '',
@@ -98,61 +73,40 @@ export class ControlVehiculoMapper {
       persona_autorizo: entity.persona_autorizo || null,
       porteria: entity.porteria || '',
       modelo: entity.modelo ?? null,
-      taller: entity.taller && entity.taller !== 'N/A' ? entity.taller : null,
+      taller: entity.taller || null,
       otra_marca: entity.otra_marca || null,
       placa_vh_remolcado: entity.placa_vh_remolcado || null,
       id_empresa: entity.id_empresa ?? null,
-      empresa_nombre: (entity as any).empresa_nombre || null,
+      empresa_nombre: (entity as ControlVehiculoListRow).empresa_nombre || null,
     };
   }
 
-  /**
-   * Mapea la entidad ControlVehiculoEntity al DTO de respuesta para registrarLlegada
-   * @param entity - Entidad de dominio
-   * @returns DTO de respuesta para la API
-   */
   static toRegistrarLlegadaResponseDto(
     entity: ControlVehiculoEntity,
   ): RegistrarLlegadaResponseDto['data'] {
-    // Formatear fecha de salida (YYYY-MM-DD)
-    const fechaSalidaStr = entity.fecha_salida
-      ? entity.fecha_salida.toISOString().split('T')[0]
-      : '';
-
-    const horaSalidaStr = entity.fecha_salida
-      ? formatHoraHHmm(entity.fecha_salida)
-      : '';
-
-    // Formatear fecha de llegada (YYYY-MM-DD)
-    const fechaLlegadaStr = entity.fecha_llegada
-      ? entity.fecha_llegada.toISOString().split('T')[0]
-      : null;
-
-    const horaLlegadaStr = entity.fecha_llegada
-      ? formatHoraHHmm(entity.fecha_llegada)
-      : null;
-
     return {
       id: entity.id != null ? Number(entity.id) : 0,
-      fecha_salida: fechaSalidaStr,
-      hora_salida: horaSalidaStr,
+      fecha_salida: formatFechaYmdLocal(entity.fecha_salida) || '',
+      hora_salida: formatHoraHHmm(entity.fecha_salida) || '',
       km_salida: entity.km_salida != null ? Number(entity.km_salida) : 0,
       placa: entity.placa || '',
       tipo_vehiculo: entity.tipo_vehiculo || '',
       conductor: entity.conductor || '',
       pasajeros: entity.pasajeros || null,
       persona_autorizo: entity.persona_autorizo || null,
-      fecha_llegada: fechaLlegadaStr,
-      hora_llegada: horaLlegadaStr,
+      fecha_llegada: formatFechaYmdLocal(entity.fecha_llegada ?? null),
+      hora_llegada: entity.fecha_llegada
+        ? formatHoraHHmm(entity.fecha_llegada)
+        : null,
       km_llegada: entity.km_llegada != null ? Number(entity.km_llegada) : null,
       observacion: entity.observacion || null,
       porteria: entity.porteria || '',
       modelo: entity.modelo ?? null,
-      taller: entity.taller && entity.taller !== 'N/A' ? entity.taller : null,
+      taller: entity.taller || null,
       otra_marca: entity.otra_marca || null,
       placa_vh_remolcado: entity.placa_vh_remolcado || null,
       id_empresa: entity.id_empresa ?? null,
-      empresa_nombre: (entity as any).empresa_nombre || null,
+      empresa_nombre: (entity as ControlVehiculoListRow).empresa_nombre || null,
     };
   }
 }

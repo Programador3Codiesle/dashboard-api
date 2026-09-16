@@ -4,7 +4,6 @@ import { RegistrarLlegadaUseCase } from './use-cases/registrar-llegada.usecase';
 import { ListarVehiculosUseCase } from './use-cases/listar-vehiculos.usecase';
 import { RegistrarSalidaDto } from './dto/registrar-salida.dto';
 import { RegistrarLlegadaDto } from './dto/registrar-llegada.dto';
-import { FiltrosVehiculosDto } from './dto/filtros-vehiculos.dto';
 import { VehiculosModelosUseCase } from './use-cases/vehiculos-modelos.use';
 
 @Injectable()
@@ -16,16 +15,21 @@ export class ControlVehiculoFacade {
     private readonly vehiculosModelosUC: VehiculosModelosUseCase,
   ) {}
 
-  registrarSalida(dto: RegistrarSalidaDto, userId: number, perfil: number) {
-    return this.registrarSalidaUC.execute(dto, userId, perfil);
+  registrarSalida(
+    dto: RegistrarSalidaDto,
+    userId: number,
+    perfil: number,
+    idEmpresa: number,
+  ) {
+    return this.registrarSalidaUC.execute(dto, userId, perfil, idEmpresa);
   }
 
-  registrarLlegada(id: number, dto: RegistrarLlegadaDto) {
-    return this.registrarLlegadaUC.execute(id, dto);
+  registrarLlegada(id: number, dto: RegistrarLlegadaDto, idEmpresa: number) {
+    return this.registrarLlegadaUC.execute(id, dto, idEmpresa);
   }
 
-  listarVehiculos(perfil?: number) {
-    return this.listarVehiculosUC.execute(perfil);
+  listarVehiculos(perfil: number | undefined, idEmpresa: number) {
+    return this.listarVehiculosUC.execute(perfil, idEmpresa);
   }
 
   listarModelos() {
