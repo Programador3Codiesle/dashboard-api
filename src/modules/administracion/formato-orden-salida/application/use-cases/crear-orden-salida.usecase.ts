@@ -4,12 +4,15 @@ import {
   CrearOrdenSalidaData,
   IOrdenSalidaRepository,
 } from '../../domain/orden-salida.repository';
+import { assertAccesoFormatoOrdenSalida } from '../assert-acceso-formato-orden-salida';
 
 @Injectable()
 export class CrearOrdenSalidaUseCase {
   constructor(private readonly repo: IOrdenSalidaRepository) {}
 
   async execute(userNit: number, dto: CrearOrdenSalidaDto) {
+    assertAccesoFormatoOrdenSalida(userNit);
+
     const payload: CrearOrdenSalidaData = {
       fecha_salida: dto.fecha_salida,
       area: dto.area,

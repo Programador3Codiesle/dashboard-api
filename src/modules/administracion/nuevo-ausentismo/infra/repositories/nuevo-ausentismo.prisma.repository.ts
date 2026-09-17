@@ -3,6 +3,7 @@ import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
 import { INuevoAusentismoRepository } from '../../domain/nuevo-ausentismo.repository';
 import { NuevoAusentismoEntity } from '../../domain/nuevo-ausentismo.entity';
 import { fechaLocalYmd } from '../../../shared/fecha-local';
+import { formatHoraHHmm } from '../../../shared/format-hora-hhmm';
 
 @Injectable()
 export class NuevoAusentismoPrismaRepository implements INuevoAusentismoRepository {
@@ -24,7 +25,7 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
       const result = await this.prisma.$queryRaw<any[]>`
                 INSERT INTO postv_ausentismos 
                 (empleado, cargo_emp, sede, area, fecha_ini, hora_ini, fecha_fin, hora_fin, 
-                 descripcion, autorizacion, motivo, titulo, nit_usuario_resp, id_empresa)
+                 descripcion, autorizacion, motivo, titulo, nit_usuario_resp, modo_recuperar_tiempo, id_empresa)
                 OUTPUT INSERTED.*
                 VALUES 
                 (${data.empleado}, ${data.cargo_emp ?? null}, 
@@ -35,6 +36,7 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
                  ${data.motivo ?? null}, 
                  ${data.titulo ?? null}, 
                  ${data.nit_usuario_resp ?? 0}, 
+                 ${null},
                  ${data.id_empresa ?? null})
             `;
 
@@ -157,6 +159,74 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
     };
   }
 
+  async minutosBancoTiempo(): Promise<number> {
+    const rows = await this.prisma.$queryRaw<Array<{ horas: number | null }>>`
+      SELECT TOP 1 horas FROM postv_ausentismos_banco_tiempo ORDER BY id DESC
+    `;
+    return Number(rows[0]?.horas ?? 0) * 60;
+  }
+
+  async minutosAusentismosPersonalesAnio(nitEmpleado: number): Promise<number> {
+    const rows = await this.prisma.$queryRaw<Array<{ horas: number | null }>>`
+      SELECT horas = SUM(DATEDIFF(MINUTE, hora_ini, hora_fin))
+      FROM postv_ausentismos
+      WHERE YEAR(fecha_ini) = YEAR(GETDATE())
+        AND empleado = ${nitEmpleado}
+        AND motivo IN ('Personal', 'Estudio')
+        AND autorizacion = 1
+    `;
+    return Number(rows[0]?.horas ?? 0);
+  }
+
+  async esDiaHabil(fechaYmd: string): Promise<boolean> {
+    const compact = fechaYmd.replace(/-/g, '');
+    const rows = await this.prisma.$queryRaw<Array<{ habil: number | null }>>`
+      SELECT TOP 1 habil =
+        CASE WHEN (domingo = 1 OR festivo = 1) THEN 0 ELSE 1 END
+      FROM y_calendario
+      WHERE CONVERT(char(8), fecha, 112) = ${compact}
+    `;
+    return Number(rows[0]?.habil ?? 0) === 1;
+  }
+
+  async insertarRecuperacion(
+    idAusentismo: bigint,
+    tramos: Array<{ fecha: string; hora_ini: string; hora_fin: string }>,
+  ): Promise<void> {
+    for (const tramo of tramos) {
+      const ini = `${tramo.fecha} ${tramo.hora_ini}:00`;
+      const fin = `${tramo.fecha} ${tramo.hora_fin}:00`;
+      await this.prisma.$executeRaw`
+        INSERT INTO postv_ausentismos_recuperacion (idAusentismo, fecha_ini, fecha_fin)
+        VALUES (${idAusentismo}, CONVERT(datetime, ${ini}, 120), CONVERT(datetime, ${fin}, 120))
+      `;
+    }
+  }
+
+  async listarRecuperacion(
+    idAusentismo: bigint,
+  ): Promise<Array<{ fecha: string; hora_ini: string; hora_fin: string }>> {
+    const rows = await this.prisma.$queryRaw<
+      Array<{ fecha: Date | string; hora_ini: string; hora_fin: string }>
+    >`
+      SELECT
+        CONVERT(date, fecha_ini) AS fecha,
+        CONVERT(varchar(5), fecha_ini, 108) AS hora_ini,
+        CONVERT(varchar(5), fecha_fin, 108) AS hora_fin
+      FROM postv_ausentismos_recuperacion
+      WHERE idAusentismo = ${idAusentismo}
+      ORDER BY fecha_ini
+    `;
+    return rows.map((r) => ({
+      fecha:
+        r.fecha instanceof Date
+          ? fechaLocalYmd(r.fecha)
+          : String(r.fecha).slice(0, 10),
+      hora_ini: formatHoraHHmm(r.hora_ini),
+      hora_fin: formatHoraHHmm(r.hora_fin),
+    }));
+  }
+
   private mapToEntity(data: any): NuevoAusentismoEntity {
     return new NuevoAusentismoEntity({
       id_ausen: BigInt(data.id_ausen),
@@ -165,9 +235,9 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
       sede: data.sede,
       area: data.area,
       fecha_ini: data.fecha_ini ? new Date(data.fecha_ini) : null,
-      hora_ini: data.hora_ini,
+      hora_ini: formatHoraHHmm(data.hora_ini) || null,
       fecha_fin: new Date(data.fecha_fin),
-      hora_fin: data.hora_fin,
+      hora_fin: formatHoraHHmm(data.hora_fin) || null,
       descripcion: data.descripcion,
       autorizacion: Number(data.autorizacion),
       motivo: data.motivo,

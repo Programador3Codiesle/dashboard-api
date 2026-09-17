@@ -7,6 +7,14 @@ import {
   EMAIL_PERSONAL_HORAS_EXTRA,
   escapeHtmlAdmin,
 } from '../../../shared/destinos-email-admin';
+import { formatHoraHHmm } from '../../../shared/format-hora-hhmm';
+import {
+  HORAS_EXTRA_FIN_MAX,
+  HORAS_EXTRA_FIN_MIN,
+  HORAS_EXTRA_INI_MAX,
+  HORAS_EXTRA_INI_MIN,
+  horaEnRango,
+} from '../../../shared/hora-militar';
 
 @Injectable()
 export class CrearTiempoSuplementarioUseCase {
@@ -26,13 +34,25 @@ export class CrearTiempoSuplementarioUseCase {
         'No se puede crear una solicitud para fechas pasadas',
       );
     }
+    const horaIni = formatHoraHHmm(dto.hora_ini);
+    const horaFin = formatHoraHHmm(dto.hora_fin);
+    if (!horaEnRango(horaIni, HORAS_EXTRA_INI_MIN, HORAS_EXTRA_INI_MAX)) {
+      throw new BadRequestException(
+        'La hora de inicio debe estar entre 05:00 y 18:00, en intervalos de 5 minutos',
+      );
+    }
+    if (!horaEnRango(horaFin, HORAS_EXTRA_FIN_MIN, HORAS_EXTRA_FIN_MAX)) {
+      throw new BadRequestException(
+        'La hora de finalización debe estar entre 05:00 y 23:00, en intervalos de 5 minutos',
+      );
+    }
     const nit_empleado = dto.empleado ?? userId;
     const result = await this.repo.create({
       nit_jefe: userId,
       nit_empleado,
       fecha_ini: fechaIni,
-      hora_ini: dto.hora_ini,
-      hora_fin: dto.hora_fin,
+      hora_ini: horaIni,
+      hora_fin: horaFin,
       fecha_solicitud: new Date(),
       area: dto.area,
       cargo: dto.cargo_emp,
@@ -55,12 +75,30 @@ export class CrearTiempoSuplementarioUseCase {
         );
         const urlAutorizar = this.tokenRespuesta.urlResponder(token, 'aprobar');
         const urlRechazar = this.tokenRespuesta.urlResponder(token, 'rechazar');
-        const fechaStr = result.data.fecha_ini
-          ? new Date(result.data.fecha_ini).toISOString().split('T')[0]
-          : dto.fecha_ini;
+        const fechaStr = dto.fecha_ini;
+        const horaIniMail = formatHoraHHmm(result.data.hora_ini ?? horaIni);
+        const horaFinMail = formatHoraHHmm(result.data.hora_fin ?? horaFin);
         const jefeSafe = escapeHtmlAdmin(nombreJefe || String(userId));
         const empSafe = escapeHtmlAdmin(nombreEmp || String(nit_empleado));
         const sedeSafe = escapeHtmlAdmin(result.data.sede ?? dto.sede ?? '-');
+        const descSafe = escapeHtmlAdmin(
+          result.data.descripcion ?? dto.descripcion ?? '-',
+        );
+        const msn = `El Jefe ${jefeSafe} Solicita que el trabajador ${empSafe} de la sede ${sedeSafe} trabaje en jornada adicional por motivo de: ${descSafe}. ¿Autoriza?`;
+        const tablaHorario = `
+              <div style="padding: 20px;">El horario solicitado es el siguiente:</div>
+              <div style="padding: 20px;">
+                <table border="1" cellpadding="6" cellspacing="0">
+                  <thead><tr><th>Fecha</th><th>Hora Inicial</th><th>Hora Final</th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td>${escapeHtmlAdmin(fechaStr)}</td>
+                      <td>${escapeHtmlAdmin(horaIniMail)}</td>
+                      <td>${escapeHtmlAdmin(horaFinMail)}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>`;
         const html = `
           <div style="font-family: Arial, sans-serif; padding: 16px; background:#f8f9fa;">
             <div style="max-width: 800px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
@@ -68,11 +106,8 @@ export class CrearTiempoSuplementarioUseCase {
                 <h2 style="margin:0; font-size: 18px;">Solicitud para trabajar en jornada adicional</h2>
               </div>
               <div style="padding: 18px 20px; color:#111827;">
-                <p style="margin:0 0 10px 0;">El Jefe ${jefeSafe} solicita que el trabajador ${empSafe} de la sede ${sedeSafe} trabaje en jornada adicional.</p>
-                <p style="margin:0 0 10px 0;"><strong>Área:</strong> ${escapeHtmlAdmin(result.data.area ?? '-')}</p>
-                <p style="margin:0 0 10px 0;"><strong>Fecha:</strong> ${fechaStr}</p>
-                <p style="margin:0 0 10px 0;"><strong>Horas:</strong> ${escapeHtmlAdmin(String(result.data.hora_ini ?? '-'))} - ${escapeHtmlAdmin(String(result.data.hora_fin ?? '-'))}</p>
-                <p style="margin:0 0 10px 0;"><strong>Descripción:</strong> ${escapeHtmlAdmin(result.data.descripcion ?? '-')}</p>
+                <p style="margin:0 0 10px 0;"><strong>${msn}</strong></p>
+                ${tablaHorario}
                 <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 18px 0;" />
                 <p style="margin:0 0 10px 0;"><strong>Responder:</strong></p>
                 <p style="margin:0 0 8px 0;">

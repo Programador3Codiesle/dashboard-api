@@ -55,4 +55,26 @@ export class NuevoAusentismoController {
     }
     return this.facade.obtenerCalendario(Number(mes), Number(anio), userId);
   }
+
+  @Get('tiempo-restante')
+  async tiempoRestante(@Req() req: AuthReq, @Query('horas') horas: string) {
+    const userId = req.user?.nit ? Number(req.user.nit) : null;
+    if (!userId) {
+      throw new BadRequestException('No se pudo obtener el ID del usuario');
+    }
+    const horasAusentismo = Number(horas);
+    if (!Number.isFinite(horasAusentismo) || horasAusentismo < 0) {
+      throw new BadRequestException('Horas de ausentismo inválidas');
+    }
+    return this.facade.calcularTiempoRestante(userId, horasAusentismo);
+  }
+
+  @Get('dia-habil')
+  async diaHabil(@Query('fecha') fecha: string) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha ?? '')) {
+      throw new BadRequestException('Fecha inválida');
+    }
+    const habil = await this.facade.validarDiaHabil(fecha);
+    return { habil };
+  }
 }

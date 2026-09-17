@@ -54,4 +54,9 @@ export class CreateAusentismoDto {
     description: 'ID de la empresa (desde cookie/contexto)',
   })
   id_empresa: number;
+
+  /** JSON de tramos `{ fecha, hora_ini, hora_fin }[]` (Personal/Estudio). */
+  @IsOptional()
+  @IsString()
+  recuperacion?: string;
 }

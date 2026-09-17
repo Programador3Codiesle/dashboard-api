@@ -6,6 +6,7 @@ import {
 } from '../../domain/tiempo-suplementario.repository';
 import { TiempoSuplementarioEntity } from '../../domain/tiempo-suplementario.entity';
 import { fechaLocalYmd } from '../../../shared/fecha-local';
+import { formatHoraHHmm } from '../../../shared/format-hora-hhmm';
 
 @Injectable()
 export class TiempoSuplementarioPrismaRepository implements ITiempoSuplementarioRepository {
@@ -160,8 +161,8 @@ export class TiempoSuplementarioPrismaRepository implements ITiempoSuplementario
       sede: data.sede,
       area: data.area,
       fecha_ini: new Date(data.fecha_ini),
-      hora_ini: data.hora_ini,
-      hora_fin: data.hora_fin,
+      hora_ini: formatHoraHHmm(data.hora_ini) || null,
+      hora_fin: formatHoraHHmm(data.hora_fin) || null,
       descripcion: data.descripcion,
       estado: data.autorizacion != null ? Number(data.autorizacion) : null,
       id_empresa: data.id_empresa != null ? Number(data.id_empresa) : null,

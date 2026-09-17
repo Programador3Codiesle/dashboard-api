@@ -20,4 +20,16 @@ export abstract class INuevoAusentismoRepository {
     nombre: string;
     correosJefes: string[];
   }>;
+  abstract minutosBancoTiempo(): Promise<number>;
+  abstract minutosAusentismosPersonalesAnio(
+    nitEmpleado: number,
+  ): Promise<number>;
+  abstract esDiaHabil(fechaYmd: string): Promise<boolean>;
+  abstract insertarRecuperacion(
+    idAusentismo: bigint,
+    tramos: Array<{ fecha: string; hora_ini: string; hora_fin: string }>,
+  ): Promise<void>;
+  abstract listarRecuperacion(
+    idAusentismo: bigint,
+  ): Promise<Array<{ fecha: string; hora_ini: string; hora_fin: string }>>;
 }
