@@ -2,7 +2,7 @@
  * Repositorio de Usuario - Gestión de Jefes
  * Implementa IUsuarioJefeRepository siguiendo Clean Architecture
  */
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import { JefesEntity } from '../../domain/usuario.entity';
 import { CreateJefeDto } from '../../application/dto/assign-jefe.dto';
@@ -16,7 +16,15 @@ export class UsuarioJefeRepository implements IUsuarioJefeRepository {
    * Asignar un jefe a un empleado
    */
   async assignJefe(id: number, jefeId: number): Promise<JefesEntity> {
-    // Insertar la relación jefe-empleado
+    const duplicado = await this.prisma.$queryRaw<Array<{ n: number }>>`
+      SELECT COUNT(1) AS n
+      FROM postv_empleado_jefe
+      WHERE jefe = ${jefeId} AND empleado = ${id}
+    `;
+    if (Number(duplicado[0]?.n ?? 0) > 0) {
+      throw new BadRequestException('El jefe ya está asignado');
+    }
+
     await this.prisma.$executeRaw`
       INSERT INTO postv_empleado_jefe (jefe, empleado)
       VALUES (${jefeId}, ${id})
@@ -68,6 +76,7 @@ export class UsuarioJefeRepository implements IUsuarioJefeRepository {
       SELECT j.id_jefe, t.nombres
       FROM postv_jefes j
       LEFT JOIN terceros t ON j.nit_jefe = t.nit
+      ORDER BY t.nombres
     `;
 
     return results.map(
@@ -113,7 +122,7 @@ export class UsuarioJefeRepository implements IUsuarioJefeRepository {
       SELECT j.id_jefe, j.nit_jefe, t.nombres, correo 
       FROM postv_jefes j
       INNER JOIN terceros t ON j.nit_jefe = t.nit
-      ORDER BY id_jefe DESC
+      ORDER BY t.nombres
     `;
 
     return rawData.map(

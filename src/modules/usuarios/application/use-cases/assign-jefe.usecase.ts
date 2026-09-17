@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, BadRequestException } from '@nestjs/common';
 import {
   AssignJefeDto,
   CreateJefeDto,
@@ -21,17 +21,26 @@ export class AssignJefeUseCase {
   ) {}
 
   async asignarJefe(id: number, dto: AssignJefeDto) {
-    const jefeAsignado = await this.jefeRepo.assignJefe(id, dto.jefeId);
+    const idEmpleado = await this.coreRepo.asegurarIdEmpleado(id);
+    const jefeAsignado = await this.jefeRepo.assignJefe(idEmpleado, dto.jefeId);
     return UsuarioMapper.jefeResponse(jefeAsignado);
   }
 
   async eliminarJefe(id: number, dto: AssignJefeDto) {
-    const jefe = await this.jefeRepo.eliminarJefe(id, dto.jefeId);
+    const idEmpleado = await this.coreRepo.resolverIdEmpleado(id);
+    if (idEmpleado == null) {
+      throw new BadRequestException('El empleado no tiene jefes asignados.');
+    }
+    const jefe = await this.jefeRepo.eliminarJefe(idEmpleado, dto.jefeId);
     return UsuarioMapper.jefeResponse(jefe);
   }
 
   async verJefes(id: number) {
-    const jefes = await this.jefeRepo.verJefes(id);
+    const idEmpleado = await this.coreRepo.resolverIdEmpleado(id);
+    if (idEmpleado == null) {
+      return [];
+    }
+    const jefes = await this.jefeRepo.verJefes(idEmpleado);
     return jefes.map((jefe) => UsuarioMapper.jefeResponse(jefe));
   }
 

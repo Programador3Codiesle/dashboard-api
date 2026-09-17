@@ -258,6 +258,7 @@ export class UsuarioCoreRepository implements IUsuarioCoreRepository {
       INNER JOIN terceros t ON t.nit = u.nit_usuario 
       LEFT JOIN postv_perfiles p ON p.id_perfil = u.perfil_postventa
       WHERE u.estado = 1
+      ORDER BY t.nombres
     `;
 
     return rawData.map(
@@ -284,6 +285,33 @@ export class UsuarioCoreRepository implements IUsuarioCoreRepository {
     }
 
     return Number(rows[0].id_empleado);
+  }
+
+  async resolverIdEmpleado(idOrNit: number): Promise<number | null> {
+    const byNit = await this.obtenerIdEmpleadoPorNit(idOrNit);
+    if (byNit != null) return byNit;
+
+    const byId = await this.prisma.$queryRaw<{ id_empleado: number | null }[]>`
+      SELECT TOP 1 id_empleado
+      FROM postv_empleados
+      WHERE id_empleado = ${idOrNit}
+    `;
+    if (!byId.length || byId[0].id_empleado == null) {
+      return null;
+    }
+    return Number(byId[0].id_empleado);
+  }
+
+  async asegurarIdEmpleado(idOrNit: number): Promise<number> {
+    const existente = await this.resolverIdEmpleado(idOrNit);
+    if (existente != null) return existente;
+
+    const inserted = await this.prisma.$queryRaw<{ id_empleado: number }[]>`
+      INSERT INTO postv_empleados (nit_empleado)
+      OUTPUT INSERTED.id_empleado
+      VALUES (${idOrNit})
+    `;
+    return Number(inserted[0].id_empleado);
   }
 
   /**

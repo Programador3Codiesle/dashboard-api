@@ -64,7 +64,7 @@ export class UsuarioSedeRepository implements IUsuarioSedeRepository {
     >`
       SELECT bodega, descripcion
       FROM bodegas
-      WHERE id = ${idSede}
+      WHERE bodega = ${idSede}
     `;
 
     // Validar que se encontró la sede
@@ -94,7 +94,7 @@ export class UsuarioSedeRepository implements IUsuarioSedeRepository {
     >`
       SELECT bodega, descripcion
       FROM bodegas
-      WHERE id = ${idSede}
+      WHERE bodega = ${idSede}
     `;
 
     // Validar que se encontró la sede

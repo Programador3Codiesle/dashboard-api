@@ -78,8 +78,6 @@ export class UsuarioController {
   }
 
   @Get('jefes')
-  @UseInterceptors(CacheInterceptor)
-  @CacheTTL(10 * 60 * 1000)
   verJefesAll() {
     return this.usuarioFacade.verJefesAll();
   }

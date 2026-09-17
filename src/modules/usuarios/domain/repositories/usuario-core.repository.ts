@@ -72,6 +72,16 @@ export abstract class IUsuarioCoreRepository {
   abstract obtenerIdEmpleadoPorNit(nit: number): Promise<number | null>;
 
   /**
+   * Resuelve id_empleado por NIT o por PK. No inserta.
+   */
+  abstract resolverIdEmpleado(idOrNit: number): Promise<number | null>;
+
+  /**
+   * Como PHP listar_id_usuarios: si no hay fila en postv_empleados, la crea.
+   */
+  abstract asegurarIdEmpleado(idOrNit: number): Promise<number>;
+
+  /**
    * Verificar si existe un usuario por NIT
    */
   abstract verUsuarioPorNit(nit: string): Promise<boolean>;
