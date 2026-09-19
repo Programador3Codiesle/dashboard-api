@@ -21,3 +21,15 @@ export class CatalogosUseCase {
     }));
   }
 }
+
+@Injectable()
+export class CatalogoCorrectivoUseCase {
+  constructor(private readonly repo: IMantenimientoRepository) {}
+
+  execute() {
+    return Promise.all([
+      this.repo.listarBodegasMto(),
+      this.repo.listarEquiposActivos(),
+    ]).then(([bodegas, equipos]) => ({ bodegas, equipos }));
+  }
+}

@@ -9,6 +9,7 @@ import {
 } from '../../domain/mantenimiento.constants';
 import {
   IMantenimientoRepository,
+  type CorrectivoListScope,
   type SessionUser,
 } from '../../domain/mantenimiento.repository';
 import { todaySlash, todayYmd } from '../utils/fechas';
@@ -18,19 +19,47 @@ function puedeGestionarCorrectivo(user: SessionUser) {
   return user.perfil === PERFIL_MTTO || user.perfil === 26;
 }
 
+async function scopeCorrectivo(
+  repo: IMantenimientoRepository,
+  user: SessionUser,
+): Promise<CorrectivoListScope> {
+  if (user.perfil === PERFIL_MTTO) {
+    return { kind: 'sedes', sedes: await repo.getSedesUsuario(user.nit) };
+  }
+  if ((PERFILES_ADMIN_MTTO as readonly number[]).includes(user.perfil)) {
+    return { kind: 'admins' };
+  }
+  return { kind: 'jefe', nit: user.nit };
+}
+
 @Injectable()
 export class ListarCorrectivoUseCase {
   constructor(private readonly repo: IMantenimientoRepository) {}
 
+  async execute(user: SessionUser, page: number, limit: number) {
+    const p = Math.max(1, page || 1);
+    const l = Math.min(100, Math.max(1, limit || 10));
+    const offset = (p - 1) * l;
+    const scope = await scopeCorrectivo(this.repo, user);
+    if (scope.kind === 'sedes' && scope.sedes.length === 0) {
+      return { data: [], total: 0, page: p, limit: l };
+    }
+    const [data, total] = await Promise.all([
+      this.repo.listarSolicitudesCorrectivo(scope, l, offset),
+      this.repo.countSolicitudesCorrectivo(scope),
+    ]);
+    return { data, total, page: p, limit: l };
+  }
+}
+
+@Injectable()
+export class ExportarCorrectivoUseCase {
+  constructor(private readonly repo: IMantenimientoRepository) {}
+
   async execute(user: SessionUser) {
-    if (user.perfil === PERFIL_MTTO) {
-      const sedes = await this.repo.getSedesUsuario(user.nit);
-      return this.repo.listarSolicitudesSedes(sedes);
-    }
-    if ((PERFILES_ADMIN_MTTO as readonly number[]).includes(user.perfil)) {
-      return this.repo.listarSolicitudesAdmins();
-    }
-    return this.repo.listarSolicitudesJefe(user.nit);
+    const scope = await scopeCorrectivo(this.repo, user);
+    if (scope.kind === 'sedes' && scope.sedes.length === 0) return [];
+    return this.repo.exportarSolicitudesCorrectivo(scope);
   }
 }
 

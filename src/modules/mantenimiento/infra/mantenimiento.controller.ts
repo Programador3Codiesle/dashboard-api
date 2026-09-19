@@ -33,6 +33,7 @@ import {
   InformeQueryDto,
   IniciarOrdenDto,
   IniciarSolicitudDto,
+  ListarCorrectivoQueryDto,
   ListarEquiposQueryDto,
   MensajeDto,
   NombresFamiliaDto,
@@ -205,9 +206,26 @@ export class MantenimientoController {
     );
   }
 
+  @Get('correctivo/catalogos')
+  catalogoCorrectivo() {
+    return this.facade.catalogoCorrectivo();
+  }
+
+  @Get('correctivo/solicitudes/export')
+  exportarCorrectivo(@Req() req: AuthRequest) {
+    return this.facade.exportarCorrectivo(parseSession(req));
+  }
+
   @Get('correctivo/solicitudes')
-  listarCorrectivo(@Req() req: AuthRequest) {
-    return this.facade.listarCorrectivo(parseSession(req));
+  listarCorrectivo(
+    @Req() req: AuthRequest,
+    @Query() query: ListarCorrectivoQueryDto,
+  ) {
+    return this.facade.listarCorrectivo(
+      parseSession(req),
+      query.page ?? 1,
+      query.limit ?? 10,
+    );
   }
 
   @Get('correctivo/solicitudes/:id')

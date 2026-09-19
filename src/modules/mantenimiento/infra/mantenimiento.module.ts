@@ -1,10 +1,14 @@
 import { Module } from '@nestjs/common';
 import { EmailModule } from '../../../core/infra/email/email.module';
 import { MantenimientoFacade } from '../application/mantenimiento.facade';
-import { CatalogosUseCase } from '../application/use-cases/catalogos.usecase';
+import {
+  CatalogosUseCase,
+  CatalogoCorrectivoUseCase,
+} from '../application/use-cases/catalogos.usecase';
 import {
   AgregarMensajeUseCase,
   CrearSolicitudUseCase,
+  ExportarCorrectivoUseCase,
   FinalizarSolicitudUseCase,
   GetSolicitudUseCase,
   IniciarSolicitudUseCase,
@@ -55,6 +59,7 @@ import { MantenimientoPrismaRepository } from './repositories/mantenimiento.pris
 
 const USE_CASES = [
   CatalogosUseCase,
+  CatalogoCorrectivoUseCase,
   ListarEquiposUseCase,
   NombresFamiliaUseCase,
   GetEquipoUseCase,
@@ -68,6 +73,7 @@ const USE_CASES = [
   AutorizarRetiroPublicoUseCase,
   RechazarRetiroPublicoUseCase,
   ListarCorrectivoUseCase,
+  ExportarCorrectivoUseCase,
   CrearSolicitudUseCase,
   IniciarSolicitudUseCase,
   FinalizarSolicitudUseCase,

@@ -4,6 +4,7 @@ import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import {
   IMantenimientoRepository,
   type BodegaMto,
+  type CorrectivoListScope,
   type DatosHidraulicos,
   type DatosTecnicos,
   type EquipoRow,
@@ -817,27 +818,72 @@ export class MantenimientoPrismaRepository implements IMantenimientoRepository {
     LEFT JOIN dbo.postv_equipos eq ON eq.id_equipo = sm.id_equipo
   `;
 
-  async listarSolicitudesJefe(nit: string) {
+  private solicitudFromJoins = Prisma.sql`
+    FROM postv_solicitud_mantenimiento sm
+    INNER JOIN terceros tj ON tj.nit = sm.jefe
+    LEFT JOIN terceros te ON te.nit = sm.encargado
+    INNER JOIN w_sist_usuarios uj ON uj.nit_usuario = sm.jefe
+    LEFT JOIN w_sist_usuarios ue ON ue.nit_usuario = sm.encargado
+    LEFT JOIN dbo.postv_equipos eq ON eq.id_equipo = sm.id_equipo
+  `;
+
+  /** Mismo criterio que la UI actual: pendientes, en proceso, finalizadas; urgencia desc. */
+  private correctivoOrder = Prisma.sql`
+    ORDER BY CASE WHEN sm.estado = 3 THEN 2 WHEN sm.estado = 2 THEN 1 ELSE 0 END,
+             sm.urgencia DESC,
+             sm.id_solicitud DESC
+  `;
+
+  private correctivoScopeWhere(scope: CorrectivoListScope): Prisma.Sql {
+    if (scope.kind === 'jefe') {
+      return Prisma.sql`WHERE sm.jefe = ${scope.nit}`;
+    }
+    if (scope.kind === 'sedes') {
+      if (scope.sedes.length === 0) return Prisma.sql`WHERE 1 = 0`;
+      return Prisma.sql`WHERE sm.sede IN (${Prisma.join(scope.sedes)})`;
+    }
+    return Prisma.empty;
+  }
+
+  async listarSolicitudesCorrectivo(
+    scope: CorrectivoListScope,
+    limit: number,
+    offset: number,
+  ) {
+    const where = this.correctivoScopeWhere(scope);
     return this.prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
-      ${this.solicitudSelect}
-      WHERE sm.jefe = ${nit}
-      ORDER BY sm.estado ASC
+      SELECT tj.nombres AS nombreJ, te.nombres AS nombreE, eq.codigo, eq.nombre_equipo,
+             sm.id_solicitud, sm.estado, sm.urgencia, sm.sede,
+             sm.fecha_inicio, sm.fecha_finalizacion,
+             LEFT(sm.solicitud, 180) AS solicitud,
+             dias_gest = DATEDIFF(DAY, CONVERT(DATE, sm.fecha_solicitud), CONVERT(DATE, GETDATE()))
+      ${this.solicitudFromJoins}
+      ${where}
+      ${this.correctivoOrder}
+      OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
     `);
   }
 
-  async listarSolicitudesSedes(sedes: number[]) {
-    if (sedes.length === 0) return [];
-    return this.prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
-      ${this.solicitudSelect}
-      WHERE sm.sede IN (${Prisma.join(sedes)})
-      ORDER BY sm.estado ASC
+  async countSolicitudesCorrectivo(scope: CorrectivoListScope) {
+    const where = this.correctivoScopeWhere(scope);
+    const rows = await this.prisma.$queryRaw<Array<{ c: number }>>(Prisma.sql`
+      SELECT COUNT(*) AS c
+      ${this.solicitudFromJoins}
+      ${where}
     `);
+    return num(rows[0]?.c);
   }
 
-  async listarSolicitudesAdmins() {
+  async exportarSolicitudesCorrectivo(scope: CorrectivoListScope) {
+    const where = this.correctivoScopeWhere(scope);
     return this.prisma.$queryRaw<Array<Record<string, unknown>>>(Prisma.sql`
-      ${this.solicitudSelect}
-      ORDER BY sm.estado ASC
+      SELECT tj.nombres AS nombreJ, te.nombres AS nombreE, eq.codigo,
+             sm.id_solicitud, sm.estado, sm.urgencia, sm.sede,
+             sm.fecha_inicio, sm.fecha_finalizacion, sm.solicitud,
+             dias_gest = DATEDIFF(DAY, CONVERT(DATE, sm.fecha_solicitud), CONVERT(DATE, GETDATE()))
+      ${this.solicitudFromJoins}
+      ${where}
+      ${this.correctivoOrder}
     `);
   }
 

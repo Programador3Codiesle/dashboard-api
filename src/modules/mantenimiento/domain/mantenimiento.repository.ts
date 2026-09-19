@@ -23,6 +23,11 @@ export type EquipoRow = {
   dist_redes_sociales?: string | null;
 };
 
+export type CorrectivoListScope =
+  | { kind: 'jefe'; nit: string }
+  | { kind: 'sedes'; sedes: number[] }
+  | { kind: 'admins' };
+
 export type DatosTecnicos = {
   alimentacion: string | null;
   frecuencia_alimentacion: string | null;
@@ -286,13 +291,17 @@ export abstract class IMantenimientoRepository {
     fecha: string,
   ): Promise<void>;
   abstract getSedesUsuario(nit: string): Promise<number[]>;
-  abstract listarSolicitudesJefe(
-    nit: string,
+  abstract listarSolicitudesCorrectivo(
+    scope: CorrectivoListScope,
+    limit: number,
+    offset: number,
   ): Promise<Record<string, unknown>[]>;
-  abstract listarSolicitudesSedes(
-    sedes: number[],
+  abstract countSolicitudesCorrectivo(
+    scope: CorrectivoListScope,
+  ): Promise<number>;
+  abstract exportarSolicitudesCorrectivo(
+    scope: CorrectivoListScope,
   ): Promise<Record<string, unknown>[]>;
-  abstract listarSolicitudesAdmins(): Promise<Record<string, unknown>[]>;
   abstract getSolicitudById(
     id: number,
   ): Promise<Record<string, unknown> | null>;

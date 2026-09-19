@@ -3,10 +3,14 @@ import type {
   EquipoHojaVidaPayload,
   SessionUser,
 } from '../domain/mantenimiento.repository';
-import { CatalogosUseCase } from './use-cases/catalogos.usecase';
+import {
+  CatalogosUseCase,
+  CatalogoCorrectivoUseCase,
+} from './use-cases/catalogos.usecase';
 import {
   AgregarMensajeUseCase,
   CrearSolicitudUseCase,
+  ExportarCorrectivoUseCase,
   FinalizarSolicitudUseCase,
   GetSolicitudUseCase,
   IniciarSolicitudUseCase,
@@ -56,6 +60,7 @@ export { parseHojaVidaBody } from './utils/parse-hoja-vida';
 export class MantenimientoFacade {
   constructor(
     private readonly catalogosUc: CatalogosUseCase,
+    private readonly catalogoCorrectivoUc: CatalogoCorrectivoUseCase,
     private readonly listarEquiposUc: ListarEquiposUseCase,
     private readonly nombresFamiliaUc: NombresFamiliaUseCase,
     private readonly getEquipoUc: GetEquipoUseCase,
@@ -69,6 +74,7 @@ export class MantenimientoFacade {
     private readonly autorizarRetiroUc: AutorizarRetiroPublicoUseCase,
     private readonly rechazarRetiroUc: RechazarRetiroPublicoUseCase,
     private readonly listarCorrectivoUc: ListarCorrectivoUseCase,
+    private readonly exportarCorrectivoUc: ExportarCorrectivoUseCase,
     private readonly crearSolicitudUc: CrearSolicitudUseCase,
     private readonly iniciarSolicitudUc: IniciarSolicitudUseCase,
     private readonly finalizarSolicitudUc: FinalizarSolicitudUseCase,
@@ -91,6 +97,10 @@ export class MantenimientoFacade {
 
   catalogos() {
     return this.catalogosUc.execute();
+  }
+
+  catalogoCorrectivo() {
+    return this.catalogoCorrectivoUc.execute();
   }
 
   listarEquipos(
@@ -203,8 +213,12 @@ export class MantenimientoFacade {
     return this.rechazarRetiroUc.execute(id, nitJefe);
   }
 
-  listarCorrectivo(user: SessionUser) {
-    return this.listarCorrectivoUc.execute(user);
+  listarCorrectivo(user: SessionUser, page: number, limit: number) {
+    return this.listarCorrectivoUc.execute(user, page, limit);
+  }
+
+  exportarCorrectivo(user: SessionUser) {
+    return this.exportarCorrectivoUc.execute(user);
   }
 
   crearSolicitud(
