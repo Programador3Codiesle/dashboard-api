@@ -114,8 +114,18 @@ export class FinalizarOrdenDto {
 
   @IsOptional()
   @IsString()
-  @IsIn(['mensual', 'trimestral', 'semestral', 'anual'])
+  @IsIn(['semanal', 'quincenal', 'mensual', 'trimestral', 'semestral', 'anual'])
   periodo?: string;
+}
+
+export class InformeEquiposQueryDto {
+  @IsOptional()
+  @IsString()
+  desde?: string;
+
+  @IsOptional()
+  @IsString()
+  hasta?: string;
 }
 
 export class UpdateFechaOrdenDto {

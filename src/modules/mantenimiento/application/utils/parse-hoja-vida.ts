@@ -3,6 +3,7 @@ import type {
   DatosTecnicos,
   EquipoHojaVidaPayload,
 } from '../../domain/mantenimiento.repository';
+import { parsePeriodosMtto } from './periodos-mtto';
 
 function parseJsonArray(raw: unknown): string[] {
   if (Array.isArray(raw)) return raw.map((x) => String(x));
@@ -90,5 +91,6 @@ export function parseHojaVidaBody(
     elementos: parseJsonArray(body.elementos),
     recomendaciones: parseJsonArray(body.recomendaciones),
     mtto_operativo: parseJsonArray(body.mtto_operativo),
+    periodos_mtto: parsePeriodosMtto(body.periodos_mtto),
   };
 }

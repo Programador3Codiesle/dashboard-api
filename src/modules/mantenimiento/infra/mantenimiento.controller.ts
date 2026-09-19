@@ -29,6 +29,7 @@ import {
 } from '../application/mantenimiento.facade';
 import {
   FinalizarOrdenDto,
+  InformeEquiposQueryDto,
   InformeQueryDto,
   IniciarOrdenDto,
   IniciarSolicitudDto,
@@ -85,6 +86,11 @@ export class MantenimientoController {
     );
   }
 
+  @Get('equipos/informes')
+  informeEquipos(@Query() query: InformeEquiposQueryDto) {
+    return this.facade.informeEquiposPreventivo(query.desde, query.hasta);
+  }
+
   @Get('equipos/:id')
   getEquipo(@Param('id', ParseIntPipe) id: number) {
     return this.facade.getEquipo(id);
@@ -98,10 +104,12 @@ export class MantenimientoController {
   @Post('equipos')
   @UseInterceptors(diskUpload('cv_equipos'))
   crearEquipo(
+    @Req() req: AuthRequest,
     @Body() body: Record<string, string>,
     @UploadedFile() file?: Express.Multer.File,
   ) {
     return this.facade.crearEquipo(
+      parseSession(req),
       {
         aliasEquipo: body.aliasEquipo,
         nombreEquipo: body.nombreEquipo,
@@ -144,11 +152,13 @@ export class MantenimientoController {
   @Put('equipos/:id/hoja-vida')
   @UseInterceptors(diskUpload('cv_equipos'))
   updateHojaVida(
+    @Req() req: AuthRequest,
     @Param('id', ParseIntPipe) id: number,
     @Body() body: Record<string, string>,
     @UploadedFile() file?: Express.Multer.File,
   ) {
     return this.facade.updateHojaVida(
+      parseSession(req),
       id,
       {
         nombre_equipo: body.nombre_equipo,

@@ -1,4 +1,5 @@
 import { TicketEntity } from '../../domain/ticket.entity';
+import { nombreEncargadoVisible } from '../../application/asignar-encargado-tipo-soporte';
 
 export class TicketsMapper {
   static mapToEntity(r: any): TicketEntity {
@@ -11,7 +12,8 @@ export class TicketsMapper {
       fecha_respuesta: r.fecha_respuesta ?? null,
       estado: r.estado,
       nombre_usuario: r.nombre_usuario,
-      nombre_encargado: r.nombre_encargado,
+      encargado_id: r.encargado != null ? Number(r.encargado) : undefined,
+      nombre_encargado: nombreEncargadoVisible(r.encargado, r.nombre_encargado),
       empresa: r.idEmpresas,
       sede: r.sede || undefined,
       extension: r.extension || undefined,

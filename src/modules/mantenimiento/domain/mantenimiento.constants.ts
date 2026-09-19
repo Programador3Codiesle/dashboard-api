@@ -38,9 +38,13 @@ export const NITS_ASIGNADOS_MTO = [
   '1052080208',
 ] as const;
 
-export const PERIODO_MESES: Record<string, number> = {
-  mensual: 1,
-  trimestral: 3,
-  semestral: 6,
-  anual: 12,
-};
+export const PERIODOS_MTTO_VALIDOS = [
+  'semanal',
+  'quincenal',
+  'mensual',
+  'trimestral',
+  'semestral',
+  'anual',
+] as const;
+
+export type PeriodoMttoNombre = (typeof PERIODOS_MTTO_VALIDOS)[number];

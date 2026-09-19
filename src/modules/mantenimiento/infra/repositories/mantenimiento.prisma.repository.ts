@@ -8,9 +8,11 @@ import {
   type DatosTecnicos,
   type EquipoRow,
   type FamiliaOption,
+  type InformeEquiposPreventivoRow,
   type JefeOption,
   type ListaItem,
   type NombreEquipoOption,
+  type PeriodoMttoRow,
   type PersonalMto,
 } from '../../domain/mantenimiento.repository';
 import {
@@ -44,6 +46,23 @@ function likeContains(term: string): string {
 
 function num(v: unknown): number {
   return v == null || v === '' ? 0 : Number(v);
+}
+
+function toYmd(v: unknown): string {
+  if (v == null || v === '') return '';
+  if (v instanceof Date && !Number.isNaN(v.getTime())) {
+    const y = v.getUTCFullYear();
+    const m = String(v.getUTCMonth() + 1).padStart(2, '0');
+    const d = String(v.getUTCDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  }
+  const s = asStr(v);
+  const m = /^(\d{4}-\d{2}-\d{2})/.exec(s);
+  return m?.[1] ?? '';
+}
+
+function asBool(v: unknown): boolean {
+  return v === true || v === 1 || v === '1' || v === 'true';
 }
 
 @Injectable()
@@ -451,6 +470,175 @@ export class MantenimientoPrismaRepository implements IMantenimientoRepository {
     return rows.map((r) => ({ orden: num(r.orden), texto: asStr(r.texto) }));
   }
 
+  async listPeriodosEquipo(
+    idEquipo: number,
+    soloActivos = true,
+  ): Promise<PeriodoMttoRow[]> {
+    const activoFilter = soloActivos
+      ? Prisma.sql`AND p.activo = 1`
+      : Prisma.empty;
+    const rows = await this.prisma.$queryRaw<Array<Record<string, unknown>>>(
+      Prisma.sql`
+        SELECT p.id, p.id_equipo, p.periodo, p.fecha_inicio, p.descripcion,
+               p.activo, p.orden, pend.fecha_requerida AS fecha_proxima
+        FROM dbo.postv_equipos_periodos_mtto p
+        OUTER APPLY (
+          SELECT TOP 1 m.fecha_requerida
+          FROM dbo.postv_mantenimientos m
+          WHERE m.id_periodo_mtto = p.id AND m.estado IN (1, 2)
+          ORDER BY m.fecha_requerida ASC
+        ) pend
+        WHERE p.id_equipo = ${idEquipo} ${activoFilter}
+        ORDER BY p.orden ASC, p.id ASC
+      `,
+    );
+    return rows.map((r) => ({
+      id: num(r.id),
+      id_equipo: num(r.id_equipo),
+      periodo: asStr(r.periodo),
+      fecha_inicio: toYmd(r.fecha_inicio),
+      descripcion: asStr(r.descripcion).trim(),
+      activo: asBool(r.activo),
+      orden: num(r.orden),
+      fecha_proxima: r.fecha_proxima != null ? toYmd(r.fecha_proxima) : null,
+    }));
+  }
+
+  async insertPeriodoMtto(data: {
+    idEquipo: number;
+    periodo: string;
+    fechaInicio: string;
+    descripcion: string;
+    orden: number;
+  }): Promise<number> {
+    const rows = await this.prisma.$queryRaw<Array<{ id: number }>>`
+      INSERT INTO dbo.postv_equipos_periodos_mtto
+        (id_equipo, periodo, fecha_inicio, descripcion, activo, orden)
+      OUTPUT INSERTED.id
+      VALUES (${data.idEquipo}, ${data.periodo}, ${data.fechaInicio},
+        ${data.descripcion}, 1, ${data.orden})
+    `;
+    return num(rows[0]?.id);
+  }
+
+  async updatePeriodoMtto(
+    id: number,
+    data: {
+      fechaInicio: string;
+      descripcion: string;
+      activo: boolean;
+      orden: number;
+    },
+  ): Promise<void> {
+    const activo = data.activo ? 1 : 0;
+    await this.prisma.$executeRaw`
+      UPDATE dbo.postv_equipos_periodos_mtto
+      SET fecha_inicio = ${data.fechaInicio},
+          descripcion = ${data.descripcion},
+          activo = ${activo},
+          orden = ${data.orden}
+      WHERE id = ${id}
+    `;
+  }
+
+  async desactivarPeriodoMtto(id: number): Promise<void> {
+    await this.prisma.$executeRaw`
+      UPDATE dbo.postv_equipos_periodos_mtto
+      SET activo = 0
+      WHERE id = ${id}
+    `;
+  }
+
+  async desactivarPeriodosExcept(
+    idEquipo: number,
+    keepIds: number[],
+  ): Promise<void> {
+    if (keepIds.length === 0) {
+      await this.prisma.$executeRaw`
+        UPDATE dbo.postv_equipos_periodos_mtto
+        SET activo = 0
+        WHERE id_equipo = ${idEquipo} AND activo = 1
+      `;
+      return;
+    }
+    await this.prisma.$executeRaw`
+      UPDATE dbo.postv_equipos_periodos_mtto
+      SET activo = 0
+      WHERE id_equipo = ${idEquipo} AND activo = 1
+        AND id NOT IN (${Prisma.join(keepIds)})
+    `;
+  }
+
+  async getPendingOtIdByPeriodo(idPeriodo: number): Promise<number | null> {
+    const rows = await this.prisma.$queryRaw<
+      Array<{ id_mantenimientos: number }>
+    >`
+      SELECT TOP 1 id_mantenimientos
+      FROM dbo.postv_mantenimientos
+      WHERE id_periodo_mtto = ${idPeriodo} AND estado IN (1, 2)
+      ORDER BY fecha_requerida ASC
+    `;
+    const id = num(rows[0]?.id_mantenimientos);
+    return id || null;
+  }
+
+  async updatePendingOtFechaByPeriodo(
+    idPeriodo: number,
+    fecha: string,
+    descripcion?: string,
+  ): Promise<void> {
+    if (descripcion != null && descripcion.trim()) {
+      const texto = descripcion.trim();
+      await this.prisma.$executeRaw`
+        UPDATE dbo.postv_mantenimientos
+        SET fecha_requerida = ${fecha}, descripcion = ${texto}
+        WHERE id_periodo_mtto = ${idPeriodo} AND estado = 1
+      `;
+      return;
+    }
+    await this.prisma.$executeRaw`
+      UPDATE dbo.postv_mantenimientos
+      SET fecha_requerida = ${fecha}
+      WHERE id_periodo_mtto = ${idPeriodo} AND estado = 1
+    `;
+  }
+
+  async informeEquiposPreventivo(
+    desde: string,
+    hasta: string,
+  ): Promise<InformeEquiposPreventivoRow[]> {
+    const rows = await this.prisma.$queryRaw<Array<Record<string, unknown>>>(
+      Prisma.sql`
+        SELECT mto.id_mantenimientos, equi.codigo, equi.nombre_equipo,
+               equi.area, equi.bodega, per.periodo,
+               mto.fecha_final, mto.fecha_requerida, mto.descripcion,
+               te.nombres AS asignado
+        FROM dbo.postv_mantenimientos AS mto
+        INNER JOIN dbo.postv_equipos AS equi ON equi.codigo = mto.codigo_equipo
+        LEFT JOIN dbo.postv_equipos_periodos_mtto AS per
+          ON per.id = mto.id_periodo_mtto
+        LEFT JOIN terceros te ON te.nit = mto.asignado
+        WHERE mto.id_tipo_mantenimiento = 1
+          AND mto.estado = 3
+          AND CONVERT(date, mto.fecha_final) BETWEEN CONVERT(date, ${desde})
+            AND CONVERT(date, ${hasta})
+        ORDER BY mto.fecha_final DESC
+      `,
+    );
+    return rows.map((r) => ({
+      id_mantenimientos: num(r.id_mantenimientos),
+      codigo: asStr(r.codigo),
+      nombre_equipo: asStr(r.nombre_equipo),
+      area: asStr(r.area),
+      bodega: asStr(r.bodega),
+      periodo: r.periodo != null ? asStr(r.periodo) : null,
+      fecha_final: toYmd(r.fecha_final),
+      fecha_requerida: toYmd(r.fecha_requerida),
+      descripcion: asStr(r.descripcion),
+      asignado: r.asignado != null ? asStr(r.asignado) : null,
+    }));
+  }
+
   async listarJefes(): Promise<JefeOption[]> {
     const rows = await this.prisma.$queryRaw<Array<Record<string, unknown>>>(
       Prisma.sql`
@@ -800,7 +988,8 @@ export class MantenimientoPrismaRepository implements IMantenimientoRepository {
     const rows = await this.prisma.$queryRaw<Array<Record<string, unknown>>>(
       Prisma.sql`
         SELECT mto.id_mantenimientos, equi.codigo, equi.nombre_equipo, equi.area, equi.bodega,
-               equi.periodo_mtto_preventivo,
+               equi.periodo_mtto_preventivo, mto.id_periodo_mtto,
+               per.periodo AS periodo_ciclo, per.activo AS periodo_activo,
                mto.responsable, mto.asignado, mto.fecha_solicitud,
                mto.fecha_requerida, mto.fecha_inicio, mto.fecha_final,
                mto.descripcion, mto.observaciones, mto.detalle_piezas,
@@ -811,6 +1000,8 @@ export class MantenimientoPrismaRepository implements IMantenimientoRepository {
         INNER JOIN dbo.postv_equipos AS equi ON equi.codigo = mto.codigo_equipo
         INNER JOIN dbo.postv_tipo_mantenimiento AS tmto
           ON tmto.id_mantenimiento = mto.id_tipo_mantenimiento
+        LEFT JOIN dbo.postv_equipos_periodos_mtto AS per
+          ON per.id = mto.id_periodo_mtto
         LEFT JOIN terceros te ON te.nit = mto.asignado
         INNER JOIN terceros tr ON tr.nit = mto.responsable
         WHERE mto.id_mantenimientos = ${id}
@@ -826,14 +1017,16 @@ export class MantenimientoPrismaRepository implements IMantenimientoRepository {
     fechaRequerida: string;
     descripcion: string;
     tiempoEstimado: number;
+    idPeriodoMtto?: number | null;
   }) {
     await this.prisma.$executeRaw`
       INSERT INTO postv_mantenimientos
         (codigo_equipo, id_tipo_mantenimiento, responsable, fecha_solicitud,
-         fecha_requerida, descripcion, estado, tiempo_estimado)
+         fecha_requerida, descripcion, estado, tiempo_estimado, id_periodo_mtto)
       VALUES
         (${data.codigo}, 1, ${data.responsable}, ${data.fechaSolicitud},
-         ${data.fechaRequerida}, ${data.descripcion}, 1, ${data.tiempoEstimado})
+         ${data.fechaRequerida}, ${data.descripcion}, 1, ${data.tiempoEstimado},
+         ${data.idPeriodoMtto ?? null})
     `;
   }
 

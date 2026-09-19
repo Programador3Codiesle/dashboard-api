@@ -19,7 +19,11 @@ export abstract class ITicketRepository {
   ): Promise<{ status: boolean; message: string }>;
   abstract findById(id: number): Promise<TicketEntity | null>;
   abstract findByUsuario(userId: number): Promise<TicketEntity[]>;
-  abstract findActivos(page?: number, limit?: number): Promise<TicketEntity[]>;
+  abstract findActivos(
+    page?: number,
+    limit?: number,
+    area?: string,
+  ): Promise<TicketEntity[]>;
   abstract findFinalizados(
     page?: number,
     limit?: number,

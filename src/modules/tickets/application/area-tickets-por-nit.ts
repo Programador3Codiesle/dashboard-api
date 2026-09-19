@@ -1,6 +1,6 @@
 /**
  * Tickets.php index(): `$area` según NIT de sesión.
- * Staff filtra Finalizados con `tk.area`. Activos no filtran área.
+ * Staff filtra Activos y Finalizados con `tk.area`.
  * 1095944273 (Cristhian) sustituye a Andrés Gómez en sistemas.
  */
 const AREA_POR_NIT: Record<number, string> = {

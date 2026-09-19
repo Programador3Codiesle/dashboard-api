@@ -23,6 +23,7 @@ import {
 } from './use-cases/gestionar-equipo.usecase';
 import {
   InformeCorrectivoUseCase,
+  InformeEquiposPreventivoUseCase,
   InformePreventivoUseCase,
 } from './use-cases/informes.usecase';
 import {
@@ -85,6 +86,7 @@ export class MantenimientoFacade {
     private readonly uploadCronogramaUc: UploadCronogramaUseCase,
     private readonly informePreventivoUc: InformePreventivoUseCase,
     private readonly informeCorrectivoUc: InformeCorrectivoUseCase,
+    private readonly informeEquiposPreventivoUc: InformeEquiposPreventivoUseCase,
   ) {}
 
   catalogos() {
@@ -106,6 +108,7 @@ export class MantenimientoFacade {
   }
 
   crearEquipo(
+    user: SessionUser,
     body: {
       aliasEquipo: string;
       nombreEquipo: string;
@@ -117,7 +120,7 @@ export class MantenimientoFacade {
     hoja: EquipoHojaVidaPayload,
     imagenFilename?: string,
   ) {
-    return this.crearEquipoUc.execute(body, hoja, imagenFilename);
+    return this.crearEquipoUc.execute(user, body, hoja, imagenFilename);
   }
 
   actualizarEquipo(
@@ -140,6 +143,7 @@ export class MantenimientoFacade {
   }
 
   updateHojaVida(
+    user: SessionUser,
     id: number,
     body: {
       nombre_equipo?: string;
@@ -152,7 +156,7 @@ export class MantenimientoFacade {
     hoja: EquipoHojaVidaPayload,
     imagenFilename?: string,
   ) {
-    return this.updateHojaVidaUc.execute(id, body, hoja, imagenFilename);
+    return this.updateHojaVidaUc.execute(user, id, body, hoja, imagenFilename);
   }
 
   getEquipo(id: number) {
@@ -297,5 +301,9 @@ export class MantenimientoFacade {
 
   informeCorrectivo(estado?: string, bodega?: string) {
     return this.informeCorrectivoUc.execute(estado, bodega);
+  }
+
+  informeEquiposPreventivo(desde?: string, hasta?: string) {
+    return this.informeEquiposPreventivoUc.execute(desde, hasta);
   }
 }

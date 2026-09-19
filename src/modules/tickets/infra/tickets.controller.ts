@@ -107,7 +107,12 @@ export class TicketController {
   ) {
     const p = page ? parseInt(page, 10) : 1;
     const l = limit ? parseInt(limit, 10) : 50;
-    return this.facade.getActivos(p, l, Number(req.user?.role));
+    return this.facade.getActivos(
+      p,
+      l,
+      Number(req.user?.role),
+      Number(req.user?.nit),
+    );
   }
 
   @Get('finalizados')

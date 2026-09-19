@@ -10,13 +10,18 @@ import {
 import {
   IMantenimientoRepository,
   type EquipoHojaVidaPayload,
+  type PeriodoMttoInput,
+  type SessionUser,
 } from '../../domain/mantenimiento.repository';
+import { todayYmd } from '../utils/fechas';
+import { assertPeriodosMtto } from '../utils/periodos-mtto';
 
 @Injectable()
 export class CrearEquipoUseCase {
   constructor(private readonly repo: IMantenimientoRepository) {}
 
   async execute(
+    user: SessionUser,
     body: {
       aliasEquipo: string;
       nombreEquipo: string;
@@ -63,7 +68,7 @@ export class CrearEquipoUseCase {
       ubicacion: hoja.ubicacion,
       sector: hoja.sector,
       descripcion: hoja.descripcion,
-      periodo_mtto_preventivo: hoja.periodo_mtto_preventivo,
+      periodo_mtto_preventivo: hoja.periodos_mtto[0]?.periodo ?? null,
       imagen: imagenFilename ?? hoja.imagen ?? null,
       dist_nombre: hoja.dist_nombre,
       dist_direccion: hoja.dist_direccion,
@@ -73,7 +78,10 @@ export class CrearEquipoUseCase {
       dist_redes_sociales: hoja.dist_redes_sociales,
     });
 
-    await persistHojaRelacionada(this.repo, id, hoja);
+    await persistHojaRelacionada(this.repo, id, hoja, {
+      codigo,
+      nit: user.nit,
+    });
     return { ok: true, codigo, id_equipo: id };
   }
 }
@@ -122,6 +130,7 @@ export class GetHojaVidaUseCase {
       elementos,
       recomendaciones,
       mtto_operativo,
+      periodos_mtto,
       hist,
     ] = await Promise.all([
       this.repo.getDatosTecnicos(id),
@@ -129,6 +138,7 @@ export class GetHojaVidaUseCase {
       this.repo.getLista('elementos', id),
       this.repo.getLista('recomendaciones', id),
       this.repo.getLista('mtto_operativo', id),
+      this.repo.listPeriodosEquipo(id, true),
       historialEquipo(this.repo, equipo.codigo, id),
     ]);
     return {
@@ -138,6 +148,7 @@ export class GetHojaVidaUseCase {
       elementos,
       recomendaciones,
       mtto_operativo,
+      periodos_mtto,
       historial: hist,
     };
   }
@@ -148,6 +159,7 @@ export class UpdateHojaVidaUseCase {
   constructor(private readonly repo: IMantenimientoRepository) {}
 
   async execute(
+    user: SessionUser,
     id: number,
     body: {
       nombre_equipo?: string;
@@ -175,7 +187,7 @@ export class UpdateHojaVidaUseCase {
       ubicacion: hoja.ubicacion,
       sector: hoja.sector,
       descripcion: hoja.descripcion,
-      periodo_mtto_preventivo: hoja.periodo_mtto_preventivo,
+      periodo_mtto_preventivo: hoja.periodos_mtto[0]?.periodo ?? null,
       imagen: imagenFilename ?? undefined,
       dist_nombre: hoja.dist_nombre,
       dist_direccion: hoja.dist_direccion,
@@ -184,7 +196,10 @@ export class UpdateHojaVidaUseCase {
       dist_departamento: hoja.dist_departamento,
       dist_redes_sociales: hoja.dist_redes_sociales,
     });
-    await persistHojaRelacionada(this.repo, id, hoja);
+    await persistHojaRelacionada(this.repo, id, hoja, {
+      codigo: body.codigo ?? eq.codigo,
+      nit: user.nit,
+    });
     return { ok: true };
   }
 }
@@ -216,6 +231,7 @@ export async function persistHojaRelacionada(
   repo: IMantenimientoRepository,
   idEquipo: number,
   hoja: EquipoHojaVidaPayload,
+  ctx?: { codigo: string; nit: string },
 ) {
   if (hoja.tiene_tecnicos && hoja.tecnicos) {
     await repo.upsertDatosTecnicos(idEquipo, hoja.tecnicos);
@@ -238,4 +254,122 @@ export async function persistHojaRelacionada(
     idEquipo,
     hoja.mtto_operativo ?? [],
   );
+  if (ctx) {
+    await syncPeriodosMtto(
+      repo,
+      idEquipo,
+      ctx.codigo,
+      ctx.nit,
+      hoja.periodos_mtto ?? [],
+    );
+  }
+}
+
+async function syncPeriodosMtto(
+  repo: IMantenimientoRepository,
+  idEquipo: number,
+  codigo: string,
+  nit: string,
+  items: PeriodoMttoInput[],
+) {
+  assertPeriodosMtto(items);
+  const existing = await repo.listPeriodosEquipo(idEquipo, false);
+  const byId = new Map(existing.map((p) => [p.id, p]));
+  const byPeriodo = new Map(existing.map((p) => [p.periodo, p]));
+  const keepIds: number[] = [];
+  const hoy = todayYmd();
+  let orden = 1;
+
+  for (const item of items) {
+    const row =
+      (item.id ? byId.get(item.id) : undefined) ?? byPeriodo.get(item.periodo);
+    if (row) {
+      const wasInactive = !row.activo;
+      await repo.updatePeriodoMtto(row.id, {
+        fechaInicio: item.fecha_inicio,
+        descripcion: item.descripcion,
+        activo: true,
+        orden,
+      });
+      keepIds.push(row.id);
+      if (wasInactive) {
+        const pending = await repo.getPendingOtIdByPeriodo(row.id);
+        if (!pending) {
+          await insertOtPeriodo(repo, {
+            codigo,
+            nit,
+            hoy,
+            fecha: item.fecha_inicio,
+            periodo: item.periodo,
+            descripcion: item.descripcion,
+            idPeriodo: row.id,
+          });
+        } else if (
+          row.fecha_inicio !== item.fecha_inicio ||
+          row.descripcion !== item.descripcion
+        ) {
+          await repo.updatePendingOtFechaByPeriodo(
+            row.id,
+            item.fecha_inicio,
+            item.descripcion,
+          );
+        }
+      } else if (
+        row.fecha_inicio !== item.fecha_inicio ||
+        row.descripcion !== item.descripcion
+      ) {
+        await repo.updatePendingOtFechaByPeriodo(
+          row.id,
+          item.fecha_inicio,
+          item.descripcion,
+        );
+      }
+    } else {
+      const id = await repo.insertPeriodoMtto({
+        idEquipo,
+        periodo: item.periodo,
+        fechaInicio: item.fecha_inicio,
+        descripcion: item.descripcion,
+        orden,
+      });
+      keepIds.push(id);
+      await insertOtPeriodo(repo, {
+        codigo,
+        nit,
+        hoy,
+        fecha: item.fecha_inicio,
+        periodo: item.periodo,
+        descripcion: item.descripcion,
+        idPeriodo: id,
+      });
+    }
+    orden += 1;
+  }
+
+  await repo.desactivarPeriodosExcept(idEquipo, keepIds);
+}
+
+async function insertOtPeriodo(
+  repo: IMantenimientoRepository,
+  data: {
+    codigo: string;
+    nit: string;
+    hoy: string;
+    fecha: string;
+    periodo: string;
+    descripcion: string;
+    idPeriodo: number;
+  },
+) {
+  const texto =
+    data.descripcion.trim() || `Mantenimiento preventivo ${data.periodo}`;
+  await repo.insertOrdenPreventiva({
+    codigo: data.codigo,
+    responsable: data.nit,
+    fechaSolicitud: data.hoy,
+    fechaRequerida: data.fecha,
+    descripcion: texto,
+    tiempoEstimado: 1,
+    idPeriodoMtto: data.idPeriodo,
+  });
 }

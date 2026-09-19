@@ -10,6 +10,7 @@ import {
   RespuestaTicketEntity,
 } from '../../domain/ticket.entity';
 import { TicketsMapper } from '../../presentation/mappers/tickets.mapper';
+import { nombreEncargadoVisible } from '../../application/asignar-encargado-tipo-soporte';
 
 const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 50;
@@ -146,7 +147,10 @@ export class TicketPrismaRepository implements ITicketRepository {
       usuario_id: Number(row.usuario),
       nombre_usuario: row.nombre_usuario || '',
       encargado_id: row.encargado ? Number(row.encargado) : undefined,
-      nombre_encargado: row.nombre_encargado || undefined,
+      nombre_encargado: nombreEncargadoVisible(
+        row.encargado,
+        row.nombre_encargado,
+      ),
       anydesk: row.anydesk || undefined,
       archivo_url: row.img || undefined,
       respuestas: row.respuesta || undefined,
@@ -159,6 +163,7 @@ export class TicketPrismaRepository implements ITicketRepository {
     const results = await this.prisma.$queryRaw<any[]>`
             SELECT 
                 tk.usuario, 
+                tk.encargado,
                 tk.prioridad, 
                 tk.id_ticket AS id, 
                 tk.tipo_soporte, 
@@ -181,11 +186,14 @@ export class TicketPrismaRepository implements ITicketRepository {
   async findActivos(
     page: number = DEFAULT_PAGE,
     limit: number = DEFAULT_LIMIT,
+    area?: string,
   ): Promise<TicketEntity[]> {
     const offset = (page - 1) * limit;
-    const results = await this.prisma.$queryRaw<any[]>`
+    const areaFilter = area ? Prisma.sql`AND tk.area = ${area}` : Prisma.empty;
+    const results = await this.prisma.$queryRaw<any[]>(Prisma.sql`
             SELECT 
                 tk.usuario, 
+                tk.encargado,
                 tk.prioridad, 
                 tk.id_ticket as id, 
                 tk.tipo_soporte, 
@@ -204,11 +212,11 @@ export class TicketPrismaRepository implements ITicketRepository {
             FROM tickets tk
             LEFT JOIN terceros us ON us.nit_real = tk.usuario
             LEFT JOIN terceros en ON en.nit_real = tk.encargado
-            WHERE 1 = 1
-                AND tk.estado IN ('activo', 'En Proceso')
+            WHERE tk.estado IN ('activo', 'En Proceso')
+            ${areaFilter}
             ORDER BY tk.fecha_creacion DESC
             OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
-        `;
+        `);
 
     return results.map((r) => TicketsMapper.mapToEntity(r));
   }
@@ -223,6 +231,7 @@ export class TicketPrismaRepository implements ITicketRepository {
     const results = await this.prisma.$queryRaw<any[]>(Prisma.sql`
             SELECT 
                 tk.usuario, 
+                tk.encargado,
                 tk.prioridad, 
                 tk.id_ticket AS id, 
                 tk.tipo_soporte, 

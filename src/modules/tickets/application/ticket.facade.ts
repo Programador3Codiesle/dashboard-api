@@ -26,8 +26,8 @@ export class TicketFacade {
   getByUsuario(id: number) {
     return this.getUC.getByUsuario(id);
   }
-  getActivos(page?: number, limit?: number, perfil?: number) {
-    return this.getUC.getActivos(page, limit, perfil);
+  getActivos(page?: number, limit?: number, perfil?: number, nit?: number) {
+    return this.getUC.getActivos(page, limit, perfil, nit);
   }
   getFinalizados(page?: number, limit?: number, perfil?: number, nit?: number) {
     return this.getUC.getFinalizados(page, limit, perfil, nit);

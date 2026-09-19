@@ -42,6 +42,37 @@ export type DatosHidraulicos = {
 
 export type ListaItem = { orden: number; texto: string };
 
+export type PeriodoMttoInput = {
+  id?: number;
+  periodo: string;
+  fecha_inicio: string;
+  descripcion: string;
+};
+
+export type PeriodoMttoRow = {
+  id: number;
+  id_equipo: number;
+  periodo: string;
+  fecha_inicio: string;
+  descripcion: string;
+  activo: boolean;
+  orden: number;
+  fecha_proxima: string | null;
+};
+
+export type InformeEquiposPreventivoRow = {
+  id_mantenimientos: number;
+  codigo: string;
+  nombre_equipo: string;
+  area: string;
+  bodega: string;
+  periodo: string | null;
+  fecha_final: string;
+  fecha_requerida: string;
+  descripcion: string;
+  asignado: string | null;
+};
+
 export type EquipoHojaVidaPayload = {
   alias: string;
   fabricante?: string | null;
@@ -65,6 +96,7 @@ export type EquipoHojaVidaPayload = {
   elementos: string[];
   recomendaciones: string[];
   mtto_operativo: string[];
+  periodos_mtto: PeriodoMttoInput[];
 };
 
 export type FamiliaOption = { codigo: string; nombre: string };
@@ -181,6 +213,41 @@ export abstract class IMantenimientoRepository {
     tabla: 'elementos' | 'recomendaciones' | 'mtto_operativo',
     idEquipo: number,
   ): Promise<ListaItem[]>;
+  abstract listPeriodosEquipo(
+    idEquipo: number,
+    soloActivos?: boolean,
+  ): Promise<PeriodoMttoRow[]>;
+  abstract insertPeriodoMtto(data: {
+    idEquipo: number;
+    periodo: string;
+    fechaInicio: string;
+    descripcion: string;
+    orden: number;
+  }): Promise<number>;
+  abstract updatePeriodoMtto(
+    id: number,
+    data: {
+      fechaInicio: string;
+      descripcion: string;
+      activo: boolean;
+      orden: number;
+    },
+  ): Promise<void>;
+  abstract desactivarPeriodoMtto(id: number): Promise<void>;
+  abstract desactivarPeriodosExcept(
+    idEquipo: number,
+    keepIds: number[],
+  ): Promise<void>;
+  abstract getPendingOtIdByPeriodo(idPeriodo: number): Promise<number | null>;
+  abstract updatePendingOtFechaByPeriodo(
+    idPeriodo: number,
+    fecha: string,
+    descripcion?: string,
+  ): Promise<void>;
+  abstract informeEquiposPreventivo(
+    desde: string,
+    hasta: string,
+  ): Promise<InformeEquiposPreventivoRow[]>;
   abstract listarJefes(): Promise<JefeOption[]>;
   abstract listarPersonalMto(): Promise<PersonalMto[]>;
   abstract listarBodegasMto(): Promise<BodegaMto[]>;
@@ -277,6 +344,7 @@ export abstract class IMantenimientoRepository {
     fechaRequerida: string;
     descripcion: string;
     tiempoEstimado: number;
+    idPeriodoMtto?: number | null;
   }): Promise<void>;
   abstract iniciarOrden(
     id: number,

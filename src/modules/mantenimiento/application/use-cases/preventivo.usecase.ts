@@ -8,13 +8,12 @@ import {
   CRONOGRAMA_SEDES_BY_USER_ID,
   LISTADO_SEDES_BY_USER_ID,
   PERFIL_MTTO,
-  PERIODO_MESES,
 } from '../../domain/mantenimiento.constants';
 import {
   IMantenimientoRepository,
   type SessionUser,
 } from '../../domain/mantenimiento.repository';
-import { addMonthsYmd, todayYmd } from '../utils/fechas';
+import { nextFechaPorPeriodo, todayYmd } from '../utils/fechas';
 import { num, str, toYmd } from '../utils/valores';
 
 @Injectable()
@@ -111,23 +110,34 @@ export class FinalizarOrdenUseCase {
     const idEquipo = num(orden.id_equipo);
     if (idEquipo) await this.repo.updateEstadoEquipo(idEquipo, 'Activo');
 
-    if (!reasignar) return { ok: true, reasignada: false };
+    const idPeriodo = num(orden.id_periodo_mtto);
+    const periodoCiclo = str(orden.periodo_ciclo).trim();
 
-    const periodoExistente = str(orden.periodo_mtto_preventivo).trim();
+    if (!reasignar) {
+      if (idPeriodo) await this.repo.desactivarPeriodoMtto(idPeriodo);
+      return { ok: true, reasignada: false };
+    }
+
+    const periodoExistente =
+      periodoCiclo || str(orden.periodo_mtto_preventivo).trim();
     const periodoNuevo = str(periodoBody).trim();
     const periodo = periodoExistente || periodoNuevo;
-    const meses = PERIODO_MESES[periodo];
-    if (!meses) {
+    const fechaRequerida = nextFechaPorPeriodo(hoy, periodo);
+    if (!fechaRequerida) {
       throw new BadRequestException(
-        'Debe indicar un periodo válido para reasignar (mensual, trimestral, semestral o anual)',
+        'Debe indicar un periodo válido para reasignar (semanal, quincenal, mensual, trimestral, semestral o anual)',
       );
     }
 
-    if (!periodoExistente && idEquipo) {
+    if (
+      !idPeriodo &&
+      !periodoCiclo &&
+      !str(orden.periodo_mtto_preventivo).trim() &&
+      idEquipo
+    ) {
       await this.repo.updatePeriodoEquipo(idEquipo, periodo);
     }
 
-    const fechaRequerida = addMonthsYmd(hoy, meses);
     const codigo = str(orden.codigo);
     const descripcion =
       str(orden.descripcion).trim() || `Reasignación automática (${periodo})`;
@@ -140,6 +150,7 @@ export class FinalizarOrdenUseCase {
       fechaRequerida,
       descripcion,
       tiempoEstimado,
+      idPeriodoMtto: idPeriodo || null,
     });
 
     return { ok: true, reasignada: true, fecha_requerida: fechaRequerida };

@@ -15,9 +15,14 @@ export class GetTicketsUseCase {
     return this.repo.findById(id);
   }
 
-  async getActivos(page?: number, limit?: number, perfil?: number) {
+  async getActivos(
+    page?: number,
+    limit?: number,
+    perfil?: number,
+    nit?: number,
+  ) {
     this.assertStaff(perfil);
-    return this.repo.findActivos(page, limit);
+    return this.repo.findActivos(page, limit, areaTicketsPorNit(nit));
   }
 
   async getFinalizados(

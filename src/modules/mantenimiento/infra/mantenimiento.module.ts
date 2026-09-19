@@ -21,6 +21,7 @@ import {
 } from '../application/use-cases/gestionar-equipo.usecase';
 import {
   InformeCorrectivoUseCase,
+  InformeEquiposPreventivoUseCase,
   InformePreventivoUseCase,
 } from '../application/use-cases/informes.usecase';
 import {
@@ -84,6 +85,7 @@ const USE_CASES = [
   UploadCronogramaUseCase,
   InformePreventivoUseCase,
   InformeCorrectivoUseCase,
+  InformeEquiposPreventivoUseCase,
 ];
 
 @Module({
