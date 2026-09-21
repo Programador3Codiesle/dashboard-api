@@ -3,6 +3,8 @@ import { PERIODOS_MTTO_VALIDOS } from '../../domain/mantenimiento.constants';
 import type { PeriodoMttoInput } from '../../domain/mantenimiento.repository';
 
 const FECHA_YMD = /^\d{4}-\d{2}-\d{2}$/;
+/** Tope de la app. La columna SQL es varchar(max). */
+const DESCRIPCION_PERIODO_MTTO_MAX = 8000;
 
 function asText(v: unknown): string {
   if (typeof v === 'string') return v;
@@ -29,7 +31,9 @@ export function parsePeriodosMtto(raw: unknown): PeriodoMttoInput[] {
     const rec = item as Record<string, unknown>;
     const periodo = asText(rec.periodo).trim();
     const fecha = asText(rec.fecha_inicio).trim().slice(0, 10);
-    const descripcion = asText(rec.descripcion).trim().slice(0, 500);
+    const descripcion = asText(rec.descripcion)
+      .trim()
+      .slice(0, DESCRIPCION_PERIODO_MTTO_MAX);
     if (!periodo) continue;
     const idRaw = rec.id;
     const id = idRaw != null && idRaw !== '' ? Number(idRaw) : undefined;
