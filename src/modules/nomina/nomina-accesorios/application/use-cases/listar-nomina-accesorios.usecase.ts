@@ -35,6 +35,17 @@ function cellNumber(row: Record<string, unknown>, ...keys: string[]): number {
   return 0;
 }
 
+function cellOperario(row: Record<string, unknown>): string {
+  const value = row.operario ?? row.Operario;
+  if (value == null || value === '') return '';
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  if (typeof value === 'bigint') return value.toString();
+  if (typeof value === 'string') return value.trim().replace(/\.0+$/, '');
+  const numeric = Number(value);
+  if (Number.isFinite(numeric)) return String(Math.trunc(numeric));
+  return '';
+}
+
 function cellText(row: Record<string, unknown>, key: string): string {
   const value = row[key];
   if (value == null) return '';
@@ -199,6 +210,7 @@ export class ListarNominaAccesoriosUseCase {
           (row) =>
             new NominaAccesoriosTecnicoEntity({
               fecha: fechaLabel,
+              operario: cellOperario(row),
               nombres: cellText(row, 'nombres'),
               totalHoras: cellNumber(row, 'Total_horas', 'total_horas'),
               comision: cellNumber(row, 'comision'),

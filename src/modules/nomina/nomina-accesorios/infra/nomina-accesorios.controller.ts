@@ -41,4 +41,25 @@ export class NominaAccesoriosController {
       nitUsuarioSesion: nominaNitFromRequest(req),
     });
   }
+
+  @Get('detalle-tecnico')
+  detalleTecnico(
+    @Req() req: NominaAuthRequest,
+    @Query('ano') ano: string,
+    @Query('mes') mes: string,
+    @Query('operario') operario: string,
+  ) {
+    const anoNum = Number(ano);
+    const mesNum = Number(mes);
+    if (!anoNum || !mesNum) {
+      throw new BadRequestException('Parámetros de consulta inválidos.');
+    }
+    return this.facade.detalleTecnico({
+      ano: anoNum,
+      mes: mesNum,
+      operario: operario ?? '',
+      perfilUsuario: nominaPerfilFromRequest(req),
+      nitUsuarioSesion: nominaNitFromRequest(req),
+    });
+  }
 }

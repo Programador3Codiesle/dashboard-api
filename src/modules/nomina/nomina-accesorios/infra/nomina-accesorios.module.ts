@@ -4,6 +4,7 @@ import { NominaAccesoriosController } from './nomina-accesorios.controller';
 import { INominaAccesoriosRepository } from '../domain/nomina-accesorios.repository';
 import { NominaAccesoriosPrismaRepository } from './repositories/nomina-accesorios.prisma.repository';
 import { ListarNominaAccesoriosUseCase } from '../application/use-cases/listar-nomina-accesorios.usecase';
+import { ObtenerDetalleNominaAccesoriosTecnicoUseCase } from '../application/use-cases/obtener-detalle-nomina-accesorios-tecnico.usecase';
 import { NominaAccesoriosFacade } from '../application/nomina-accesorios.facade';
 
 @Module({
@@ -15,6 +16,7 @@ import { NominaAccesoriosFacade } from '../application/nomina-accesorios.facade'
       useClass: NominaAccesoriosPrismaRepository,
     },
     ListarNominaAccesoriosUseCase,
+    ObtenerDetalleNominaAccesoriosTecnicoUseCase,
     NominaAccesoriosFacade,
   ],
 })

@@ -27,4 +27,10 @@ export abstract class INominaAccesoriosRepository {
     ano: number,
     mes: number,
   ): Promise<Record<string, unknown>[]>;
+
+  abstract listarDetalleTecnico(
+    ano: number,
+    mes: number,
+    operario: string,
+  ): Promise<Record<string, unknown>[]>;
 }

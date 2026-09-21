@@ -34,11 +34,23 @@ export class NominaAccesoriosAsesorEntity {
 
 export class NominaAccesoriosTecnicoEntity {
   fecha: string;
+  operario: string;
   nombres: string;
   totalHoras: number;
   comision: number;
 
   constructor(props: NominaAccesoriosTecnicoEntity) {
+    Object.assign(this, props);
+  }
+}
+
+export class NominaAccesoriosDetalleTecnicoEntity {
+  numeroOrden: number;
+  operacion: string;
+  descripcion: string;
+  tiempo: number;
+
+  constructor(props: NominaAccesoriosDetalleTecnicoEntity) {
     Object.assign(this, props);
   }
 }
