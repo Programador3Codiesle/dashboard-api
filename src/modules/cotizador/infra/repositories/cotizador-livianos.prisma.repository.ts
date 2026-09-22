@@ -136,6 +136,23 @@ export class CotizadorLivianosPrismaRepository implements ICotizadorLivianosRepo
     }));
   }
 
+  async getModelosPorDescripcion(descripcion: string): Promise<string[]> {
+    const rows = await this.prisma.$queryRaw<
+      Array<{ des_modelo: string | null }>
+    >`
+      SELECT DISTINCT v.des_modelo
+      FROM v_vh_vehiculos v
+      INNER JOIN referencias_cla c ON v.clase = c.clase
+      WHERE v.clase NOT IN ('*', 'GENERICO')
+        AND c.descripcion = ${descripcion}
+      ORDER BY v.des_modelo ASC
+    `;
+
+    return rows
+      .map((row) => (row.des_modelo ?? '').trim())
+      .filter((modelo) => modelo.length > 0);
+  }
+
   async getBodegas(): Promise<BodegaOption[]> {
     const rows = await this.prisma.$queryRaw<any[]>`
       SELECT bodega, descripcion 

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { GetLivianosInitDataUseCase } from './use-cases/get-livianos-init-data.usecase';
 import { GetVehiculoPorPlacaUseCase } from './use-cases/get-vehiculo-por-placa.usecase';
 import { GetRevisionesLivianosUseCase } from './use-cases/get-revisiones-livianos.usecase';
+import { GetModelosLivianosUseCase } from './use-cases/get-modelos-livianos.usecase';
 import {
   GetRevisionDetalleLivianosParams,
   GetRevisionDetalleLivianosUseCase,
@@ -114,6 +115,7 @@ export class CotizadorFacade {
     private readonly getLivianosInitDataUC: GetLivianosInitDataUseCase,
     private readonly getVehiculoPorPlacaUC: GetVehiculoPorPlacaUseCase,
     private readonly getRevisionesLivianosUC: GetRevisionesLivianosUseCase,
+    private readonly getModelosLivianosUC: GetModelosLivianosUseCase,
     private readonly getRevisionDetalleLivianosUC: GetRevisionDetalleLivianosUseCase,
     private readonly crearCotizacionLivianosUC: CrearCotizacionLivianosUseCase,
     private readonly getPesadosInitDataUC: GetPesadosInitDataUseCase,
@@ -177,6 +179,10 @@ export class CotizadorFacade {
 
   async getRevisionesLivianos(clase: string) {
     return this.getRevisionesLivianosUC.execute(clase);
+  }
+
+  async getModelosLivianos(descripcion: string) {
+    return this.getModelosLivianosUC.execute(descripcion);
   }
 
   async getRevisionDetalleLivianos(params: GetRevisionDetalleLivianosParams) {

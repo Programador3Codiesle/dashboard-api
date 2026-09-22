@@ -14,6 +14,7 @@ import {
   type SessionUser,
 } from '../../domain/mantenimiento.repository';
 import { todayYmd } from '../utils/fechas';
+import { assertPuedeMutarEquipos } from '../utils/permiso-equipos';
 import { assertPeriodosMtto } from '../utils/periodos-mtto';
 
 @Injectable()
@@ -33,6 +34,7 @@ export class CrearEquipoUseCase {
     hoja: EquipoHojaVidaPayload,
     imagenFilename?: string,
   ) {
+    assertPuedeMutarEquipos(user);
     const nombre = await this.repo.getNombreEquipo(
       body.nombreEquipo,
       body.nombreEquipo2,
@@ -91,6 +93,7 @@ export class ActualizarEquipoUseCase {
   constructor(private readonly repo: IMantenimientoRepository) {}
 
   async execute(
+    user: SessionUser,
     id: number,
     body: {
       nombre_equipo: string;
@@ -102,6 +105,7 @@ export class ActualizarEquipoUseCase {
     },
     cvFilename?: string,
   ) {
+    assertPuedeMutarEquipos(user);
     const eq = await this.repo.getEquipoById(id);
     if (!eq) throw new NotFoundException('Equipo no encontrado');
     await this.repo.updateEquipo(id, {
@@ -172,6 +176,7 @@ export class UpdateHojaVidaUseCase {
     hoja: EquipoHojaVidaPayload,
     imagenFilename?: string,
   ) {
+    assertPuedeMutarEquipos(user);
     const eq = await this.repo.getEquipoById(id);
     if (!eq) throw new NotFoundException('Equipo no encontrado');
     await this.repo.updateEquipo(id, {

@@ -2,8 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { getPublicEmailBaseUrl } from '../../../../core/config/env-urls';
 import { EmailService } from '../../../../core/infra/email/email.service';
+import { isEmailModoPruebas } from '../../../../core/infra/email/email-modo-pruebas';
 import { ICotizadorInformesRepository } from '../../domain/cotizador-informes.repository';
 import { GenerarCotizacionPdfUseCase } from './generar-cotizacion-pdf.usecase';
+
+const CORREO_PRUEBAS_COTIZACION = 'programador3@codiesel.co';
 
 @Injectable()
 export class EnviarEmailCotizacionLivianosUseCase {
@@ -36,26 +39,27 @@ export class EnviarEmailCotizacionLivianosUseCase {
       };
     }
 
-    /*
-    // Destinatarios principales: cliente y asesor (como en el legacy)
+    const modoPruebas = isEmailModoPruebas(this.config);
     const to: string[] = [];
-    if (general.emailCliente) {
-      to.push(general.emailCliente);
-    }
-    if (general.correoAsesor && !to.includes(general.correoAsesor)) {
-      to.push(general.correoAsesor);
-    }
-*/
-    const to: string[] = ['programador3@codiesel.co'];
-    // Si por alguna razón no hay destinatarios configurados, usamos un buzón de pruebas.
-    if (!to.length) {
-      to.push('programador3@codiesel.co');
+    const bcc: string[] = [];
+
+    if (modoPruebas) {
+      to.push(CORREO_PRUEBAS_COTIZACION);
+    } else {
+      if (general.emailCliente) {
+        to.push(general.emailCliente);
+      }
+      if (general.correoAsesor && !to.includes(general.correoAsesor)) {
+        to.push(general.correoAsesor);
+      }
+      if (!to.length) {
+        to.push(CORREO_PRUEBAS_COTIZACION);
+      }
     }
 
     // BCC de bodega cuando la cotización está agendada (estado = 1),
-    // replicando la lógica del switch($bodega) del legacy.
-    const bcc: string[] = [];
-    if (estado === 1 && general.bodega != null) {
+    // replicando la lógica del switch($bodega) del legacy. Solo en producción.
+    if (!modoPruebas && estado === 1 && general.bodega != null) {
       let nitBodega: number | null = null;
 
       switch (general.bodega) {
@@ -138,6 +142,7 @@ export class EnviarEmailCotizacionLivianosUseCase {
       idCotizacion,
       placa,
       idEmpresa,
+      ocultarValoresItem: true,
     });
 
     const result = await this.emailService.sendEmail({

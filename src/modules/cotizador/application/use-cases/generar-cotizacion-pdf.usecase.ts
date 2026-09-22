@@ -15,6 +15,8 @@ export interface GenerarCotizacionPdfParams {
   placa: string;
   /** 1=Codiesel, 2=Dieselco, 3=Mitsubishi, 4=BYD. Opcional; default Codiesel. */
   idEmpresa?: number;
+  /** PDF del correo al cliente: sin valor de cada ítem. Informes de la app lo dejan en false. */
+  ocultarValoresItem?: boolean;
 }
 
 const MARGIN = 40;
@@ -59,7 +61,8 @@ export class GenerarCotizacionPdfUseCase {
   }
 
   async execute(params: GenerarCotizacionPdfParams): Promise<Buffer> {
-    const { origen, idCotizacion, placa, idEmpresa } = params;
+    const { origen, idCotizacion, placa, idEmpresa, ocultarValoresItem } =
+      params;
     const brand = getBrandPdfConfig(idEmpresa);
     const c = brand.colors;
 
@@ -225,7 +228,13 @@ export class GenerarCotizacionPdfUseCase {
 
     // Tabla Repuestos
     const repuestosHeaders = [
-      ['Codigo', 'Descripcion', 'Categoria', 'Estado', 'Valor'],
+      [
+        'Codigo',
+        'Descripcion',
+        'Categoria',
+        'Estado',
+        ocultarValoresItem ? '' : 'Valor',
+      ],
     ];
     // Subtotales repuestos
     const sumaR = repuestos.reduce(
@@ -250,7 +259,7 @@ export class GenerarCotizacionPdfUseCase {
         descLimpia,
         categoria,
         r.estado === 1 ? 'Autorizado' : 'No autorizado',
-        `$${Number(r.valor).toLocaleString('es-CO')}`,
+        ocultarValoresItem ? '' : `$${Number(r.valor).toLocaleString('es-CO')}`,
       ];
     });
     // Fila de subtotal repuestos
@@ -280,7 +289,9 @@ export class GenerarCotizacionPdfUseCase {
     );
 
     // Tabla Mantenimiento
-    const mttoHeaders = [['Descripcion', 'Estado', 'Tiempo', 'Valor']];
+    const mttoHeaders = [
+      ['Descripcion', 'Estado', 'Tiempo', ocultarValoresItem ? '' : 'Valor'],
+    ];
     let sumTiempo = 0;
     let sumaM = 0;
     mtto.forEach((m) => {
@@ -293,7 +304,7 @@ export class GenerarCotizacionPdfUseCase {
       m.mtto,
       m.estado === 1 ? 'Autorizado' : 'No autorizado',
       `${m.cant_horas.toFixed(1)} h`,
-      `$${Number(m.valor).toLocaleString('es-CO')}`,
+      ocultarValoresItem ? '' : `$${Number(m.valor).toLocaleString('es-CO')}`,
     ]);
     // Fila de subtotal mantenimiento
     mttoRows.push([

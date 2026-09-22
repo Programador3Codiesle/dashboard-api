@@ -78,6 +78,8 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
         AND ${visibilidadSql}
         AND (
           ${empresaId ?? null} IS NULL
+          -- Placa cotizada a mano: no hay fila en v_vh_vehiculos, así que v.marca es NULL.
+          OR v.placa IS NULL
           OR (
             (${empresaId ?? null} = 1 AND v.marca = '010') OR
             (${empresaId ?? null} = 2 AND v.marca IN ('302', '304')) OR
@@ -310,10 +312,12 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
         b.telefono,
         Crm.nombre AS asesor,
         Crm.e_mail AS correo,
-        CASE WHEN Crm.tel_celular IS NOT NULL THEN Crm.tel_celular ELSE t.celular END AS telAsesor
+        COALESCE(
+          NULLIF(LTRIM(RTRIM(Crm.tel_ofi1)), ''),
+          NULLIF(LTRIM(RTRIM(Crm.tel_celular)), '')
+        ) AS telAsesor
       FROM dbo.postv_cotizacion_contact CT
       LEFT JOIN bodegas b ON b.bodega = CT.bodega
-      LEFT JOIN terceros t ON t.nit = CT.usuario
       LEFT JOIN (SELECT * FROM CRM_contactos WHERE contacto = 1) Crm ON Crm.nit = CT.usuario
       WHERE CT.id_cotizacion = ${idCotizacion} AND CT.placa = ${placa}
     `;
@@ -384,10 +388,12 @@ export class CotizadorInformesPrismaRepository implements ICotizadorInformesRepo
         b.telefono,
         Crm.nombre AS asesor,
         Crm.e_mail AS correo,
-        CASE WHEN Crm.tel_celular IS NOT NULL THEN Crm.tel_celular ELSE t.celular END AS telAsesor
+        COALESCE(
+          NULLIF(LTRIM(RTRIM(Crm.tel_ofi1)), ''),
+          NULLIF(LTRIM(RTRIM(Crm.tel_celular)), '')
+        ) AS telAsesor
       FROM dbo.postv_cotizacion_contact_p CT
       LEFT JOIN bodegas b ON b.bodega = CT.bodega
-      LEFT JOIN terceros t ON t.nit = CT.usuario
       LEFT JOIN (SELECT * FROM CRM_contactos WHERE contacto = 1) Crm ON Crm.nit = CT.usuario
       WHERE CT.id_cotizacion = ${idCotizacion} AND CT.placa = ${placa}
     `;

@@ -3,13 +3,12 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { EmailService } from '../../../../core/infra/email/email.service';
 import {
   IMantenimientoRepository,
   type SessionUser,
 } from '../../domain/mantenimiento.repository';
 import { todayYmd } from '../utils/fechas';
+import { assertPuedeMutarEquipos } from '../utils/permiso-equipos';
 
 @Injectable()
 export class OrdenPreventivoDesdeEquipoUseCase {
@@ -41,53 +40,28 @@ export class OrdenPreventivoDesdeEquipoUseCase {
 
 @Injectable()
 export class SolicitarRetiroUseCase {
-  constructor(
-    private readonly repo: IMantenimientoRepository,
-    private readonly email: EmailService,
-    private readonly config: ConfigService,
-  ) {}
+  constructor(private readonly repo: IMantenimientoRepository) {}
 
   async execute(
     user: SessionUser,
     equipoId: number,
-    jefeNit: string,
     motivo: string,
     imagen: string,
   ) {
+    assertPuedeMutarEquipos(user);
     const eq = await this.repo.getEquipoById(equipoId);
     if (!eq) throw new NotFoundException('Equipo no encontrado');
+    if (!motivo?.trim()) throw new BadRequestException('Motivo requerido');
 
+    const fecha = todayYmd();
     const idRetiro = await this.repo.insertRetiro({
       equipoId,
       nitSolicita: user.nit,
       motivo,
       imagen,
-      fecha: todayYmd(),
+      fecha,
     });
-
-    const base = this.config.get<string>('APP_URL') ?? 'http://localhost:4000';
-    const accept = `${base}/mantenimiento/publico/autorizar-retiro?id=${idRetiro}&nit_user_resp=${encodeURIComponent(jefeNit)}`;
-    const reject = `${base}/mantenimiento/publico/rechazar-retiro?id=${idRetiro}&nit_user_resp=${encodeURIComponent(jefeNit)}`;
-
-    const correoJefe = await this.repo.getJefeCorreo(jefeNit);
-    const to = [correoJefe, 'programador3@codiesel.com'].filter(
-      Boolean,
-    ) as string[];
-
-    const html = `<p>Buen día</p>
-      <p>La persona <strong>${user.nombres}</strong> ha solicitado el retiro del activo fijo
-      <strong>${eq.codigo}</strong> (${eq.nombre_equipo}) por motivo:
-      <strong>${motivo}</strong></p>
-      <p><a href="${accept}">Aceptar</a> &nbsp; <a href="${reject}">Rechazar</a></p>`;
-
-    if (to.length) {
-      await this.email.sendEmail({
-        to,
-        subject: `Solicitud retiro de equipo: ${eq.nombre_equipo}`,
-        html,
-        empresaId: 1,
-      });
-    }
+    await this.repo.updateEstadoEquipo(equipoId, 'inactivo');
     return { ok: true, id: idRetiro };
   }
 }

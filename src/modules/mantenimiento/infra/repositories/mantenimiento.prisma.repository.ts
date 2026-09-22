@@ -82,7 +82,8 @@ export class MantenimientoPrismaRepository implements IMantenimientoRepository {
                e.area, e.cv_equipo, e.alias_equipo, e.imagen_equipo
         FROM dbo.postv_equipos e
         ${where}
-        ORDER BY e.id_equipo DESC
+        ORDER BY CASE WHEN LOWER(e.estado) = 'inactivo' THEN 1 ELSE 0 END,
+                 e.id_equipo DESC
         OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
       `,
     );
@@ -754,11 +755,12 @@ export class MantenimientoPrismaRepository implements IMantenimientoRepository {
   }): Promise<number> {
     const rows = await this.prisma.$queryRaw<Array<{ id: number }>>(Prisma.sql`
       INSERT INTO postv_equipos_retirados
-        (equipo_id, nit_usuario_solicita, motivo, imagen, estado, fecha_solicitud)
+        (equipo_id, nit_usuario_solicita, nit_usuario_autoriza, motivo, imagen,
+         estado, fecha_solicitud, fecha_autoriza)
       OUTPUT INSERTED.id
       VALUES
-        (${data.equipoId}, ${data.nitSolicita}, ${data.motivo},
-         ${data.imagen}, 0, ${data.fecha})
+        (${data.equipoId}, ${data.nitSolicita}, ${data.nitSolicita}, ${data.motivo},
+         ${data.imagen}, 2, ${data.fecha}, ${data.fecha})
     `);
     return num(rows[0]?.id);
   }

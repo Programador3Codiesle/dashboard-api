@@ -4,6 +4,7 @@ import { CotizadorFacade } from '../application/cotizador.facade';
 import { GetLivianosInitDataUseCase } from '../application/use-cases/get-livianos-init-data.usecase';
 import { GetVehiculoPorPlacaUseCase } from '../application/use-cases/get-vehiculo-por-placa.usecase';
 import { GetRevisionesLivianosUseCase } from '../application/use-cases/get-revisiones-livianos.usecase';
+import { GetModelosLivianosUseCase } from '../application/use-cases/get-modelos-livianos.usecase';
 import { GetRevisionDetalleLivianosUseCase } from '../application/use-cases/get-revision-detalle-livianos.usecase';
 import { CrearCotizacionLivianosUseCase } from '../application/use-cases/crear-cotizacion-livianos.usecase';
 import { GetPesadosInitDataUseCase } from '../application/use-cases/get-pesados-init-data.usecase';
@@ -70,6 +71,7 @@ import { GenerarCotizacionPdfUseCase } from '../application/use-cases/generar-co
     GetLivianosInitDataUseCase,
     GetVehiculoPorPlacaUseCase,
     GetRevisionesLivianosUseCase,
+    GetModelosLivianosUseCase,
     GetRevisionDetalleLivianosUseCase,
     CrearCotizacionLivianosUseCase,
     {

@@ -55,6 +55,11 @@ export class CotizadorController {
     return this.facade.getRevisionesLivianos(clase);
   }
 
+  @Get('livianos/modelos')
+  getModelosLivianos(@Query('descripcion') descripcion: string) {
+    return this.facade.getModelosLivianos(descripcion ?? '');
+  }
+
   @Get('livianos/adicionales-modal')
   getAdicionalesLivianosModal(
     @Query('clase') clase: string,

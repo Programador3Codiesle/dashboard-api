@@ -116,6 +116,7 @@ export abstract class ICotizadorLivianosRepository {
     placa: string,
   ): Promise<VehiculoCotizacionLivianos | null>;
   abstract getClasesForm(): Promise<ClaseDescripcion[]>;
+  abstract getModelosPorDescripcion(descripcion: string): Promise<string[]>;
   abstract getBodegas(): Promise<BodegaOption[]>;
   abstract getNameAdicionales(): Promise<RawSqlRow[]>;
   abstract getTiposRetornos(): Promise<RawSqlRow[]>;

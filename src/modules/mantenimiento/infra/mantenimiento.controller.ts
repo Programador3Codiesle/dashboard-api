@@ -127,11 +127,13 @@ export class MantenimientoController {
   @Put('equipos/:id')
   @UseInterceptors(diskUpload('cv_equipos'))
   actualizarEquipo(
+    @Req() req: AuthRequest,
     @Param('id', ParseIntPipe) id: number,
     @Body() body: Record<string, string>,
     @UploadedFile() file?: Express.Multer.File,
   ) {
     return this.facade.actualizarEquipo(
+      parseSession(req),
       id,
       {
         nombre_equipo: body.nombre_equipo,
@@ -197,10 +199,12 @@ export class MantenimientoController {
     @UploadedFile() file?: Express.Multer.File,
   ) {
     if (!file) throw new BadRequestException('Imagen requerida');
+    if (!body.motivo_solicitud?.trim()) {
+      throw new BadRequestException('Motivo requerido');
+    }
     return this.facade.solicitarRetiro(
       parseSession(req),
       id,
-      body.jefe,
       body.motivo_solicitud,
       file.filename,
     );

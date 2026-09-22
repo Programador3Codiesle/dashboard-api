@@ -134,6 +134,7 @@ export class MantenimientoFacade {
   }
 
   actualizarEquipo(
+    user: SessionUser,
     id: number,
     body: {
       nombre_equipo: string;
@@ -145,7 +146,7 @@ export class MantenimientoFacade {
     },
     cvFilename?: string,
   ) {
-    return this.actualizarEquipoUc.execute(id, body, cvFilename);
+    return this.actualizarEquipoUc.execute(user, id, body, cvFilename);
   }
 
   getHojaVida(id: number) {
@@ -192,17 +193,10 @@ export class MantenimientoFacade {
   solicitarRetiro(
     user: SessionUser,
     equipoId: number,
-    jefeNit: string,
     motivo: string,
     imagen: string,
   ) {
-    return this.solicitarRetiroUc.execute(
-      user,
-      equipoId,
-      jefeNit,
-      motivo,
-      imagen,
-    );
+    return this.solicitarRetiroUc.execute(user, equipoId, motivo, imagen);
   }
 
   autorizarRetiroPublico(id: number, nitJefe: string) {
