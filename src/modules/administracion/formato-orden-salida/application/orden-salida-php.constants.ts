@@ -68,6 +68,14 @@ export const JEFES_TIPOS_SALIDAS: Record<number, number[]> = {
   37579713: [1, 2],
 };
 
+/**
+ * PHP `obtenerCamposExtra`: 1 y 15 piden solo placa;
+ * 8, 10, 16 y 18 piden placa y conductor.
+ */
+export const TIPOS_SALIDA_CON_PLACA = new Set([1, 8, 10, 15, 16, 18]);
+
+export const TIPOS_SALIDA_CON_CONDUCTOR = new Set([8, 10, 16, 18]);
+
 /** PHP `$jefes_todos` — ven todos los tipos (18 solo Azucena). */
 export const JEFES_TODOS_TIPOS = [
   1094241876, 79145617, 1092338001, 1098679322, 63289710, 63369607, 91298113,
