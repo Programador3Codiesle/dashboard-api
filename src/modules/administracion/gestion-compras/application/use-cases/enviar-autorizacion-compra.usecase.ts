@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { getAppBaseUrl } from '../../../../../core/config/env-urls';
 import { IGestionCompraRepository } from '../../domain/gestion-compra.repository';
@@ -9,6 +9,15 @@ import {
   DESTINATARIOS_AUTORIZACION_COMPRAS,
   parseListaEmails,
 } from '../destinos-email-compras';
+import { veTodasLasCompras } from '../visibilidad-compras';
+
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
 
 @Injectable()
 export class EnviarAutorizacionCompraUseCase {
@@ -23,40 +32,93 @@ export class EnviarAutorizacionCompraUseCase {
     return getAppBaseUrl(this.config);
   }
 
-  async execute(solicitudId: bigint, dto: EnviarAutorizacionCompraDto) {
+  async execute(
+    solicitudId: bigint,
+    dto: EnviarAutorizacionCompraDto,
+    perfil: number,
+    idUsuario: number,
+  ) {
+    if (!veTodasLasCompras(perfil)) {
+      throw new ForbiddenException(
+        'No tiene permiso para enviar la autorización',
+      );
+    }
+    const comentarios = dto.comentarios?.trim() ?? '';
+    if (comentarios.length < 15) {
+      return {
+        status: false,
+        message: 'Los comentarios deben tener al menos 15 caracteres',
+      };
+    }
     const archivos = dto.archivos || [];
-    const success = await this.repo.enviarAutorizacion(
+    if (archivos.length === 0) {
+      return {
+        status: false,
+        message: 'Debe adjuntar al menos una cotización',
+      };
+    }
+    const compraPrevia = await this.repo.findById(solicitudId);
+    if (!compraPrevia) {
+      return { status: false, message: 'Solicitud no encontrada' };
+    }
+    if (
+      compraPrevia.estado_autorizacion !== 1 &&
+      compraPrevia.estado_autorizacion !== 4
+    ) {
+      return {
+        status: false,
+        message: 'La solicitud no está disponible para enviar autorización',
+      };
+    }
+
+    const idsCotizacion = await this.repo.enviarAutorizacion(
       solicitudId,
-      dto.comentarios,
+      comentarios,
       archivos,
     );
-    if (!success) {
+    if (idsCotizacion == null) {
       return {
         status: false,
         message: 'No se pudo enviar la autorización',
       };
     }
 
-    // Enviar correo (best-effort; no rompe el flujo si falla SMTP)
     const compra = await this.repo.findById(solicitudId);
     const subject = 'Nueva Solicitud de Compra';
-
-    const token = this.tokenRespuesta.generarToken(
-      solicitudId,
-      'gestion-compra',
-    );
-    const urlAutorizar = this.tokenRespuesta.urlResponder(token, 'aprobar');
-    const urlRechazar = this.tokenRespuesta.urlResponder(token, 'rechazar');
+    const nombreSolicita = compra?.usu_solicita
+      ? await this.repo.nombreTercero(compra.usu_solicita)
+      : null;
 
     const base = this.baseUrl();
-    const links = (archivos || [])
-      .map((u) => {
-        const urlCompleta = u.startsWith('http')
-          ? u
-          : `${base}${u.startsWith('/') ? u : '/' + u}`;
-        return `<li><a href="${urlCompleta}" target="_blank" rel="noreferrer">${u}</a></li>`;
+    const filas = idsCotizacion
+      .map((idCoti, index) => {
+        const archivo = archivos[index] ?? '';
+        const urlArchivo = archivo.startsWith('http')
+          ? archivo
+          : `${base}${archivo.startsWith('/') ? archivo : '/' + archivo}`;
+        const token = this.tokenRespuesta.generarToken(
+          solicitudId,
+          'gestion-compra',
+          Number(idCoti),
+        );
+        const urlAutorizar = this.tokenRespuesta.urlResponder(token, 'aprobar');
+        const urlRechazar = this.tokenRespuesta.urlResponder(token, 'rechazar');
+        return `<tr>
+          <td>${idCoti.toString()}</td>
+          <td><a href="${escapeHtml(urlArchivo)}">Ver Cotización</a></td>
+          <td><a href="${escapeHtml(urlAutorizar)}">Aprobar</a></td>
+          <td><a href="${escapeHtml(urlRechazar)}">Rechazar</a></td>
+        </tr>`;
       })
       .join('');
+
+    const fechaSolicitud = compra?.fecha_solicitud
+      ? new Date(compra.fecha_solicitud).toLocaleDateString('sv-SE', {
+          timeZone: 'America/Bogota',
+        })
+      : '-';
+    const motivo = escapeHtml(compra?.descri_prod ?? '-');
+    const notas = escapeHtml(comentarios);
 
     const html = `
           <div style="font-family: Arial, sans-serif; padding: 16px; background:#f8f9fa;">
@@ -65,23 +127,22 @@ export class EnviarAutorizacionCompraUseCase {
                 <h2 style="margin:0; font-size: 18px;">Nueva Solicitud de Compra</h2>
               </div>
               <div style="padding: 18px 20px; color:#111827;">
-                <p style="margin:0 0 10px 0;"><strong>Solicitud:</strong> ${compra?.id_solicitud?.toString?.() ?? solicitudId.toString()}</p>
-                <p style="margin:0 0 10px 0;"><strong>Motivo:</strong> ${compra?.descri_prod ?? '-'}</p>
-                <p style="margin:0 0 10px 0;"><strong>Fecha de solicitud:</strong> ${compra?.fecha_solicitud ? new Date(compra.fecha_solicitud).toISOString().split('T')[0] : '-'}</p>
-                <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 14px 0;" />
+                <p style="margin:0 0 10px 0;">Usted ha recibido una nueva Solicitud de compra por motivo de: ${motivo}.<br/>
+                Solicita: ${escapeHtml(nombreSolicita ?? '-')}<br/>
+                Fecha de Solicitud: ${escapeHtml(fechaSolicitud)}</p>
                 <p style="margin:0 0 8px 0;"><strong>Notas:</strong></p>
-                <p style="margin:0 0 14px 0; white-space: pre-wrap;">${dto.comentarios ?? ''}</p>
-                ${
-                  links
-                    ? `<p style="margin:0 0 8px 0;"><strong>Cotizaciones:</strong></p><ul style="margin:0; padding-left: 18px;">${links}</ul>`
-                    : `<p style="margin:0; color:#6b7280;">Sin cotizaciones adjuntas.</p>`
-                }
-                <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 18px 0;" />
-                <p style="margin:0 0 10px 0;"><strong>Responder:</strong></p>
-                <p style="margin:0 0 8px 0;">
-                  <a href="${urlAutorizar}" style="display:inline-block; margin-right:12px; padding:10px 20px; background:#16a34a; color:#fff; text-decoration:none; border-radius:6px;">Autorizar gesti\u00f3n de compra</a>
-                  <a href="${urlRechazar}" style="display:inline-block; padding:10px 20px; background:#dc2626; color:#fff; text-decoration:none; border-radius:6px;">Rechazar gesti\u00f3n de compra</a>
-                </p>
+                <p style="margin:0 0 14px 0; white-space: pre-wrap;">${notas}</p>
+                <table border="1" cellpadding="6" cellspacing="0" style="width:100%; border-collapse:collapse;">
+                  <thead>
+                    <tr>
+                      <th>Id</th>
+                      <th>Ver Cotización</th>
+                      <th>Aprobar</th>
+                      <th>Rechazar</th>
+                    </tr>
+                  </thead>
+                  <tbody>${filas}</tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -99,6 +160,16 @@ export class EnviarAutorizacionCompraUseCase {
       html,
       empresaId: compra?.id_empresa,
     });
+
+    if (mailResult.ok) {
+      const ultima = idsCotizacion[idsCotizacion.length - 1] ?? null;
+      await this.repo.insertarLog({
+        idSolicitud: solicitudId,
+        usuarioReg: idUsuario,
+        item: 7,
+        idCotizacion: ultima,
+      });
+    }
 
     return {
       status: true,

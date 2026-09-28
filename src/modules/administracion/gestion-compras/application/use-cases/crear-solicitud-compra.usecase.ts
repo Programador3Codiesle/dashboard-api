@@ -21,7 +21,8 @@ export class CrearSolicitudCompraUseCase {
   async execute(
     dto: CreateGestionCompraDto,
     usuSolicitaNit: number,
-    idEmpresa?: number,
+    idEmpresa: number | undefined,
+    idUsuario: number,
   ) {
     const result = await this.repo.create({
       area: dto.area,
@@ -45,6 +46,15 @@ export class CrearSolicitudCompraUseCase {
       throw new BadRequestException(
         result.message || 'No se pudo crear la solicitud de compra',
       );
+    }
+
+    const idSolicitud = result.data.id_solicitud;
+    if (idSolicitud != null) {
+      await this.repo.insertarLog({
+        idSolicitud,
+        usuarioReg: idUsuario,
+        item: 1,
+      });
     }
 
     try {

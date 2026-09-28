@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
 import { IAjusteValoresRepository } from '../../domain/ajuste-valores.repository';
-import { RepositoryResponse } from '../../domain/ajuste-valores.interface';
+import {
+  LogAjusteValores,
+  RepositoryResponse,
+} from '../../domain/ajuste-valores.interface';
 import { AjusteValoresEntity } from '../../domain/ajuste-valores.entity';
 
 @Injectable()
@@ -136,6 +139,7 @@ export class AjusteValoresPrismaRepository implements IAjusteValoresRepository {
         numero_cruce:
           data.numero_aplica != null ? Number(data.numero_aplica) : null,
         tipo_cruce: data.tipo_aplica != null ? data.tipo_aplica : null,
+        valor: data.valor != null ? Number(data.valor) : null,
       });
 
       return {
@@ -420,5 +424,157 @@ export class AjusteValoresPrismaRepository implements IAjusteValoresRepository {
     mapper: (row: any) => Partial<AjusteValoresEntity>,
   ): AjusteValoresEntity {
     return new AjusteValoresEntity(mapper(row));
+  }
+
+  async listarFormasPago(tipo: string, numero: number) {
+    try {
+      const rows = await this.prisma.$queryRaw<
+        {
+          id: number | bigint;
+          forma_pago: number | null;
+          valor: number | string | null;
+          ano: number | null;
+          mes: number | null;
+        }[]
+      >(
+        Prisma.sql`
+          SELECT id, forma_pago, valor, YEAR(fecha) AS ano, MONTH(fecha) AS mes
+          FROM documentos_che
+          WHERE tipo = ${tipo} AND numero = ${numero}
+        `,
+      );
+      if (!rows?.length) {
+        return {
+          status: false,
+          message: `No se encontraron formas de pago para el tipo ${tipo} y número ${numero}`,
+        };
+      }
+      const first = rows[0];
+      return {
+        status: true,
+        message: 'Formas de pago obtenidas correctamente',
+        data: {
+          ano: first.ano != null ? Number(first.ano) : null,
+          mes: first.mes != null ? Number(first.mes) : null,
+          lineas: rows.map((row) => ({
+            id: Number(row.id),
+            forma_pago: row.forma_pago != null ? Number(row.forma_pago) : null,
+            valor: row.valor != null ? Number(row.valor) : null,
+          })),
+        },
+      };
+    } catch (error) {
+      return {
+        status: false,
+        message: `Error al obtener formas de pago: ${error instanceof Error ? error.message : 'Error desconocido'}`,
+      };
+    }
+  }
+
+  async actualizarDocumento(
+    tipo: string,
+    numero: number,
+    data: Partial<AjusteValoresEntity>,
+  ) {
+    const columnas: Array<[keyof AjusteValoresEntity, string]> = [
+      ['retencion', 'retencion'],
+      ['retencion_iva', 'retencion_iva'],
+      ['retencion_ica', 'retencion_ica'],
+      ['iva', 'iva'],
+      ['Retencion_estampilla2', 'Retencion_estampilla2'],
+      ['Retencion_estampilla1', 'Retencion_estampilla1'],
+      ['valor_aplicado', 'valor_aplicado'],
+      ['valor_total', 'valor_total'],
+    ];
+    const sets: Prisma.Sql[] = [];
+    for (const [campo, columna] of columnas) {
+      if (data[campo] !== undefined) {
+        sets.push(Prisma.sql`${Prisma.raw(columna)} = ${data[campo]}`);
+      }
+    }
+    if (!sets.length) {
+      return { status: false, message: 'No hay campos para actualizar' };
+    }
+    await this.prisma.$executeRaw(
+      Prisma.sql`
+        UPDATE documentos
+        SET ${Prisma.join(sets, ', ')}
+        WHERE tipo = ${tipo} AND numero = ${numero}
+      `,
+    );
+    return {
+      status: true,
+      message: 'Valores actualizados correctamente',
+      data: true,
+    };
+  }
+
+  async actualizarFormaPagoPorId(
+    tipo: string,
+    numero: number,
+    id: number,
+    formaPago: number | null,
+    valor: number | null,
+  ) {
+    await this.prisma.$executeRaw(
+      Prisma.sql`
+        UPDATE documentos_che
+        SET forma_pago = ${formaPago}, valor = ${valor}
+        WHERE tipo = ${tipo} AND numero = ${numero} AND id = ${id}
+      `,
+    );
+    return {
+      status: true,
+      message: 'Forma de pago actualizada correctamente',
+      data: true,
+    };
+  }
+
+  async actualizarValorCruce(tipo: string, numero: number, valor: number) {
+    await this.prisma.$executeRaw(
+      Prisma.sql`
+        UPDATE documentos_cruce
+        SET valor = ${valor}
+        WHERE tipo_aplica = ${tipo} AND numero_aplica = ${numero}
+      `,
+    );
+    return {
+      status: true,
+      message: 'Valor de cruce actualizado correctamente',
+      data: true,
+    };
+  }
+
+  async guardarLog(data: LogAjusteValores): Promise<void> {
+    await this.prisma.$executeRaw(
+      Prisma.sql`
+        INSERT INTO postv_ajuste_valores_cont_log (
+          idUser_reg, tipo, numero,
+          retencion, retencion_iva, retencion_ica, iva,
+          Retencion_estampilla2, Retencion_estampilla1,
+          valor_aplicado, valor_total,
+          forma_pago, valor, idDoc,
+          forma_pago2, valor2, idDoc2
+        ) VALUES (
+          ${data.idUser},
+          ${data.tipo},
+          ${data.numero},
+          ${data.retencion ?? null},
+          ${data.retencion_iva ?? null},
+          ${data.retencion_ica ?? null},
+          ${data.iva ?? null},
+          ${data.Retencion_estampilla2 ?? null},
+          ${data.Retencion_estampilla1 ?? null},
+          ${data.valor_aplicado ?? null},
+          ${data.valor_total ?? null},
+          ${data.forma_pago ?? null},
+          ${data.valor ?? null},
+          ${data.idDoc ?? null},
+          ${data.forma_pago2 ?? null},
+          ${data.valor2 ?? null},
+          ${data.idDoc2 ?? null}
+        )
+      `,
+    );
   }
 }

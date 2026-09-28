@@ -74,6 +74,7 @@ const JEFES: Record<number, string> = {
   63289710: 'Yolanda Quintero Ortiz',
   63369607: 'Azucena Franco Gomez',
   91298113: 'Orlando Duran Serrano',
+  1098668953: 'Barajas Duarte Sergio Antonio',
   63541030: 'Johana Uribe Agredo',
 };
 

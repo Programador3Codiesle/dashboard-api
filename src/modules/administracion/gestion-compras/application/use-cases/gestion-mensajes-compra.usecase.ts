@@ -10,17 +10,38 @@ export class GestionMensajesCompraUseCase {
     solicitudId: bigint,
     nitUsuario: number,
     dto: CrearMensajeCompraDto,
+    idUsuario: number,
   ) {
-    const success = await this.repo.crearMensaje(
+    const compra = await this.repo.findById(solicitudId);
+    if (!compra) {
+      return { status: false, message: 'Solicitud no encontrada' };
+    }
+    if (compra.estado === 4 || compra.estado === 5) {
+      return {
+        status: false,
+        message:
+          'No se pueden agregar mensajes a una solicitud despachada o negada',
+      };
+    }
+    const idMensaje = await this.repo.crearMensaje(
       solicitudId,
       nitUsuario,
       dto.mensaje,
     );
+    if (idMensaje != null) {
+      await this.repo.insertarLog({
+        idSolicitud: solicitudId,
+        usuarioReg: idUsuario,
+        item: 6,
+        idMensaje,
+      });
+    }
     return {
-      status: success,
-      message: success
-        ? 'Mensaje creado correctamente'
-        : 'No se pudo crear el mensaje',
+      status: idMensaje != null,
+      message:
+        idMensaje != null
+          ? 'Mensaje creado correctamente'
+          : 'No se pudo crear el mensaje',
     };
   }
 

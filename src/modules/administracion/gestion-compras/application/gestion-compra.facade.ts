@@ -30,9 +30,10 @@ export class GestionCompraFacade {
   crearSolicitud(
     dto: CreateGestionCompraDto,
     userId: number,
-    idEmpresa?: number,
+    idEmpresa: number | undefined,
+    idUsuario: number,
   ) {
-    return this.crearSolicitudUC.execute(dto, userId, idEmpresa);
+    return this.crearSolicitudUC.execute(dto, userId, idEmpresa, idUsuario);
   }
 
   listarCompras(
@@ -46,28 +47,53 @@ export class GestionCompraFacade {
     return this.listarUsuariosGerenteUC.execute();
   }
 
-  cambiarEstado(id: bigint, dto: CambiarEstadoCompraDto) {
-    return this.cambiarEstadoUC.execute(id, dto);
+  cambiarEstado(
+    id: bigint,
+    dto: CambiarEstadoCompraDto,
+    perfil: number,
+    idUsuario: number,
+  ) {
+    return this.cambiarEstadoUC.execute(id, dto, perfil, idUsuario);
   }
 
-  marcarConFactura(id: bigint, conFactura: string) {
-    return this.marcarConFacturaUC.execute(id, conFactura);
+  marcarConFactura(id: bigint, conFactura: string, perfil: number) {
+    return this.marcarConFacturaUC.execute(id, conFactura, perfil);
   }
 
   crearMensaje(
     solicitudId: bigint,
     nitUsuario: number,
     dto: CrearMensajeCompraDto,
+    idUsuario: number,
   ) {
-    return this.gestionMensajesUC.crearMensaje(solicitudId, nitUsuario, dto);
+    return this.gestionMensajesUC.crearMensaje(
+      solicitudId,
+      nitUsuario,
+      dto,
+      idUsuario,
+    );
   }
 
   listarMensajes(solicitudId: bigint) {
     return this.gestionMensajesUC.listarMensajes(solicitudId);
   }
 
-  enviarAutorizacion(solicitudId: bigint, dto: EnviarAutorizacionCompraDto) {
-    return this.enviarAutorizacionUC.execute(solicitudId, dto);
+  obtenerCotizacionAprobada(solicitudId: bigint) {
+    return this.listarComprasUC.obtenerCotizacionAprobada(solicitudId);
+  }
+
+  enviarAutorizacion(
+    solicitudId: bigint,
+    dto: EnviarAutorizacionCompraDto,
+    perfil: number,
+    idUsuario: number,
+  ) {
+    return this.enviarAutorizacionUC.execute(
+      solicitudId,
+      dto,
+      perfil,
+      idUsuario,
+    );
   }
 
   exportarExcel(

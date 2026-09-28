@@ -3,6 +3,7 @@ import {
   IAjusteValoresRepository,
   RepositoryResponse,
 } from '../../domain/ajuste-valores.repository';
+import { FormasPagoDocumento } from '../../domain/ajuste-valores.interface';
 import { ResponseAjusteValoresDto } from '../dto/response-ajuste-valores.dto';
 import { AjusteValoresMapper } from '../../presentation/mappers/ajuste-valores.mapper';
 
@@ -34,21 +35,8 @@ export class ObtenerValoresUseCase {
   async obtenerValores2(
     tipo: string,
     numero: number,
-  ): Promise<RepositoryResponse<ResponseAjusteValoresDto>> {
-    const response = await this.repo.obtenerValores2(tipo, numero);
-
-    if (!response.status || !response.data) {
-      return {
-        status: false,
-        message: response.message,
-      };
-    }
-
-    return {
-      status: true,
-      message: response.message,
-      data: AjusteValoresMapper.toResponseDto(response.data),
-    };
+  ): Promise<RepositoryResponse<FormasPagoDocumento>> {
+    return this.repo.listarFormasPago(tipo, numero);
   }
 
   async obtenerValoresCruce(

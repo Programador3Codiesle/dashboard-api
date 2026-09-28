@@ -37,6 +37,19 @@ export interface MensajeCompra {
   solicitud_compra: bigint;
 }
 
+export interface CotizacionGestCompra {
+  id_coti: bigint;
+  id_compra: bigint;
+  url: string;
+  estado: number;
+}
+
+export interface MensajeExcelCompra {
+  solicitud_compra: bigint;
+  nombres: string;
+  mensaje: string;
+}
+
 export abstract class IGestionCompraRepository {
   abstract create(
     data: Partial<GestionCompraEntity>,
@@ -54,11 +67,41 @@ export abstract class IGestionCompraRepository {
     solicitudId: bigint,
     nitUsuario: number,
     mensaje: string,
-  ): Promise<boolean>;
+  ): Promise<bigint | null>;
   abstract listarMensajes(solicitudId: bigint): Promise<MensajeCompra[]>;
+  abstract listarMensajesExcel(
+    solicitudIds: bigint[],
+  ): Promise<MensajeExcelCompra[]>;
+  /** Ids de cotización insertados. null si el update de estado falló. */
   abstract enviarAutorizacion(
     solicitudId: bigint,
     comentarios: string,
     archivos: string[],
+  ): Promise<bigint[] | null>;
+  abstract insertarLog(data: {
+    idSolicitud: bigint;
+    usuarioReg: number;
+    item: number;
+    idCotizacion?: bigint | null;
+    idMensaje?: bigint | null;
+  }): Promise<void>;
+  abstract obtenerCotizacion(
+    idCoti: bigint,
+  ): Promise<CotizacionGestCompra | null>;
+  /** Compras.php get_solicitud_aprobada: cotización con estado 1. */
+  abstract obtenerUrlCotizacionAprobada(
+    idCompra: bigint,
+  ): Promise<string | null>;
+  abstract nombreTercero(nit: number): Promise<string | null>;
+  abstract marcarCotizacionEstado(
+    idCoti: bigint,
+    estado: number,
+  ): Promise<void>;
+  abstract rechazarCotizacionesPendientes(idCompra: bigint): Promise<void>;
+  abstract guardarResultadoAutorizacion(
+    idSolicitud: bigint,
+    estadoAutorizacion: number,
+    fecha: string,
+    cotizacionFile?: string | null,
   ): Promise<boolean>;
 }

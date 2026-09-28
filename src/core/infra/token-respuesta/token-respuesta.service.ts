@@ -11,12 +11,15 @@ export type TipoAutorizacion =
 export interface PayloadTokenRespuesta {
   id: number | string;
   tipo: TipoAutorizacion;
+  /** Cotización concreta. Compras.php manda un enlace por archivo. */
+  idCotizacion?: number;
   exp?: number;
 }
 
 export interface TokenRespuestaDecodificado {
   id: number | string;
   tipo: TipoAutorizacion;
+  idCotizacion?: number;
 }
 
 const EXPIRACION_DIAS = 7;
@@ -35,7 +38,11 @@ export class TokenRespuestaService {
    * Genera un JWT para links de autorización por correo.
    * id se serializa como number (BigInt no es JSON-serializable; para gestion-compra y ausentismo se pasa como number).
    */
-  generarToken(id: number | bigint, tipo: TipoAutorizacion): string {
+  generarToken(
+    id: number | bigint,
+    tipo: TipoAutorizacion,
+    idCotizacion?: number,
+  ): string {
     if (!this.secret) {
       throw new Error('JWT_RESPUESTA_SECRET no configurado');
     }
@@ -45,6 +52,9 @@ export class TokenRespuestaService {
       tipo,
       exp,
     };
+    if (idCotizacion != null) {
+      payload.idCotizacion = idCotizacion;
+    }
     return jwt.sign(payload, this.secret, { algorithm: 'HS256' });
   }
 
@@ -59,7 +69,14 @@ export class TokenRespuestaService {
       const decoded = jwt.verify(token, this.secret, {
         algorithms: ['HS256'],
       }) as PayloadTokenRespuesta;
-      return { id: decoded.id, tipo: decoded.tipo };
+      return {
+        id: decoded.id,
+        tipo: decoded.tipo,
+        idCotizacion:
+          decoded.idCotizacion != null
+            ? Number(decoded.idCotizacion)
+            : undefined,
+      };
     } catch {
       throw new Error('Token inválido o expirado');
     }

@@ -29,9 +29,21 @@ import { join } from 'path';
 import * as fs from 'fs';
 
 type GestionComprasAuthRequest = {
-  user?: { nit?: string | number; role?: string | number };
+  user?: {
+    sub?: string | number;
+    nit?: string | number;
+    role?: string | number;
+  };
   cookies?: Record<string, string>;
 };
+
+function idUsuarioDesdeReq(req: GestionComprasAuthRequest): number {
+  const id = req.user?.sub != null ? Number(req.user.sub) : NaN;
+  if (!Number.isFinite(id) || id <= 0) {
+    throw new BadRequestException('No se pudo obtener el usuario');
+  }
+  return id;
+}
 
 function sesionListarDesdeReq(
   req: GestionComprasAuthRequest,
@@ -67,7 +79,12 @@ export class GestionComprasController {
     if (idEmpresa == null) {
       idEmpresa = empresaIdDesdeCookie(req.cookies);
     }
-    return this.facade.crearSolicitud(dto, usuSolicitaNit, idEmpresa);
+    return this.facade.crearSolicitud(
+      dto,
+      usuSolicitaNit,
+      idEmpresa,
+      idUsuarioDesdeReq(req),
+    );
   }
 
   @Get()
@@ -100,18 +117,35 @@ export class GestionComprasController {
 
   @Patch(':id/estado')
   cambiarEstado(
+    @Req() req: GestionComprasAuthRequest,
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CambiarEstadoCompraDto,
   ) {
-    return this.facade.cambiarEstado(BigInt(id), dto);
+    const sesion = sesionListarDesdeReq(req);
+    return this.facade.cambiarEstado(
+      BigInt(id),
+      dto,
+      sesion.perfil,
+      idUsuarioDesdeReq(req),
+    );
   }
 
   @Patch(':id/con-factura')
   marcarConFactura(
+    @Req() req: GestionComprasAuthRequest,
     @Param('id', ParseIntPipe) id: number,
     @Body('conFactura') conFactura: string,
   ) {
-    return this.facade.marcarConFactura(BigInt(id), conFactura);
+    return this.facade.marcarConFactura(
+      BigInt(id),
+      conFactura,
+      sesionListarDesdeReq(req).perfil,
+    );
+  }
+
+  @Get(':id/cotizacion-aprobada')
+  cotizacionAprobada(@Param('id', ParseIntPipe) id: number) {
+    return this.facade.obtenerCotizacionAprobada(BigInt(id));
   }
 
   @Get(':id/mensajes')
@@ -129,7 +163,12 @@ export class GestionComprasController {
     if (!Number.isFinite(nitUsuario)) {
       throw new BadRequestException('No se pudo obtener el NIT del usuario');
     }
-    return this.facade.crearMensaje(BigInt(id), nitUsuario, dto);
+    return this.facade.crearMensaje(
+      BigInt(id),
+      nitUsuario,
+      dto,
+      idUsuarioDesdeReq(req),
+    );
   }
 
   @Post(':id/autorizacion')
@@ -157,25 +196,11 @@ export class GestionComprasController {
           cb(null, name);
         },
       }),
-      fileFilter: (_req, file, cb) => {
-        const allowed = [
-          'application/pdf',
-          'image/png',
-          'image/jpeg',
-          'image/jpg',
-        ];
-        if (!allowed.includes(file.mimetype)) {
-          return cb(
-            new Error('Tipo de archivo no permitido. Solo PDF/JPG/PNG'),
-            false,
-          );
-        }
-        cb(null, true);
-      },
-      limits: { fileSize: 10 * 1024 * 1024 }, // 10MB por archivo
+      limits: { fileSize: 10 * 1024 * 1024 },
     }),
   )
   enviarAutorizacion(
+    @Req() req: GestionComprasAuthRequest,
     @Param('id', ParseIntPipe) id: number,
     @Body('comentarios') comentarios: string,
     @UploadedFiles() files: Express.Multer.File[],
@@ -184,6 +209,12 @@ export class GestionComprasController {
       (f) => `/uploads/administracion/gestion-compra/${f.filename}`,
     );
     const dto: EnviarAutorizacionCompraDto = { comentarios, archivos };
-    return this.facade.enviarAutorizacion(BigInt(id), dto);
+    const sesion = sesionListarDesdeReq(req);
+    return this.facade.enviarAutorizacion(
+      BigInt(id),
+      dto,
+      sesion.perfil,
+      idUsuarioDesdeReq(req),
+    );
   }
 }

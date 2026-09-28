@@ -152,6 +152,44 @@ export interface AdminSedeTalleresDto {
   talleres: AdminTallerDetalleDto[];
 }
 
+/** Fila del informe posventa (vista gerencia.php). */
+export interface InformePosventaTallerDto {
+  nombre: string;
+  presupuesto: number;
+  total: number;
+  /** Porcentaje ya redondeado, como `round()` de PHP. */
+  porcentaje: number;
+  /** true si el porcentaje sin redondear es >= 100. */
+  metaCumplida: boolean;
+  /**
+   * Desglose solo en talleres (el mostrador no lo abre).
+   * El legacy pinta MO con `get_presupuesto_rep` y REP con `get_presupuesto_mo`.
+   */
+  mo?: number;
+  tot?: number;
+  rep?: number;
+}
+
+export interface InformePosventaSedeDto {
+  nombre: string;
+  presupuesto: number;
+  total: number;
+  porcentaje: number;
+  metaCumplida: boolean;
+  talleres?: InformePosventaTallerDto[];
+}
+
+export interface InformePosventaDto {
+  general: {
+    nombre: string;
+    presupuesto: number;
+    total: number;
+    porcentaje: number;
+    metaCumplida: boolean;
+  };
+  sedes: InformePosventaSedeDto[];
+}
+
 export interface DashboardAdminDto extends DashboardBase {
   variant: 'admin';
   graf_sedes?: Array<{ total: number; sede: string }>;
@@ -179,6 +217,8 @@ export interface DashboardAdminDto extends DashboardBase {
    * Inicialmente opcional; se puede ir poblando progresivamente.
    */
   sedes_talleres?: AdminSedeTalleresDto[];
+  /** Solo perfiles 22 y 23. No se envía en el panel administrativo. */
+  informe_posventa?: InformePosventaDto;
 }
 
 /** Perfil 31: Agente Call Center — mismo contenido admin + data_estado para cambiar estado. */
@@ -187,20 +227,10 @@ export interface DashboardAgenteCCDto extends DashboardBase {
   data_estado?: Array<{ estado: string }>;
 }
 
-/** Perfiles 22, 23: Gerencia — mismo contenido que admin (informe posventa por sedes/talleres). */
+/** Perfiles 22 y 23: Informe Posventa actual (admin/gerencia.php). */
 export interface DashboardGerenciaDto extends DashboardBase {
   variant: 'gerencia';
-  graf_sedes?: Array<{ total: number; sede: string }>;
-  porcen_giron?: number;
-  porcen_rosita?: number;
-  porcen_barranca?: number;
-  porcen_bocono?: number;
-  porcen_soloc?: number;
-  porcen_chev?: number;
-  to_posv?: number;
-  cal_pac?: { Calificacion?: number };
-  to_inv?: number;
-  nps_int?: number;
+  informe_posventa?: InformePosventaDto;
 }
 
 /** Perfil 28: Compras — resumen solicitudes pendientes / en proceso / finalizadas. */

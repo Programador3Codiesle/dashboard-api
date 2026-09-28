@@ -5,11 +5,32 @@ import { CODIESEL_EMPRESA_ID } from '../../../../../core/config/empresa-sesion';
 import {
   IGestionCompraRepository,
   ListarComprasFiltros,
+  CotizacionGestCompra,
   ListarComprasResult,
   MensajeCompra,
+  MensajeExcelCompra,
   UsuarioGerenteCombo,
 } from '../../domain/gestion-compra.repository';
 import { GestionCompraEntity } from '../../domain/gestion-compra.entity';
+
+/** Día calendario en América/Bogotá. date('Y-m-d') del legacy. */
+function fechaCalendarioBogota(value: Date): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Bogota',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(value);
+}
+
+/**
+ * Fecha elegida en el formulario (YYYY-MM-DD). new Date('YYYY-MM-DD') es
+ * medianoche UTC; se guarda ese día, sin pasarlo a Bogotá.
+ */
+function fechaTentativaGuardada(value: Date | undefined): string {
+  if (!value) return fechaCalendarioBogota(new Date());
+  return value.toISOString().slice(0, 10);
+}
 
 @Injectable()
 export class GestionCompraPrismaRepository implements IGestionCompraRepository {
@@ -18,12 +39,10 @@ export class GestionCompraPrismaRepository implements IGestionCompraRepository {
   async create(
     data: Partial<GestionCompraEntity>,
   ): Promise<{ status: boolean; message: string; data?: GestionCompraEntity }> {
-    const fechaSolicitud =
-      data.fecha_solicitud?.toISOString().split('T')[0] ||
-      new Date().toISOString().split('T')[0];
-    const fechaTentativa =
-      data.fecha_tentativa?.toISOString().split('T')[0] ||
-      new Date().toISOString().split('T')[0];
+    const fechaSolicitud = fechaCalendarioBogota(
+      data.fecha_solicitud ?? new Date(),
+    );
+    const fechaTentativa = fechaTentativaGuardada(data.fecha_tentativa);
 
     const tryInsert = async (includeIdEmpresa: boolean) => {
       if (includeIdEmpresa && data.id_empresa != null) {
@@ -312,19 +331,21 @@ export class GestionCompraPrismaRepository implements IGestionCompraRepository {
     solicitudId: bigint,
     nitUsuario: number,
     mensaje: string,
-  ): Promise<boolean> {
+  ): Promise<bigint | null> {
     try {
       const fecha = new Date().toISOString();
-      await this.prisma.$executeRaw`
+      const rows = await this.prisma.$queryRaw<Array<{ id_msn: bigint }>>`
                 INSERT INTO postv_msn_gestion_compras 
                 (nit_usu, mensaje, fecha, solicitud_compra)
+                OUTPUT INSERTED.id_msn
                 VALUES 
                 (${nitUsuario}, ${mensaje}, ${fecha}, ${solicitudId})
             `;
-      return true;
+      const id = rows[0]?.id_msn;
+      return id != null ? BigInt(id) : null;
     } catch (error) {
       console.error('Error creando mensaje:', error);
-      return false;
+      return null;
     }
   }
 
@@ -337,7 +358,7 @@ export class GestionCompraPrismaRepository implements IGestionCompraRepository {
                 FROM postv_msn_gestion_compras mgc
                 INNER JOIN terceros t ON t.nit = mgc.nit_usu
                 WHERE mgc.solicitud_compra = ${solicitudId}
-                ORDER BY mgc.fecha ASC
+                ORDER BY mgc.id_msn DESC
             `;
       return results.map((r) => ({
         id_mensaje: BigInt(r.id_mensaje),
@@ -353,36 +374,167 @@ export class GestionCompraPrismaRepository implements IGestionCompraRepository {
     }
   }
 
+  async listarMensajesExcel(
+    solicitudIds: bigint[],
+  ): Promise<MensajeExcelCompra[]> {
+    if (solicitudIds.length === 0) return [];
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        solicitud_compra: bigint;
+        nombres: string;
+        mensaje: string;
+      }>
+    >`
+      SELECT mgc.solicitud_compra, t.nombres, mgc.mensaje
+      FROM postv_msn_gestion_compras mgc
+      INNER JOIN terceros t ON t.nit = mgc.nit_usu
+      WHERE mgc.solicitud_compra IN (${Prisma.join(solicitudIds)})
+      ORDER BY mgc.id_msn DESC
+    `;
+    return rows.map((row) => ({
+      solicitud_compra: BigInt(row.solicitud_compra),
+      nombres: row.nombres ?? '',
+      mensaje: row.mensaje ?? '',
+    }));
+  }
+
   async enviarAutorizacion(
     solicitudId: bigint,
-    comentarios: string,
+    _comentarios: string,
     archivos: string[],
-  ): Promise<boolean> {
+  ): Promise<bigint[] | null> {
     try {
-      // Actualizar estado de autorización a "Pendiente" (2) y estado a "En proceso" (2)
       await this.prisma.$executeRaw`
                 UPDATE postv_gestion_compras
                 SET estado_autorizacion = 2, estado = 2
                 WHERE id_solicitud = ${solicitudId}
             `;
 
-      // Insertar archivos de cotización si existen
-      if (archivos && archivos.length > 0) {
-        for (const archivo of archivos) {
-          await this.prisma.$executeRaw`
+      const ids: bigint[] = [];
+      for (const archivo of archivos) {
+        const inserted = await this.prisma.$queryRaw<
+          Array<{ id_coti: bigint }>
+        >`
                         INSERT INTO postv_cotizaciones_gest_compras 
                         (id_compra, url, estado)
+                        OUTPUT INSERTED.id_coti
                         VALUES 
                         (${solicitudId}, ${archivo}, 0)
                     `;
+        if (inserted[0]?.id_coti != null) {
+          ids.push(BigInt(inserted[0].id_coti));
         }
       }
 
-      return true;
+      return ids;
     } catch (error) {
       console.error('Error enviando autorización:', error);
-      return false;
+      return null;
     }
+  }
+
+  async insertarLog(data: {
+    idSolicitud: bigint;
+    usuarioReg: number;
+    item: number;
+    idCotizacion?: bigint | null;
+    idMensaje?: bigint | null;
+  }): Promise<void> {
+    await this.prisma.$executeRaw`
+      INSERT INTO postv_gestion_compras_log
+        (usuario_reg, item, id_solicitud, id_cotizacion, id_mensaje)
+      VALUES (
+        ${data.usuarioReg},
+        ${data.item},
+        ${data.idSolicitud},
+        ${data.idCotizacion ?? null},
+        ${data.idMensaje ?? null}
+      )
+    `;
+  }
+
+  async obtenerCotizacion(
+    idCoti: bigint,
+  ): Promise<CotizacionGestCompra | null> {
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        id_coti: bigint;
+        id_compra: bigint;
+        url: string;
+        estado: number;
+      }>
+    >`
+      SELECT id_coti, id_compra, url, estado
+      FROM postv_cotizaciones_gest_compras
+      WHERE id_coti = ${idCoti}
+    `;
+    const row = rows[0];
+    if (!row) return null;
+    return {
+      id_coti: BigInt(row.id_coti),
+      id_compra: BigInt(row.id_compra),
+      url: row.url,
+      estado: Number(row.estado),
+    };
+  }
+
+  async obtenerUrlCotizacionAprobada(idCompra: bigint): Promise<string | null> {
+    const rows = await this.prisma.$queryRaw<Array<{ url: string | null }>>`
+      SELECT url
+      FROM postv_cotizaciones_gest_compras
+      WHERE id_compra = ${idCompra} AND estado = 1
+    `;
+    const url = rows[0]?.url?.trim();
+    return url ? url : null;
+  }
+
+  async nombreTercero(nit: number): Promise<string | null> {
+    const rows = await this.prisma.$queryRaw<Array<{ nombres: string | null }>>`
+      SELECT nombres FROM terceros WHERE nit = ${nit}
+    `;
+    const nombre = rows[0]?.nombres?.trim();
+    return nombre ? nombre : null;
+  }
+
+  async marcarCotizacionEstado(idCoti: bigint, estado: number): Promise<void> {
+    await this.prisma.$executeRaw`
+      UPDATE postv_cotizaciones_gest_compras
+      SET estado = ${estado}
+      WHERE id_coti = ${idCoti}
+    `;
+  }
+
+  async rechazarCotizacionesPendientes(idCompra: bigint): Promise<void> {
+    await this.prisma.$executeRaw`
+      UPDATE postv_cotizaciones_gest_compras
+      SET estado = 2
+      WHERE id_compra = ${idCompra} AND estado NOT IN (1, 2)
+    `;
+  }
+
+  async guardarResultadoAutorizacion(
+    idSolicitud: bigint,
+    estadoAutorizacion: number,
+    fecha: string,
+    cotizacionFile?: string | null,
+  ): Promise<boolean> {
+    if (cotizacionFile != null) {
+      const count = await this.prisma.$executeRaw`
+        UPDATE postv_gestion_compras
+        SET estado_autorizacion = ${estadoAutorizacion},
+            fecha_autorizacion = ${fecha},
+            cotizacion_file = ${cotizacionFile}
+        WHERE id_solicitud = ${idSolicitud}
+      `;
+      return Number(count) > 0;
+    }
+    const count = await this.prisma.$executeRaw`
+      UPDATE postv_gestion_compras
+      SET estado_autorizacion = ${estadoAutorizacion},
+          fecha_autorizacion = ${fecha}
+      WHERE id_solicitud = ${idSolicitud}
+    `;
+    return Number(count) > 0;
   }
 
   private mapToEntity(data: any): GestionCompraEntity {

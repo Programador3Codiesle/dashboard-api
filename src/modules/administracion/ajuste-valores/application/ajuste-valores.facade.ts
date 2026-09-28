@@ -26,7 +26,12 @@ export class AjusteValoresFacade {
     return this.obtenerValoresUC.validarDocumentosCerrados(ano, mes);
   }
 
-  actualizarValores(numero: number, tipo: string, dto: UpdateAjusteValoresDto) {
-    return this.actualizarValoresUC.execute(numero, tipo, dto);
+  actualizarValores(
+    idUser: number,
+    numero: number,
+    tipo: string,
+    dto: UpdateAjusteValoresDto,
+  ) {
+    return this.actualizarValoresUC.execute(idUser, numero, tipo, dto);
   }
 }

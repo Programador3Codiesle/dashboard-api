@@ -10,7 +10,12 @@ import {
   CENTROS_SOLOCH,
   CENTROS_TODOS,
 } from '../../domain/dashboard.constants';
-import { DashboardAdminDto } from '../dto/dashboard-response.dto';
+import {
+  DashboardAdminDto,
+  InformePosventaDto,
+  InformePosventaSedeDto,
+  InformePosventaTallerDto,
+} from '../dto/dashboard-response.dto';
 
 @Injectable()
 export class AdministracionService {
@@ -403,6 +408,117 @@ export class AdministracionService {
 
     base.sedes_talleres = sedesTalleres;
 
+    if (perfilNum === 22 || perfilNum === 23) {
+      base.informe_posventa = this.armarInformePosventa(
+        pres,
+        grafSedes,
+        toPosvRow?.total ?? 0,
+        {
+          giron: base.porcen_giron,
+          rosita: base.porcen_rosita,
+          barranca: base.porcen_barranca,
+          bocono: base.porcen_bocono,
+          solochevrolet: base.porcen_soloc,
+          chevropartes: base.porcen_chev,
+        },
+        sedesTalleres,
+      );
+    }
+
     return base;
+  }
+
+  /**
+   * Réplica visible de `admin/gerencia.php`: meta por índice de `presupuesto`,
+   * vendido de movimiento y porcentaje de sede con el mismo cálculo que el login.
+   */
+  private armarInformePosventa(
+    pres: Array<{ sede: string; presupuesto: number }>,
+    grafSedes: Array<{ total: number; sede: string }>,
+    totalGeneral: number,
+    porcentajesSede: Record<string, number | undefined>,
+    sedesTalleres: NonNullable<DashboardAdminDto['sedes_talleres']>,
+  ): InformePosventaDto {
+    const meta = (index: number): number => pres[index]?.presupuesto ?? 0;
+    const vendido = new Map(grafSedes.map((row) => [row.sede, row.total]));
+    const talleresPorSede = new Map(
+      sedesTalleres.map((sede) => [sede.key, sede.talleres]),
+    );
+    const cerrar = (total: number, presupuesto: number, raw?: number) => {
+      const porcentajeRaw =
+        raw != null ? raw : presupuesto > 0 ? (total * 100) / presupuesto : 0;
+      return {
+        porcentaje: Math.round(porcentajeRaw),
+        metaCumplida: porcentajeRaw >= 100,
+      };
+    };
+
+    const sedesSpec: Array<{
+      key: string;
+      nombre: string;
+      metaIndex: number;
+    }> = [
+      { key: 'giron', nombre: 'Girón', metaIndex: 4 },
+      { key: 'rosita', nombre: 'La Rosita', metaIndex: 3 },
+      { key: 'barranca', nombre: 'Barrancabermeja', metaIndex: 2 },
+      { key: 'bocono', nombre: 'Cúcuta Boconó', metaIndex: 1 },
+      { key: 'solochevrolet', nombre: 'Dieselco Cúcuta', metaIndex: 20 },
+      { key: 'chevropartes', nombre: 'Chevropartes', metaIndex: 19 },
+    ];
+
+    const sedes: InformePosventaSedeDto[] = sedesSpec.map((spec) => {
+      const presupuesto = meta(spec.metaIndex);
+      const total = vendido.get(spec.key) ?? 0;
+      const cierre = cerrar(total, presupuesto, porcentajesSede[spec.key]);
+      const hijos = (talleresPorSede.get(spec.key) ?? [])
+        .filter(
+          (taller) =>
+            taller.nombre !== 'Dieselco Cúcuta' &&
+            taller.nombre !== 'Chevropartes',
+        )
+        .map((taller): InformePosventaTallerDto => {
+          const esMostrador = taller.nombre
+            .toLowerCase()
+            .startsWith('mostrador');
+          const totalTaller = esMostrador ? (taller.rep ?? 0) : taller.total;
+          const cierreTaller = cerrar(totalTaller, taller.presupuesto);
+          if (esMostrador) {
+            return {
+              nombre: taller.nombre,
+              presupuesto: taller.presupuesto,
+              total: totalTaller,
+              ...cierreTaller,
+            };
+          }
+          return {
+            nombre: taller.nombre,
+            presupuesto: taller.presupuesto,
+            total: totalTaller,
+            ...cierreTaller,
+            mo: taller.rep ?? 0,
+            tot: taller.tot ?? 0,
+            rep: taller.mo ?? 0,
+          };
+        });
+      return {
+        nombre: spec.nombre,
+        presupuesto,
+        total,
+        ...cierre,
+        talleres: hijos.length > 0 ? hijos : undefined,
+      };
+    });
+
+    const generalPresupuesto = meta(0);
+    const general = cerrar(totalGeneral, generalPresupuesto);
+    return {
+      general: {
+        nombre: pres[0]?.sede?.trim() || 'Codiesel',
+        presupuesto: generalPresupuesto,
+        total: totalGeneral,
+        ...general,
+      },
+      sedes,
+    };
   }
 }

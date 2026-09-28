@@ -1030,6 +1030,7 @@ model postv_ajuste_valores_cont_log {
   retencion             Decimal? @db.Decimal(25, 2)
   retencion_iva         Decimal? @db.Decimal(25, 2)
   retencion_ica         Decimal? @db.Decimal(25, 2)
+  iva                   Decimal? @db.Decimal(25, 2)
   Retencion_estampilla2 Decimal? @db.Decimal(25, 2)
   Retencion_estampilla1 Decimal? @db.Decimal(25, 2)
   valor_aplicado        Decimal? @db.Decimal(25, 2)

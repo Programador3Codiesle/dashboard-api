@@ -11,7 +11,7 @@ export const PERFIL_JEFE_TALLER_ALT = 20;
 export const PERFIL_INFORME_TECNICOS = 24;
 export const PERFIL_MTO = 46;
 export const PERFIL_AGENTE_CC = 31;
-/** Perfiles que ven dashboard de gerencia (reutilizan build admin). */
+/** Perfiles 22 y 23: informe posventa por sedes y talleres. */
 export const PERFIL_GERENCIA: number[] = [22, 23];
 export const PERFIL_ASESOR_REP = 34;
 export const PERFIL_COMPRAS = 28;

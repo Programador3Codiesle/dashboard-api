@@ -79,5 +79,7 @@ describe('esPerfilStaffTickets', () => {
 
   it('perfil ajeno no es staff', () => {
     expect(esPerfilStaffTickets(31)).toBe(false);
+    expect(esPerfilStaffTickets(62)).toBe(false);
+    expect(esPerfilStaffTickets(26)).toBe(false);
   });
 });

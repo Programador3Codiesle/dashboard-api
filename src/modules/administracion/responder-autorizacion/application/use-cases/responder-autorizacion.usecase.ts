@@ -25,27 +25,11 @@ export class ResponderAutorizacionUseCase {
     token: string,
     accion: 'aprobar' | 'rechazar',
   ): Promise<ResponderAutorizacionResult> {
-    const { id, tipo } = this.tokenService.validarToken(token);
+    const { id, tipo, idCotizacion } = this.tokenService.validarToken(token);
 
     switch (tipo) {
-      case 'gestion-compra': {
-        const estado = accion === 'aprobar' ? 2 : 5;
-        const estadoAutorizacion = accion === 'aprobar' ? 3 : 4;
-        const ok = await this.gestionCompraRepo.cambiarEstado(
-          BigInt(Number(id)),
-          estado,
-          estadoAutorizacion,
-        );
-        return {
-          success: ok,
-          message: ok
-            ? accion === 'aprobar'
-              ? 'Gestión de compra autorizada.'
-              : 'Gestión de compra rechazada.'
-            : 'No se pudo actualizar el estado.',
-          accion,
-        };
-      }
+      case 'gestion-compra':
+        return this.responderGestionCompra(Number(id), accion, idCotizacion);
       case 'nuevo-ausentismo': {
         const autorizacion = accion === 'aprobar' ? 1 : 2;
         const ok = await this.ausentismoRepo.actualizarAutorizacion(
@@ -88,6 +72,140 @@ export class ResponderAutorizacionUseCase {
           accion,
         };
     }
+  }
+
+  /**
+   * Compras.php autorizar_cotizacion / rechazar_cotizacion.
+   * Aprobar no cambia el estado de la compra. Rechazar tampoco la pasa a negada.
+   * Si ya está autorizada (3), no se vuelve a contestar.
+   */
+  private async responderGestionCompra(
+    idSolicitud: number,
+    accion: 'aprobar' | 'rechazar',
+    idCotizacion?: number,
+  ): Promise<ResponderAutorizacionResult> {
+    if (!Number.isFinite(idSolicitud) || idSolicitud <= 0) {
+      return {
+        success: false,
+        message: 'Solicitud no válida.',
+        accion,
+      };
+    }
+    const solicitudId = BigInt(idSolicitud);
+    const compra = await this.gestionCompraRepo.findById(solicitudId);
+    if (!compra) {
+      return { success: false, message: 'Solicitud no encontrada.', accion };
+    }
+    if (compra.estado_autorizacion === 3) {
+      return {
+        success: false,
+        message: 'La solicitud ya fue contestada.',
+        accion,
+      };
+    }
+
+    const fecha = new Date().toLocaleDateString('sv-SE', {
+      timeZone: 'America/Bogota',
+    });
+    let idCotiLog: bigint | null = null;
+
+    if (idCotizacion != null && idCotizacion > 0) {
+      const cotizacion = await this.gestionCompraRepo.obtenerCotizacion(
+        BigInt(idCotizacion),
+      );
+      if (!cotizacion || cotizacion.id_compra !== solicitudId) {
+        return {
+          success: false,
+          message: 'La cotización no pertenece a esta solicitud.',
+          accion,
+        };
+      }
+      idCotiLog = cotizacion.id_coti;
+      if (accion === 'aprobar') {
+        await this.gestionCompraRepo.marcarCotizacionEstado(
+          cotizacion.id_coti,
+          1,
+        );
+        await this.gestionCompraRepo.rechazarCotizacionesPendientes(
+          solicitudId,
+        );
+        const ok = await this.gestionCompraRepo.guardarResultadoAutorizacion(
+          solicitudId,
+          3,
+          fecha,
+          cotizacion.url,
+        );
+        if (!ok) {
+          return {
+            success: false,
+            message: 'No se pudo actualizar la autorización.',
+            accion,
+          };
+        }
+      } else {
+        await this.gestionCompraRepo.rechazarCotizacionesPendientes(
+          solicitudId,
+        );
+        const ok = await this.gestionCompraRepo.guardarResultadoAutorizacion(
+          solicitudId,
+          4,
+          fecha,
+        );
+        if (!ok) {
+          return {
+            success: false,
+            message: 'No se pudo actualizar la autorización.',
+            accion,
+          };
+        }
+      }
+    } else if (accion === 'aprobar') {
+      const ok = await this.gestionCompraRepo.guardarResultadoAutorizacion(
+        solicitudId,
+        3,
+        fecha,
+      );
+      if (!ok) {
+        return {
+          success: false,
+          message: 'No se pudo actualizar la autorización.',
+          accion,
+        };
+      }
+    } else {
+      const ok = await this.gestionCompraRepo.guardarResultadoAutorizacion(
+        solicitudId,
+        4,
+        fecha,
+      );
+      if (!ok) {
+        return {
+          success: false,
+          message: 'No se pudo actualizar la autorización.',
+          accion,
+        };
+      }
+    }
+
+    try {
+      await this.gestionCompraRepo.insertarLog({
+        idSolicitud: solicitudId,
+        usuarioReg: 0,
+        item: 8,
+        idCotizacion: idCotiLog,
+      });
+    } catch (e) {
+      console.error('No se pudo escribir el log de respuesta de compra', e);
+    }
+
+    return {
+      success: true,
+      message:
+        accion === 'aprobar'
+          ? 'Gestión de compra autorizada.'
+          : 'Gestión de compra rechazada.',
+      accion,
+    };
   }
 
   private async avisarRespuestaHorasExtra(

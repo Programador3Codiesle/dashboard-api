@@ -4,9 +4,19 @@ import { FiltrosComprasDto } from '../dto/filtros-compras.dto';
 import { GestionCompraEntity } from '../../domain/gestion-compra.entity';
 import { SesionListarCompras, veTodasLasCompras } from '../visibilidad-compras';
 
+/** DATE de SQL Server llega como medianoche UTC. Se muestra el día guardado. */
+function fechaGuardada(value: Date): string {
+  return value.toISOString().slice(0, 10);
+}
+
 @Injectable()
 export class ListarComprasUseCase {
   constructor(private readonly repo: IGestionCompraRepository) {}
+
+  async obtenerCotizacionAprobada(id: bigint) {
+    const url = await this.repo.obtenerUrlCotizacionAprobada(id);
+    return { url };
+  }
 
   async execute(
     filtros: FiltrosComprasDto | undefined,
@@ -32,10 +42,7 @@ export class ListarComprasUseCase {
         };
         return {
           id_solicitud: entity.id_solicitud?.toString() || '',
-          // YYYY-MM-DD en zona America/Bogota
-          fecha_solicitud: entity.fecha_solicitud.toLocaleDateString('sv-SE', {
-            timeZone: 'America/Bogota',
-          }),
+          fecha_solicitud: fechaGuardada(entity.fecha_solicitud),
           area: entity.area,
           sede: entity.sede,
           usu_solicita: entity.usu_solicita,
@@ -46,14 +53,10 @@ export class ListarComprasUseCase {
           proveedor: entity.proveedor || null,
           area_cargar: entity.area_cargar || null,
           urgencia: entity.urgencia,
-          fecha_tentativa: entity.fecha_tentativa.toLocaleDateString('sv-SE', {
-            timeZone: 'America/Bogota',
-          }),
+          fecha_tentativa: fechaGuardada(entity.fecha_tentativa),
           estado: entity.estado,
           fecha_autorizacion: entity.fecha_autorizacion
-            ? entity.fecha_autorizacion.toLocaleDateString('sv-SE', {
-                timeZone: 'America/Bogota',
-              })
+            ? fechaGuardada(entity.fecha_autorizacion)
             : null,
           cotizacion_file: entity.cotizacion_file || null,
           estado_autorizacion: entity.estado_autorizacion,

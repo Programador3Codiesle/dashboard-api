@@ -1,11 +1,13 @@
 import {
+  BadRequestException,
+  Body,
   Controller,
   Get,
-  Put,
-  Body,
   Param,
   ParseIntPipe,
+  Put,
   Query,
+  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AjusteValoresFacade } from '../application/ajuste-valores.facade';
@@ -49,10 +51,20 @@ export class AjusteValoresController {
 
   @Put(':numero')
   actualizarValores(
+    @Req() req: { user?: { sub?: string | number } },
     @Param('numero', ParseIntPipe) numero: number,
     @Query('tipo') tipo: string,
     @Body() dto: UpdateAjusteValoresDto,
   ) {
-    return this.ajusteValoresFacade.actualizarValores(numero, tipo, dto);
+    const idUser = Number(req.user?.sub);
+    if (!Number.isFinite(idUser) || idUser <= 0) {
+      throw new BadRequestException('No se pudo identificar el usuario');
+    }
+    return this.ajusteValoresFacade.actualizarValores(
+      idUser,
+      numero,
+      tipo,
+      dto,
+    );
   }
 }

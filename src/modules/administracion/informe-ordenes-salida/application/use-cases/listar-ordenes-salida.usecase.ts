@@ -62,6 +62,7 @@ export class ListarOrdenesSalidaUseCase {
       '63541030',
       '1097304901',
       '91488149',
+      '1090471048',
     ]);
 
     const nitUsuario = filtros.nitUsuario?.trim();
