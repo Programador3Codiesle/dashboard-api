@@ -28,19 +28,18 @@ export const FORMATO_ORDEN_SALIDA_ACCESS_NITS = new Set<number>([
   1091655270,
   1098732475,
   1098625558,
-  1099367783,
   1128465895,
   28070692,
   1090497067,
-  37579713,
   1094241876,
-  79145617,
   1092338001,
   1098679322,
   63289710,
   63369607,
   91298113,
   1098668953, // Barajas Duarte Sergio Antonio
+  1090471048, // Lindarte Garcia Ingrid Marcela
+  79411127, // Rico Correa Carlos Martin Alonso
 ]);
 
 export const TIPOS_SALIDA: Record<number, string> = {
@@ -90,11 +89,10 @@ export const JEFES_TIPOS_SALIDAS: Record<number, number[]> = {
   1091655270: [10, 15, 17, 20],
   1098732475: [10, 15, 17, 20],
   1098625558: [11],
-  1099367783: [4, 12],
+  1090471048: [4, 12],
   1128465895: [13],
   28070692: [10, 15],
   1090497067: [10, 13, 17, 20, 15],
-  37579713: [1, 2],
   1098668953: [1, 2, 16],
 };
 
@@ -108,7 +106,7 @@ export const TIPOS_SALIDA_CON_CONDUCTOR = new Set([8, 10, 16, 18]);
 
 /** PHP `$jefes_todos` — ven todos los tipos (18 solo Azucena). */
 export const JEFES_TODOS_TIPOS = [
-  1094241876, 79145617, 1092338001, 1098679322, 63289710, 63369607, 91298113,
+  1094241876, 79411127, 1092338001, 1098679322, 63289710, 63369607, 91298113,
   28070692,
 ];
 

@@ -76,6 +76,10 @@ const JEFES: Record<number, string> = {
   91298113: 'Orlando Duran Serrano',
   1098668953: 'Barajas Duarte Sergio Antonio',
   63541030: 'Johana Uribe Agredo',
+  91488149: 'Amado Torres Carlos Alfonso',
+  1007421380: 'Hernandez Corredor Sergio Jahir',
+  1090471048: 'Lindarte Garcia Ingrid Marcela',
+  79411127: 'Rico Correa Carlos Martin Alonso',
 };
 
 function columnaEmpresaAusente(error: unknown): boolean {
