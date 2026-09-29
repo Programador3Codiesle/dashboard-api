@@ -3,6 +3,7 @@ export class AusentismoEntity {
   gestionado_por?: string | null;
   colaborador?: string | null;
   nit_empleado?: string | null;
+  cargo?: string | null;
   sede?: string | null;
   area?: string | null;
   fecha_inicio?: Date | null;

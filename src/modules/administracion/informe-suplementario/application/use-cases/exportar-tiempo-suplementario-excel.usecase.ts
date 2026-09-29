@@ -37,10 +37,9 @@ export class ExportarTiempoSuplementarioExcelUseCase {
       'Sede',
       'Área',
       'Cargo',
-      'Fecha de Inicio',
+      'Fecha del trabajo',
       'Hora de Inicio',
       'Hora de salida',
-      'Fecha de Solicitud',
       'Descripción',
       'Autorización',
     ];
@@ -64,7 +63,6 @@ export class ExportarTiempoSuplementarioExcelUseCase {
         item.fecha ?? '',
         item.hora_ini ?? '',
         item.hora_fin ?? '',
-        item.fecha_solicitud ?? '',
         item.descripcion ?? '',
         item.estado !== null && item.estado !== undefined
           ? (ESTADOS[item.estado] ?? 'Pendiente')
