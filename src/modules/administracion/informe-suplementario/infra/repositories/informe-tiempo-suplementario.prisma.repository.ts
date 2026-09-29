@@ -8,27 +8,28 @@ import {
 import { InformeTiempoSuplementarioEntity } from '../../domain/informe-tiempo-suplementario.entity';
 import { veTodasLasHorasExtras } from '../../../shared/sede-porteria';
 
-/** PHP `add_horas_extra` guarda `fecha_solicitud` como texto `d-m-Y H:i:s`. */
-function textoFechaSolicitud(value: Date | string | null): string | null {
+/**
+ * `fecha_ini` y `fecha_solicitud` son `date` en SQL Server.
+ * El driver las entrega a medianoche UTC; Bogotá las correría al día anterior.
+ */
+function fechaCalendario(value: Date | string | null): string | null {
   if (value == null) return null;
   if (typeof value === 'string') {
     const text = value.trim();
-    return text || null;
+    const ymd = text.match(/^(\d{4}-\d{2}-\d{2})/);
+    if (ymd && !text.includes('T')) return ymd[1];
+    const parsed = new Date(text);
+    if (Number.isNaN(parsed.getTime())) return text || null;
+    return ymdUtc(parsed);
   }
   if (!(value instanceof Date) || Number.isNaN(value.getTime())) return null;
-  const parts = new Intl.DateTimeFormat('sv-SE', {
-    timeZone: 'America/Bogota',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hourCycle: 'h23',
-  }).formatToParts(value);
-  const get = (type: Intl.DateTimeFormatPartTypes) =>
-    parts.find((part) => part.type === type)?.value ?? '';
-  return `${get('day')}-${get('month')}-${get('year')} ${get('hour')}:${get('minute')}:${get('second')}`;
+  return ymdUtc(value);
+}
+
+function ymdUtc(value: Date): string {
+  const mes = String(value.getUTCMonth() + 1).padStart(2, '0');
+  const dia = String(value.getUTCDate()).padStart(2, '0');
+  return `${value.getUTCFullYear()}-${mes}-${dia}`;
 }
 
 @Injectable()
@@ -127,10 +128,10 @@ export class InformeTiempoSuplementarioPrismaRepository implements IInformeTiemp
             sede: r.sede,
             area: r.area,
             cargo: r.cargo,
-            fecha: r.fecha_ini ? new Date(r.fecha_ini) : null,
+            fecha: fechaCalendario(r.fecha_ini),
             hora_ini: r.hora_ini != null ? String(r.hora_ini) : null,
             hora_fin: r.hora_fin != null ? String(r.hora_fin) : null,
-            fecha_solicitud: textoFechaSolicitud(r.fecha_solicitud),
+            fecha_solicitud: fechaCalendario(r.fecha_solicitud),
             descripcion: r.descripcion,
             estado: r.autorizacion != null ? Number(r.autorizacion) : null,
           }),

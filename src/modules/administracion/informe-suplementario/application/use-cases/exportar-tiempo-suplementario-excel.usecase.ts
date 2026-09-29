@@ -55,19 +55,13 @@ export class ExportarTiempoSuplementarioExcelUseCase {
     header.font = { bold: true, color: { argb: 'FFFFFFFF' } };
 
     for (const item of list) {
-      const fecha =
-        item.fecha instanceof Date
-          ? item.fecha.toLocaleDateString('sv-SE', {
-              timeZone: 'America/Bogota',
-            })
-          : (item.fecha ?? '');
       ws.addRow([
         item.nombre_jefe ?? '',
         item.nombre_empleado ?? '',
         item.sede ?? '',
         item.area ?? '',
         item.cargo ?? '',
-        fecha,
+        item.fecha ?? '',
         item.hora_ini ?? '',
         item.hora_fin ?? '',
         item.fecha_solicitud ?? '',

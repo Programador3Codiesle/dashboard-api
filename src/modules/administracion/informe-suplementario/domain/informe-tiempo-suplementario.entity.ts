@@ -6,7 +6,7 @@ export class InformeTiempoSuplementarioEntity {
   sede?: string | null;
   area?: string | null;
   cargo?: string | null;
-  fecha?: Date | null;
+  fecha?: string | null;
   hora_ini?: string | null;
   hora_fin?: string | null;
   fecha_solicitud?: string | null;
