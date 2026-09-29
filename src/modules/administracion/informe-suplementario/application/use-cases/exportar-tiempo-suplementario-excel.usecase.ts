@@ -32,14 +32,17 @@ export class ExportarTiempoSuplementarioExcelUseCase {
     });
 
     const headerRow = [
+      'Nombre del Jefe',
       'Nombre del Empleado',
       'Sede',
       'Área',
-      'Fecha',
-      'Hora Inicio',
-      'Hora Fin',
+      'Cargo',
+      'Fecha de Inicio',
+      'Hora de Inicio',
+      'Hora de salida',
+      'Fecha de Solicitud',
       'Descripción',
-      'Estado',
+      'Autorización',
     ];
     ws.addRow(headerRow);
     const header = ws.getRow(1);
@@ -59,12 +62,15 @@ export class ExportarTiempoSuplementarioExcelUseCase {
             })
           : (item.fecha ?? '');
       ws.addRow([
+        item.nombre_jefe ?? '',
         item.nombre_empleado ?? '',
         item.sede ?? '',
         item.area ?? '',
+        item.cargo ?? '',
         fecha,
         item.hora_ini ?? '',
         item.hora_fin ?? '',
+        item.fecha_solicitud ?? '',
         item.descripcion ?? '',
         item.estado !== null && item.estado !== undefined
           ? (ESTADOS[item.estado] ?? 'Pendiente')

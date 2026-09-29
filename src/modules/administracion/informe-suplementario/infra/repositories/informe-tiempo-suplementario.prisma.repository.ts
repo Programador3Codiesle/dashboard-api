@@ -8,6 +8,29 @@ import {
 import { InformeTiempoSuplementarioEntity } from '../../domain/informe-tiempo-suplementario.entity';
 import { veTodasLasHorasExtras } from '../../../shared/sede-porteria';
 
+/** PHP `add_horas_extra` guarda `fecha_solicitud` como texto `d-m-Y H:i:s`. */
+function textoFechaSolicitud(value: Date | string | null): string | null {
+  if (value == null) return null;
+  if (typeof value === 'string') {
+    const text = value.trim();
+    return text || null;
+  }
+  if (!(value instanceof Date) || Number.isNaN(value.getTime())) return null;
+  const parts = new Intl.DateTimeFormat('sv-SE', {
+    timeZone: 'America/Bogota',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(value);
+  const get = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((part) => part.type === type)?.value ?? '';
+  return `${get('day')}-${get('month')}-${get('year')} ${get('hour')}:${get('minute')}:${get('second')}`;
+}
+
 @Injectable()
 export class InformeTiempoSuplementarioPrismaRepository implements IInformeTiempoSuplementarioRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -60,6 +83,7 @@ export class InformeTiempoSuplementarioPrismaRepository implements IInformeTiemp
         Array<{
           id_solicitud: number;
           nit_empleado: number | null;
+          nombrejefe: string | null;
           nombreempleado: string | null;
           sede: string | null;
           area: string | null;
@@ -67,6 +91,7 @@ export class InformeTiempoSuplementarioPrismaRepository implements IInformeTiemp
           fecha_ini: Date | null;
           hora_ini: string | null;
           hora_fin: string | null;
+          fecha_solicitud: Date | string | null;
           descripcion: string | null;
           autorizacion: number | null;
         }>
@@ -74,6 +99,7 @@ export class InformeTiempoSuplementarioPrismaRepository implements IInformeTiemp
         SELECT
           he.id_solicitud,
           he.nit_empleado,
+          j.nombres AS nombrejefe,
           t.nombres AS nombreempleado,
           he.sede,
           he.area,
@@ -81,6 +107,7 @@ export class InformeTiempoSuplementarioPrismaRepository implements IInformeTiemp
           he.fecha_ini,
           he.hora_ini,
           he.hora_fin,
+          he.fecha_solicitud,
           he.descripcion,
           he.autorizacion
         FROM postv_solicitud_hora_extra he
@@ -95,6 +122,7 @@ export class InformeTiempoSuplementarioPrismaRepository implements IInformeTiemp
           new InformeTiempoSuplementarioEntity({
             id: BigInt(r.id_solicitud),
             empleado: r.nit_empleado ? Number(r.nit_empleado) : null,
+            nombre_jefe: r.nombrejefe,
             nombre_empleado: r.nombreempleado,
             sede: r.sede,
             area: r.area,
@@ -102,6 +130,7 @@ export class InformeTiempoSuplementarioPrismaRepository implements IInformeTiemp
             fecha: r.fecha_ini ? new Date(r.fecha_ini) : null,
             hora_ini: r.hora_ini != null ? String(r.hora_ini) : null,
             hora_fin: r.hora_fin != null ? String(r.hora_fin) : null,
+            fecha_solicitud: textoFechaSolicitud(r.fecha_solicitud),
             descripcion: r.descripcion,
             estado: r.autorizacion != null ? Number(r.autorizacion) : null,
           }),
