@@ -9,6 +9,7 @@ export const AZUCENA_NIT = 63369607;
 export const FORMATO_ORDEN_SALIDA_ACCESS_NITS = new Set<number>([
   91274670,
   1005157209,
+  1098668953, // Sergio Antonio Barajas Duarte
   80872884,
   1090449765,
   1092358562,
@@ -16,6 +17,7 @@ export const FORMATO_ORDEN_SALIDA_ACCESS_NITS = new Set<number>([
   1095913265,
   1092355065,
   1090484563,
+  1090445195, // Angelica Maritza Caicedo Guerrero
   13741590,
   63368988,
   91525308,
@@ -25,21 +27,22 @@ export const FORMATO_ORDEN_SALIDA_ACCESS_NITS = new Set<number>([
   1007421380,
   1093736472,
   1095816177,
+  1090471048, // Ingrid Marcela Lindarte Garcia
   1091655270,
   1098732475,
   1098625558,
+  1099367783, // Erika Lizeth Aguilar Herrera
   1128465895,
   28070692,
   1090497067,
+  37579713, // Rueda Romero Irene Isabel
   1094241876,
+  79411127, // Rico Correa Carlos Martin Alonso
   1092338001,
   1098679322,
   63289710,
   63369607,
   91298113,
-  1098668953, // Barajas Duarte Sergio Antonio
-  1090471048, // Lindarte Garcia Ingrid Marcela
-  79411127, // Rico Correa Carlos Martin Alonso
 ]);
 
 export const TIPOS_SALIDA: Record<number, string> = {
@@ -77,6 +80,7 @@ export const JEFES_TIPOS_SALIDAS: Record<number, number[]> = {
   1095913265: [1, 2, 16],
   1092355065: [1, 2, 16],
   1090484563: [1, 16],
+  1090445195: [1, 16],
   13741590: [1, 2, 16],
   63368988: [1, 2, 4, 16],
   91525308: [1, 2, 4, 16],
@@ -86,13 +90,15 @@ export const JEFES_TIPOS_SALIDAS: Record<number, number[]> = {
   1007421380: [3, 4, 5, 17, 20],
   1093736472: [8],
   1095816177: [9],
+  1090471048: [1, 2, 4, 12, 16],
   1091655270: [10, 15, 17, 20],
   1098732475: [10, 15, 17, 20],
   1098625558: [11],
-  1090471048: [4, 12],
+  1099367783: [4, 12],
   1128465895: [13],
   28070692: [10, 15],
   1090497067: [10, 13, 17, 20, 15],
+  37579713: [1, 2],
   1098668953: [1, 2, 16],
 };
 

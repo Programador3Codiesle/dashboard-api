@@ -457,30 +457,72 @@ export class GenerarCotizacionPdfUseCase {
   /**
    * Envuelve texto respetando un ancho máximo real (en puntos),
    * usando la métrica de la fuente para que nunca se pase del ancho de las tablas.
+   * Un enter del usuario se conserva como salto de línea. Helvetica (WinAnsi)
+   * no puede medir 0x0A y, si llega al ancho, el PDF no se genera.
    */
   private wrapByWidth(
     text: string,
-    pdfFont: any,
+    pdfFont: { widthOfTextAtSize(text: string, size: number): number },
     fontSize: number,
     maxWidth: number,
   ): string[] {
-    const words = text.split(' ');
+    const paragraphs = this.textoParaFuentePdf(text).split('\n');
     const lines: string[] = [];
-    let current = '';
 
-    for (const word of words) {
-      const candidate = current ? `${current} ${word}` : word;
-      const width = pdfFont.widthOfTextAtSize(candidate, fontSize);
-      if (width <= maxWidth) {
-        current = candidate;
-      } else {
-        if (current) lines.push(current);
-        current = word;
+    for (const paragraph of paragraphs) {
+      const words = paragraph.split(' ').filter((word) => word.length > 0);
+      if (words.length === 0) {
+        lines.push('');
+        continue;
       }
+
+      let current = '';
+      for (const word of words) {
+        const candidate = current ? `${current} ${word}` : word;
+        const width = pdfFont.widthOfTextAtSize(candidate, fontSize);
+        if (width <= maxWidth) {
+          current = candidate;
+        } else {
+          if (current) lines.push(current);
+          current = word;
+        }
+      }
+
+      if (current) lines.push(current);
     }
 
-    if (current) lines.push(current);
     return lines;
+  }
+
+  /** Deja solo caracteres que Helvetica puede dibujar, conservando el enter. */
+  private textoParaFuentePdf(text: string): string {
+    const conSaltos = text
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      .replace(/\t/g, ' ');
+
+    let seguro = '';
+    for (const char of conSaltos) {
+      const code = char.charCodeAt(0);
+      if (char === '\n') {
+        seguro += char;
+        continue;
+      }
+      if (code < 0x20 || code === 0x7f) continue;
+      if (this.esWinAnsi(code)) seguro += char;
+    }
+    return seguro;
+  }
+
+  private esWinAnsi(code: number): boolean {
+    if (code < 0x20 || code > 0xff) return false;
+    return (
+      code !== 0x81 &&
+      code !== 0x8d &&
+      code !== 0x8f &&
+      code !== 0x90 &&
+      code !== 0x9d
+    );
   }
 
   private getShortName(nombreCompleto: string): string {
