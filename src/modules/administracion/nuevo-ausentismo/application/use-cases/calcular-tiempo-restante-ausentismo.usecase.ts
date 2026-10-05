@@ -33,7 +33,7 @@ export class CalcularTiempoRestanteAusentismoUseCase {
     if (disponibles === 0) {
       return {
         texto:
-          'Has completado el tiempo otorgado por CODIESEL, en el siguiente ausentismo deberás especificar el tiempo a recuperar',
+          'Has completado el tiempo otorgado por CODIESEL, debes especificar como recuperarás el tiempo solicitado',
         requiereRecuperacion: false,
       };
     }

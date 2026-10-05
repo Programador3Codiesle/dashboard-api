@@ -1,3 +1,5 @@
+import { fechaLocalYmd } from './fecha-local';
+
 /** Rangos e intervalo del timepicker PHP (jquery.timepicker). */
 
 export const INTERVALO_MINUTOS_HORA = 5;
@@ -99,6 +101,19 @@ export function hayCruceTramosMismoDia(tramos: TramoRecuperacion[]): boolean {
     }
   }
   return false;
+}
+
+/** El inicio del tramo ya ocurrió (mismo día y hora menor o igual a ahora). */
+export function recuperacionInicioYaPaso(
+  fecha: string,
+  horaIni: string,
+  ahora: Date = new Date(),
+): boolean {
+  const hoy = fechaLocalYmd(ahora);
+  if (!fecha || fecha !== hoy) return false;
+  const ini = horaAMinutos(horaIni);
+  if (ini == null) return false;
+  return ini <= ahora.getHours() * 60 + ahora.getMinutes();
 }
 
 export function horaEnRango(

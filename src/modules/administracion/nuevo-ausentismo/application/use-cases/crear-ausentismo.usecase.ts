@@ -23,17 +23,15 @@ import {
   horaAMinutos,
   horaEnRango,
   horasCoinciden,
+  recuperacionInicioYaPaso,
   type TramoRecuperacion,
 } from '../../../shared/hora-militar';
-import { CalcularTiempoRestanteAusentismoUseCase } from './calcular-tiempo-restante-ausentismo.usecase';
-
 @Injectable()
 export class CrearAusentismoUseCase {
   constructor(
     private readonly repo: INuevoAusentismoRepository,
     private readonly emailService: EmailService,
     private readonly tokenRespuesta: TokenRespuestaService,
-    private readonly calcularTiempoRestante: CalcularTiempoRestanteAusentismoUseCase,
   ) {}
 
   async execute(
@@ -92,64 +90,51 @@ export class CrearAusentismoUseCase {
     }
 
     const tramos = parseTramosRecuperacion(dto.recuperacion);
-    let requiereRecuperacion = false;
-    if (esMotivoRecuperacion(dto.motivo)) {
-      const horasAusentismo = (finMin - iniMin) / 60;
-      const restante = await this.calcularTiempoRestante.execute(
-        userId,
-        horasAusentismo,
-      );
-      requiereRecuperacion = restante.requiereRecuperacion;
-      if (requiereRecuperacion) {
-        const validos = tramos.filter(
-          (t) => t.fecha && t.hora_ini && t.hora_fin,
+    const requiereRecuperacion = esMotivoRecuperacion(dto.motivo);
+    if (requiereRecuperacion) {
+      const validos = tramos.filter((t) => t.fecha && t.hora_ini && t.hora_fin);
+      if (validos.length === 0 || !horasCoinciden(horaIni, horaFin, validos)) {
+        throw new BadRequestException(
+          'Por favor verifique que las horas del ausentismo y de recuperación sean las mismas',
         );
+      }
+      const ahora = new Date();
+      const hoyYmd = fechaLocalYmd(ahora);
+      for (const t of validos) {
+        if (t.fecha < hoyYmd) {
+          throw new BadRequestException(
+            'La fecha de recuperación no puede ser anterior a hoy',
+          );
+        }
+        if (recuperacionInicioYaPaso(t.fecha, t.hora_ini, ahora)) {
+          throw new BadRequestException(
+            'La fecha y hora de recuperación deben ser posteriores a la hora actual',
+          );
+        }
+        const habil = await this.repo.esDiaHabil(t.fecha);
+        if (!habil) {
+          throw new BadRequestException(
+            'La fecha de recuperación no es un día hábil',
+          );
+        }
+        const recIni = horaAMinutos(t.hora_ini);
+        const recFin = horaAMinutos(t.hora_fin);
+        if (recIni == null || recFin == null || recIni >= recFin) {
+          throw new BadRequestException(
+            'Hora desde de recuperación no puede ser mayor o igual a hora hasta',
+          );
+        }
         if (
-          validos.length === 0 ||
-          !horasCoinciden(horaIni, horaFin, validos)
+          !horaEnRango(t.hora_ini, AUSENTISMO_HORA_MIN, AUSENTISMO_HORA_MAX) ||
+          !horaEnRango(t.hora_fin, AUSENTISMO_HORA_MIN, AUSENTISMO_HORA_MAX)
         ) {
           throw new BadRequestException(
-            'Por favor verifique que las horas del ausentismo y de recuperación sean las mismas',
+            'Las horas de recuperación deben estar entre 06:00 y 20:00, en intervalos de 5 minutos',
           );
         }
-        const hoyYmd = fechaLocalYmd(hoy);
-        for (const t of validos) {
-          if (t.fecha < hoyYmd) {
-            throw new BadRequestException(
-              'La fecha de recuperación no puede ser anterior a hoy',
-            );
-          }
-          const habil = await this.repo.esDiaHabil(t.fecha);
-          if (!habil) {
-            throw new BadRequestException(
-              'La fecha de recuperación no es un día hábil',
-            );
-          }
-          const recIni = horaAMinutos(t.hora_ini);
-          const recFin = horaAMinutos(t.hora_fin);
-          if (recIni == null || recFin == null || recIni >= recFin) {
-            throw new BadRequestException(
-              'Hora desde de recuperación no puede ser mayor o igual a hora hasta',
-            );
-          }
-          if (
-            !horaEnRango(
-              t.hora_ini,
-              AUSENTISMO_HORA_MIN,
-              AUSENTISMO_HORA_MAX,
-            ) ||
-            !horaEnRango(t.hora_fin, AUSENTISMO_HORA_MIN, AUSENTISMO_HORA_MAX)
-          ) {
-            throw new BadRequestException(
-              'Las horas de recuperación deben estar entre 06:00 y 20:00, en intervalos de 5 minutos',
-            );
-          }
-        }
-        if (hayCruceTramosMismoDia(validos)) {
-          throw new BadRequestException(
-            'Los rangos de horas no deben cruzarse',
-          );
-        }
+      }
+      if (hayCruceTramosMismoDia(validos)) {
+        throw new BadRequestException('Los rangos de horas no deben cruzarse');
       }
     }
 
