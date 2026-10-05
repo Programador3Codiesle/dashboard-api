@@ -3,6 +3,8 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
 import { IAusentismoRepository } from '../../domain/ausentismo.repository';
 import { AusentismoEntity } from '../../domain/ausentismo.entity';
+import { fechaLocalYmd } from '../../../shared/fecha-local';
+import { formatHoraHHmm } from '../../../shared/format-hora-hhmm';
 
 function veTodosLosAusentismos(sesion?: {
   nit?: string;
@@ -198,6 +200,28 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
       console.error('Error obteniendo detalle:', error);
       return null;
     }
+  }
+
+  async listarRecuperacion(id: bigint) {
+    const rows = await this.prisma.$queryRaw<
+      Array<{ fecha: Date | string; hora_ini: string; hora_fin: string }>
+    >`
+      SELECT
+        CONVERT(date, fecha_ini) AS fecha,
+        CONVERT(varchar(5), fecha_ini, 108) AS hora_ini,
+        CONVERT(varchar(5), fecha_fin, 108) AS hora_fin
+      FROM postv_ausentismos_recuperacion
+      WHERE idAusentismo = ${id}
+      ORDER BY fecha_ini
+    `;
+    return rows.map((r) => ({
+      fecha:
+        r.fecha instanceof Date
+          ? fechaLocalYmd(r.fecha)
+          : String(r.fecha).slice(0, 10),
+      hora_ini: formatHoraHHmm(r.hora_ini),
+      hora_fin: formatHoraHHmm(r.hora_fin),
+    }));
   }
 
   private async listarInformeAdministracion(

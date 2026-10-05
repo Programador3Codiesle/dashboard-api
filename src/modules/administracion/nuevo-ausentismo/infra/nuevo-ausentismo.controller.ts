@@ -3,6 +3,7 @@ import {
   Get,
   Post,
   Body,
+  Param,
   Query,
   UseGuards,
   Req,
@@ -67,6 +68,18 @@ export class NuevoAusentismoController {
       throw new BadRequestException('Horas de ausentismo inválidas');
     }
     return this.facade.calcularTiempoRestante(userId, horasAusentismo);
+  }
+
+  @Get(':id/recuperacion')
+  listarRecuperacion(@Req() req: AuthReq, @Param('id') id: string) {
+    const userId = req.user?.nit ? Number(req.user.nit) : null;
+    if (!userId) {
+      throw new BadRequestException('No se pudo obtener el ID del usuario');
+    }
+    if (!/^\d+$/.test(id ?? '')) {
+      throw new BadRequestException('Ausentismo inválido');
+    }
+    return this.facade.listarRecuperacion(BigInt(id), userId);
   }
 
   @Get('dia-habil')

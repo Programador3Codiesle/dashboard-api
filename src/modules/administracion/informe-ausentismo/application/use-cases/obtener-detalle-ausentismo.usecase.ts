@@ -6,6 +6,9 @@ export class ObtenerDetalleAusentismoUseCase {
   constructor(private readonly repo: IAusentismoRepository) {}
 
   async execute(id: bigint) {
-    return this.repo.findById(id);
+    const detalle = await this.repo.findById(id);
+    if (!detalle) return null;
+    const recuperacion = await this.repo.listarRecuperacion(id);
+    return { ...detalle, recuperacion };
   }
 }

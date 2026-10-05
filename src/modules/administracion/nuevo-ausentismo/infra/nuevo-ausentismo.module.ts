@@ -5,6 +5,7 @@ import { CrearAusentismoUseCase } from '../application/use-cases/crear-ausentism
 import { ObtenerAusentismosCalendarioUseCase } from '../application/use-cases/obtener-ausentismos-calendario.usecase';
 import { CalcularTiempoRestanteAusentismoUseCase } from '../application/use-cases/calcular-tiempo-restante-ausentismo.usecase';
 import { ValidarDiaHabilAusentismoUseCase } from '../application/use-cases/validar-dia-habil-ausentismo.usecase';
+import { ListarRecuperacionAusentismoUseCase } from '../application/use-cases/listar-recuperacion-ausentismo.usecase';
 import { INuevoAusentismoRepository } from '../domain/nuevo-ausentismo.repository';
 import { NuevoAusentismoPrismaRepository } from './repositories/nuevo-ausentismo.prisma.repository';
 import { EmailModule } from '../../../../core/infra/email/email.module';
@@ -18,6 +19,7 @@ import { EmailModule } from '../../../../core/infra/email/email.module';
     ObtenerAusentismosCalendarioUseCase,
     CalcularTiempoRestanteAusentismoUseCase,
     ValidarDiaHabilAusentismoUseCase,
+    ListarRecuperacionAusentismoUseCase,
     {
       provide: INuevoAusentismoRepository,
       useClass: NuevoAusentismoPrismaRepository,

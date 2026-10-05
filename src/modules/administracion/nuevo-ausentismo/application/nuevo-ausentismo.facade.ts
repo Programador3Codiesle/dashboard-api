@@ -3,6 +3,7 @@ import { CrearAusentismoUseCase } from './use-cases/crear-ausentismo.usecase';
 import { ObtenerAusentismosCalendarioUseCase } from './use-cases/obtener-ausentismos-calendario.usecase';
 import { CalcularTiempoRestanteAusentismoUseCase } from './use-cases/calcular-tiempo-restante-ausentismo.usecase';
 import { ValidarDiaHabilAusentismoUseCase } from './use-cases/validar-dia-habil-ausentismo.usecase';
+import { ListarRecuperacionAusentismoUseCase } from './use-cases/listar-recuperacion-ausentismo.usecase';
 import { CreateAusentismoDto } from './dto/create-ausentismo.dto';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class NuevoAusentismoFacade {
     private readonly obtenerCalendarioUC: ObtenerAusentismosCalendarioUseCase,
     private readonly calcularTiempoRestanteUC: CalcularTiempoRestanteAusentismoUseCase,
     private readonly validarDiaHabilUC: ValidarDiaHabilAusentismoUseCase,
+    private readonly listarRecuperacionUC: ListarRecuperacionAusentismoUseCase,
   ) {}
 
   crearAusentismo(
@@ -32,5 +34,9 @@ export class NuevoAusentismoFacade {
 
   validarDiaHabil(fechaYmd: string) {
     return this.validarDiaHabilUC.execute(fechaYmd);
+  }
+
+  listarRecuperacion(id: bigint, empleado: number) {
+    return this.listarRecuperacionUC.execute(id, empleado);
   }
 }
