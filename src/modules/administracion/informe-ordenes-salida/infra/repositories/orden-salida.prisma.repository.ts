@@ -40,6 +40,7 @@ const JEFES: Record<number, string> = {
   84109954: 'Luis Emilio Puche Aguirre',
   1065913432: 'Manuelita Baleta Mauris',
   1090449765: 'Karol Julieth Gomez Orozco',
+  1090445195: 'Caicedo Guerrero Angelica Maritza',
   1092358562: 'Zulay Villalba Toloza',
   1094532250: 'Oscar Emilio Romero Urbina',
   91259929: 'Edgar Mauricio Galvis Tavera',
@@ -159,7 +160,7 @@ export class OrdenSalidaPrismaRepository implements IOrdenSalidaRepository {
       );
     } else {
       conditions.push(
-        Prisma.sql`CONVERT(VARCHAR, fecha_salida, 34) = CONVERT(VARCHAR, GETDATE(), 34)`,
+        Prisma.sql`CONVERT(VARCHAR, fecha_salida, 23) = CONVERT(VARCHAR, GETDATE(), 23)`,
       );
     }
 
