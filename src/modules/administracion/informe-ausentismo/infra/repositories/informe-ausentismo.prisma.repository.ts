@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
 import { IAusentismoRepository } from '../../domain/ausentismo.repository';
 import { AusentismoEntity } from '../../domain/ausentismo.entity';
-import { fechaLocalYmd } from '../../../shared/fecha-local';
+import { fechaCalendarioSql } from '../../../shared/fecha-local';
 import { formatHoraHHmm } from '../../../shared/format-hora-hhmm';
 
 function veTodosLosAusentismos(sesion?: {
@@ -207,7 +207,7 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
       Array<{ fecha: Date | string; hora_ini: string; hora_fin: string }>
     >`
       SELECT
-        CONVERT(date, fecha_ini) AS fecha,
+        CONVERT(varchar(10), fecha_ini, 23) AS fecha,
         CONVERT(varchar(5), fecha_ini, 108) AS hora_ini,
         CONVERT(varchar(5), fecha_fin, 108) AS hora_fin
       FROM postv_ausentismos_recuperacion
@@ -215,10 +215,7 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
       ORDER BY fecha_ini
     `;
     return rows.map((r) => ({
-      fecha:
-        r.fecha instanceof Date
-          ? fechaLocalYmd(r.fecha)
-          : String(r.fecha).slice(0, 10),
+      fecha: fechaCalendarioSql(r.fecha),
       hora_ini: formatHoraHHmm(r.hora_ini),
       hora_fin: formatHoraHHmm(r.hora_fin),
     }));
@@ -306,8 +303,8 @@ export class InformeAusentismoPrismaRepository implements IAusentismoRepository 
           new AusentismoEntity({
             id_ausen: BigInt(r.id_ausen),
             gestionado_por: nombreJefe(
-          typeof r.gestionado_por === 'string' ? r.gestionado_por : null,
-        ),
+              typeof r.gestionado_por === 'string' ? r.gestionado_por : null,
+            ),
             colaborador: r.colaborador,
             nit_empleado: r.nit_empleado ? String(r.nit_empleado) : null,
             cargo: r.cargo_emp ?? null,

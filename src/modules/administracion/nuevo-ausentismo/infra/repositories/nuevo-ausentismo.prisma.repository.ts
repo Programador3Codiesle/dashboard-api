@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../../../core/infra/prisma/prisma.service';
 import { INuevoAusentismoRepository } from '../../domain/nuevo-ausentismo.repository';
 import { NuevoAusentismoEntity } from '../../domain/nuevo-ausentismo.entity';
-import { fechaLocalYmd } from '../../../shared/fecha-local';
+import { fechaCalendarioSql, fechaLocalYmd } from '../../../shared/fecha-local';
 import { formatHoraHHmm } from '../../../shared/format-hora-hhmm';
 
 @Injectable()
@@ -210,7 +210,7 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
       Array<{ fecha: Date | string; hora_ini: string; hora_fin: string }>
     >`
       SELECT
-        CONVERT(date, fecha_ini) AS fecha,
+        CONVERT(varchar(10), fecha_ini, 23) AS fecha,
         CONVERT(varchar(5), fecha_ini, 108) AS hora_ini,
         CONVERT(varchar(5), fecha_fin, 108) AS hora_fin
       FROM postv_ausentismos_recuperacion
@@ -218,10 +218,7 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
       ORDER BY fecha_ini
     `;
     return rows.map((r) => ({
-      fecha:
-        r.fecha instanceof Date
-          ? fechaLocalYmd(r.fecha)
-          : String(r.fecha).slice(0, 10),
+      fecha: fechaCalendarioSql(r.fecha),
       hora_ini: formatHoraHHmm(r.hora_ini),
       hora_fin: formatHoraHHmm(r.hora_fin),
     }));

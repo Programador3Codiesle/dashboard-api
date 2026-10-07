@@ -23,6 +23,7 @@ import {
   horaAMinutos,
   horaEnRango,
   horasCoinciden,
+  recuperacionCruzaAusentismo,
   recuperacionInicioYaPaso,
   type TramoRecuperacion,
 } from '../../../shared/hora-militar';
@@ -130,6 +131,18 @@ export class CrearAusentismoUseCase {
         ) {
           throw new BadRequestException(
             'Las horas de recuperación deben estar entre 06:00 y 20:00, en intervalos de 5 minutos',
+          );
+        }
+        if (
+          recuperacionCruzaAusentismo(
+            dto.fecha_ini.slice(0, 10),
+            horaIni,
+            horaFin,
+            t,
+          )
+        ) {
+          throw new BadRequestException(
+            'No puede recuperar el tiempo en el horario del ausentismo, porque en ese rango no estará en la empresa',
           );
         }
       }

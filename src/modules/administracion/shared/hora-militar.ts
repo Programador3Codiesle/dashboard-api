@@ -84,6 +84,18 @@ export function rangosHoraSeCruzan(
   );
 }
 
+/** El tramo cae, total o parcialmente, dentro del ausentismo del mismo día. */
+export function recuperacionCruzaAusentismo(
+  fechaAusentismo: string,
+  horaIni: string,
+  horaFin: string,
+  tramo: TramoRecuperacion,
+): boolean {
+  if (!fechaAusentismo || tramo.fecha !== fechaAusentismo) return false;
+  if (!tramo.hora_ini || !tramo.hora_fin) return false;
+  return rangosHoraSeCruzan(horaIni, horaFin, tramo.hora_ini, tramo.hora_fin);
+}
+
 export function hayCruceTramosMismoDia(tramos: TramoRecuperacion[]): boolean {
   for (let i = 0; i < tramos.length; i++) {
     for (let j = i + 1; j < tramos.length; j++) {
