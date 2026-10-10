@@ -5,6 +5,7 @@ import { EmailService } from '../../../../../core/infra/email/email.service';
 import { TokenRespuestaService } from '../../../../../core/infra/token-respuesta/token-respuesta.service';
 import {
   EMAIL_BCC_AUSENTISMO,
+  enHorarioLaboralAusentismo,
   escapeHtmlAdmin,
 } from '../../../shared/destinos-email-admin';
 import {
@@ -40,6 +41,21 @@ export class CrearAusentismoUseCase {
     userId: number,
     adjunto?: Express.Multer.File,
   ) {
+    if (!enHorarioLaboralAusentismo()) {
+      throw new BadRequestException(
+        'No se puede crear ausentismos en horarios no laborales',
+      );
+    }
+
+    const cargo = (dto.cargo_emp ?? '').trim();
+    const descripcion = (dto.descripcion ?? '').trim();
+    if (!cargo) {
+      throw new BadRequestException('El cargo del empleado es obligatorio');
+    }
+    if (!descripcion) {
+      throw new BadRequestException('Debe describir el motivo del permiso');
+    }
+
     const [y, m, d] = dto.fecha_ini.split('-').map(Number);
     const fechaIni = new Date(y, m - 1, d);
     const fechaFin = new Date(y, m - 1, d);
@@ -50,6 +66,14 @@ export class CrearAusentismoUseCase {
     if (fechaIni < hoy) {
       throw new BadRequestException(
         'No se puede crear un ausentismo para fechas pasadas',
+      );
+    }
+
+    const fechaAusentismo = dto.fecha_ini.slice(0, 10);
+    const diaHabil = await this.repo.esDiaHabil(fechaAusentismo);
+    if (!diaHabil) {
+      throw new BadRequestException(
+        'No puede solicitar ausentismo en domingo o día festivo',
       );
     }
 
@@ -154,13 +178,13 @@ export class CrearAusentismoUseCase {
     const result = await this.repo.create({
       empleado: userId,
       area: dto.area,
-      cargo_emp: dto.cargo_emp,
+      cargo_emp: cargo,
       sede: dto.sede,
       fecha_ini: fechaIni,
       hora_ini: horaIni,
       fecha_fin: fechaFin,
       hora_fin: horaFin,
-      descripcion: dto.descripcion,
+      descripcion,
       motivo: dto.motivo,
       autorizacion: 0,
       titulo: dto.motivo,
@@ -185,50 +209,84 @@ export class CrearAusentismoUseCase {
         );
         const urlAutorizar = this.tokenRespuesta.urlResponder(token, 'aprobar');
         const urlRechazar = this.tokenRespuesta.urlResponder(token, 'rechazar');
-        const fechaStr = dto.fecha_ini;
+        const fechaStr = fechaAusentismo;
         const horaIniMail = formatHoraHHmm(result.data.hora_ini ?? horaIni);
         const horaFinMail = formatHoraHHmm(result.data.hora_fin ?? horaFin);
+        const colorEmpresa = colorMarcaEmpresa(dto.id_empresa);
         const nombreSafe = escapeHtmlAdmin(nombre || 'empleado');
+        const nombreCortoSafe = escapeHtmlAdmin(
+          nombreCortoCorreo(nombre || 'empleado'),
+        );
         const sedeSafe = escapeHtmlAdmin(result.data.sede ?? dto.sede ?? '-');
         const descSafe = escapeHtmlAdmin(result.data.descripcion ?? '-');
         const motivoSafe = escapeHtmlAdmin(
           result.data.motivo ?? dto.motivo ?? '-',
         );
-        const msn = `El empleado ${nombreSafe} con cedula ${userId} de la sede ${sedeSafe} solicita un ausentismo por motivo ${motivoSafe} descripcion del motivo ${descSafe} desde ${fechaStr} hora ${horaIniMail} hasta ${fechaStr} hora ${horaFinMail}. ¿Autoriza usted el ausentismo?`;
         let tablaRecuperacion = '';
         if (requiereRecuperacion) {
           const recs = await this.repo.listarRecuperacion(result.data.id_ausen);
           if (recs.length > 0) {
             const filas = recs
               .map(
-                (r) =>
-                  `<tr><td>${escapeHtmlAdmin(r.fecha)}</td><td>${escapeHtmlAdmin(r.hora_ini)}</td><td>${escapeHtmlAdmin(r.hora_fin)}</td></tr>`,
+                (r, index) =>
+                  `<tr style="background:${index % 2 === 0 ? '#ffffff' : '#f9fafb'};">
+                    <td style="padding:10px 12px; border-bottom:1px solid #e5e7eb;">${escapeHtmlAdmin(r.fecha)}</td>
+                    <td style="padding:10px 12px; border-bottom:1px solid #e5e7eb;">${escapeHtmlAdmin(r.hora_ini)}</td>
+                    <td style="padding:10px 12px; border-bottom:1px solid #e5e7eb;">${escapeHtmlAdmin(r.hora_fin)}</td>
+                  </tr>`,
               )
               .join('');
             tablaRecuperacion = `
-              <div style="padding: 20px;">El tiempo solicitado se recuperará de la siguiente manera:</div>
-              <div style="padding: 20px;">
-                <table border="1" cellpadding="6" cellspacing="0">
-                  <thead><tr><th>Fecha</th><th>Hora Inicial</th><th>Hora Final</th></tr></thead>
-                  <tbody>${filas}</tbody>
-                </table>
-              </div>`;
+              <p style="margin:22px 0 8px 0; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:#6b7280;">Recuperación del tiempo</p>
+              <p style="margin:0 0 12px 0; font-size:14px; color:#111827;">El tiempo solicitado se recuperará así:</p>
+              <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse; border:1px solid #e5e7eb; border-radius:8px;">
+                <thead>
+                  <tr style="background:${colorEmpresa}; color:#ffffff;">
+                    <th style="padding:10px 12px; text-align:left; font-size:13px; font-weight:600;">Fecha</th>
+                    <th style="padding:10px 12px; text-align:left; font-size:13px; font-weight:600;">Hora inicial</th>
+                    <th style="padding:10px 12px; text-align:left; font-size:13px; font-weight:600;">Hora final</th>
+                  </tr>
+                </thead>
+                <tbody>${filas}</tbody>
+              </table>`;
           }
         }
         const html = `
-          <div style="font-family: Arial, sans-serif; padding: 16px; background:#f8f9fa;">
-            <div style="max-width: 800px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
-              <div style="padding: 16px 20px; background:#111827; color:#ffffff;">
-                <h2 style="margin:0; font-size: 18px;">Solicitud ausentismo ${nombreSafe}</h2>
+          <div style="font-family: Arial, sans-serif; padding: 16px; background:#f3f4f6;">
+            <div style="max-width: 640px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
+              <div style="padding: 20px 24px; background:${colorEmpresa}; color:#ffffff;">
+                <p style="margin:0 0 4px 0; font-size:12px; letter-spacing:0.06em; text-transform:uppercase; color:#ffffff;">Autorización</p>
+                <h2 style="margin:0; font-size: 20px; font-weight:600;">Solicitud de ausentismo</h2>
+                <p style="margin:8px 0 0 0; font-size:14px; color:#ffffff;">${nombreSafe}</p>
               </div>
-              <div style="padding: 18px 20px; color:#111827;">
-                <p style="margin:0 0 10px 0;"><strong>${msn}</strong></p>
+              <div style="padding: 24px; color:#111827;">
+                <p style="margin:0 0 16px 0; font-size:15px; line-height:1.5;">Se solicita autorizar el siguiente ausentismo.</p>
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse; margin:0 0 16px 0;">
+                  <tr>
+                    ${celdaCorreoAusentismo('Empleado', nombreCortoSafe, '50%')}
+                    ${celdaCorreoAusentismo('Cédula', escapeHtmlAdmin(String(userId)), '50%')}
+                  </tr>
+                  <tr>
+                    ${celdaCorreoAusentismo('Sede', sedeSafe, '50%')}
+                    ${celdaCorreoAusentismo('Motivo', motivoSafe, '50%')}
+                  </tr>
+                </table>
+                <p style="margin:0 0 6px 0; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:#6b7280;">Descripción</p>
+                <p style="margin:0 0 20px 0; padding:12px 14px; background:#f9fafb; border:1px solid #e5e7eb; border-radius:8px; font-size:14px; line-height:1.5;">${descSafe}</p>
+                <p style="margin:0 0 8px 0; font-size:13px; letter-spacing:0.04em; text-transform:uppercase; color:#6b7280;">Horario solicitado</p>
+                <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%; border-collapse:collapse; margin:0 0 8px 0;">
+                  <tr>
+                    ${celdaCorreoAusentismo('Fecha', escapeHtmlAdmin(fechaStr))}
+                    ${celdaCorreoAusentismo('Hora inicial', escapeHtmlAdmin(horaIniMail))}
+                    ${celdaCorreoAusentismo('Hora final', escapeHtmlAdmin(horaFinMail))}
+                  </tr>
+                </table>
                 ${tablaRecuperacion}
-                <hr style="border:none; border-top: 1px solid #e5e7eb; margin: 18px 0;" />
-                <p style="margin:0 0 10px 0;"><strong>Responder:</strong></p>
-                <p style="margin:0 0 8px 0;">
-                  <a href="${urlAutorizar}" style="display:inline-block; margin-right:12px; padding:10px 20px; background:#16a34a; color:#fff; text-decoration:none; border-radius:6px;">Aprobar</a>
-                  <a href="${urlRechazar}" style="display:inline-block; padding:10px 20px; background:#dc2626; color:#fff; text-decoration:none; border-radius:6px;">Rechazar</a>
+                <p style="margin:22px 0 16px 0; padding:12px 14px; background:#f9fafb; border-left:3px solid ${colorEmpresa}; font-size:15px; line-height:1.5;">¿Autoriza usted el ausentismo?</p>
+                <p style="margin:0 0 10px 0; font-size:13px; color:#6b7280;">Responder</p>
+                <p style="margin:0;">
+                  <a href="${urlAutorizar}" style="display:inline-block; margin:0 12px 8px 0; padding:10px 20px; background:#16a34a; color:#fff; text-decoration:none; border-radius:6px;">Aprobar</a>
+                  <a href="${urlRechazar}" style="display:inline-block; margin:0 0 8px 0; padding:10px 20px; background:#dc2626; color:#fff; text-decoration:none; border-radius:6px;">Rechazar</a>
                 </p>
               </div>
             </div>
@@ -261,6 +319,43 @@ export class CrearAusentismoUseCase {
 
     return result;
   }
+}
+
+/**
+ * Mismo matiz de cada empresa, con menos brillo, para que el blanco se lea.
+ * Codiesel sigue en amarillo; no se corre hacia el naranja.
+ */
+function colorMarcaEmpresa(idEmpresa?: number | null): string {
+  switch (idEmpresa) {
+    case 2:
+      return '#3a9286';
+    case 3:
+      return '#e00000';
+    case 4:
+      return '#2783ce';
+    default:
+      return '#b8840a';
+  }
+}
+
+/** `terceros.nombres` es apellidos y luego nombres: primer nombre + primer apellido. */
+function nombreCortoCorreo(nombreCompleto: string): string {
+  const partes = nombreCompleto.trim().split(/\s+/).filter(Boolean);
+  if (partes.length <= 2) return partes.join(' ');
+  const primerApellido = partes[0];
+  const primerNombre = partes[partes.length - 2];
+  return `${primerNombre} ${primerApellido}`;
+}
+
+function celdaCorreoAusentismo(
+  etiqueta: string,
+  valor: string,
+  ancho = '33%',
+): string {
+  return `<td style="width:${ancho}; padding:8px 16px 12px 0; vertical-align:top;">
+    <div style="font-size:12px; letter-spacing:0.04em; text-transform:uppercase; color:#6b7280;">${etiqueta}</div>
+    <div style="margin-top:2px; font-size:14px; font-weight:600; color:#111827;">${valor}</div>
+  </td>`;
 }
 
 function parseTramosRecuperacion(raw?: string): TramoRecuperacion[] {
