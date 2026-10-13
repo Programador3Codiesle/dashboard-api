@@ -48,6 +48,7 @@ import { InformeVentas1a1Module } from './modules/informes/postventa/informe-ven
 import { InformeTiempoEntrevistaConsultivaModule } from './modules/informes/postventa/informe-tiempo-entrevista-consultiva/infra/informe-tiempo-entrevista-consultiva.module';
 import { InformeInventarioObsoletosModule } from './modules/informes/postventa/informe-inventario-obsoletos/infra/informe-inventario-obsoletos.module';
 import { InformeEncuestasInternasModule } from './modules/informes/postventa/informe-encuestas-internas/infra/informe-encuestas-internas.module';
+import { InformeLeadsModule } from './modules/informes/contact-center/informe-leads/infra/informe-leads.module';
 import { NominaModule } from './modules/nomina/nomina.module';
 import { TallerModule } from './modules/taller/taller.module';
 import { RepuestosModule } from './modules/repuestos/repuestos.module';
@@ -121,6 +122,7 @@ import { MantenimientoModule } from './modules/mantenimiento/infra/mantenimiento
     InformeTiempoEntrevistaConsultivaModule,
     InformeInventarioObsoletosModule,
     InformeEncuestasInternasModule,
+    InformeLeadsModule,
     NominaModule,
     TallerModule,
     RepuestosModule,

@@ -25,7 +25,7 @@ export class ListarComprasUseCase {
     const result = await this.repo.listar({
       ...filtros,
       pagina: filtros?.pagina || 1,
-      limite: filtros?.limite || 10,
+      limite: filtros?.limite || 20,
       id_empresa: sesion.empresaId,
       usu_solicita: veTodasLasCompras(sesion.perfil) ? undefined : sesion.nit,
     });

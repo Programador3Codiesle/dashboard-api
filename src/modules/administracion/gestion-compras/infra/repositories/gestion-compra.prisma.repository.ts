@@ -128,7 +128,7 @@ export class GestionCompraPrismaRepository implements IGestionCompraRepository {
           items: [],
           total: 0,
           page: filtros.pagina || 1,
-          limit: filtros.limite || 10,
+          limit: filtros.limite || 20,
         };
       }
       return this.ejecutarListar(filtros, false);
@@ -169,7 +169,7 @@ export class GestionCompraPrismaRepository implements IGestionCompraRepository {
     }
 
     const whereClause = Prisma.join(conditions, ' AND ');
-    const limit = filtros?.limite || 10;
+    const limit = filtros?.limite || 20;
     const page = filtros?.pagina || 1;
     const offset = (page - 1) * limit;
 
@@ -196,7 +196,7 @@ export class GestionCompraPrismaRepository implements IGestionCompraRepository {
                 INNER JOIN terceros us ON us.nit = gc.usu_solicita
                 LEFT JOIN terceros ga ON ga.nit = gc.gerente_autoriza
                 WHERE ${whereClause}
-                ORDER BY gc.estado_autorizacion ASC, gc.fecha_solicitud DESC, gc.id_solicitud DESC
+                ORDER BY gc.estado ASC, gc.id_solicitud DESC
                 OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
             `
       : await this.prisma.$queryRaw<any[]>`
@@ -212,7 +212,7 @@ export class GestionCompraPrismaRepository implements IGestionCompraRepository {
                 INNER JOIN terceros us ON us.nit = gc.usu_solicita
                 LEFT JOIN terceros ga ON ga.nit = gc.gerente_autoriza
                 WHERE ${whereClause}
-                ORDER BY gc.estado_autorizacion ASC, gc.fecha_solicitud DESC, gc.id_solicitud DESC
+                ORDER BY gc.estado ASC, gc.id_solicitud DESC
                 OFFSET ${offset} ROWS FETCH NEXT ${limit} ROWS ONLY
             `;
 
