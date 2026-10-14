@@ -57,6 +57,13 @@ function cellText(row: Record<string, unknown>, key: string): string {
   return '';
 }
 
+/** NIT del asesor: el driver puede devolver decimal con ceros a la derecha. */
+function cellDocumento(row: Record<string, unknown>, key: string): string {
+  const text = cellText(row, key);
+  if (/^-?\d+\.0+$/.test(text)) return text.split('.')[0] ?? '';
+  return text;
+}
+
 @Injectable()
 export class ListarNominaAccesoriosUseCase {
   constructor(private readonly repository: INominaAccesoriosRepository) {}
@@ -171,7 +178,7 @@ export class ListarNominaAccesoriosUseCase {
         asesor: rows
           .filter(
             (row) =>
-              cellText(row, 'vendedor') !== NIT_ASESOR_ACCESORIOS_EXCLUIDO,
+              cellDocumento(row, 'vendedor') !== NIT_ASESOR_ACCESORIOS_EXCLUIDO,
           )
           .map((row) => {
             const ventaPropia = cellNumber(row, 'venta_propia');
@@ -182,7 +189,7 @@ export class ListarNominaAccesoriosUseCase {
               ventaCompartida * PORC_COMISION_VENTA_COMPARTIDA;
             return new NominaAccesoriosAsesorEntity({
               fecha: fechaLabel,
-              documento: cellText(row, 'vendedor'),
+              documento: cellDocumento(row, 'vendedor'),
               nombres: cellText(row, 'nombres'),
               ventaPropia,
               ventaCompartida,

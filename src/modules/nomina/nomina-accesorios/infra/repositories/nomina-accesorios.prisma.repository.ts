@@ -35,7 +35,12 @@ export class NominaAccesoriosPrismaRepository implements INominaAccesoriosReposi
       : Prisma.empty;
 
     return this.prisma.$queryRaw<Record<string, unknown>[]>(Prisma.sql`
-      SELECT vendedor, nombres, venta_propia, venta_compartida, vh_entregados
+      SELECT
+        CONVERT(varchar(20), vendedor) AS vendedor,
+        nombres,
+        venta_propia,
+        venta_compartida,
+        vh_entregados
       FROM codiesel2k.dbo.v_comisiones_accesorios_asesor
       WHERE ano = ${ano} AND mes = ${mes}
       ${filtroNit}

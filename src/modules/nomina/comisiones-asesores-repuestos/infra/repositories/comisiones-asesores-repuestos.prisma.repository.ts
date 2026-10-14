@@ -93,9 +93,7 @@ export class ComisionesAsesoresRepuestosPrismaRepository implements IComisionesA
 
     for (const asesor of asesores) {
       const row = await this.calcularFilaAsesor(asesor, mes, ano);
-      if (row) {
-        rows.push(row);
-      }
+      if (row) rows.push(row);
     }
 
     return rows;
