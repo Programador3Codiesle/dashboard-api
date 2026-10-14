@@ -324,8 +324,8 @@ export class ComisionesAsesoresRepuestosPrismaRepository implements IComisionesA
             sede,
             dataMostrador: dataMos,
             dataTaller: dataTall,
-            comisionPorcentaje: 4,
-            comisionSobreUtilidad: false,
+            comisionPorcentaje: 7.5,
+            comisionSobreUtilidad: true,
             color: '#CED6FE',
           });
         }
@@ -365,8 +365,8 @@ export class ComisionesAsesoresRepuestosPrismaRepository implements IComisionesA
             sede,
             dataMostrador: dataMos,
             dataTaller: dataTall,
-            comisionPorcentaje: 4,
-            comisionSobreUtilidad: false,
+            comisionPorcentaje: 7.5,
+            comisionSobreUtilidad: true,
             color: '#CED6FE',
           });
         }
