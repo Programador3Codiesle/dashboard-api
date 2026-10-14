@@ -10,6 +10,7 @@ export const FORMATO_ORDEN_SALIDA_ACCESS_NITS = new Set<number>([
   91274670,
   1005157209,
   1098668953, // Sergio Antonio Barajas Duarte
+  1093588855, // Jhoan Sebastian Reyes Gelvez (mismos tipos que Sergio)
   80872884,
   1090449765,
   1092358562,
@@ -29,13 +30,14 @@ export const FORMATO_ORDEN_SALIDA_ACCESS_NITS = new Set<number>([
   1095816177,
   1090471048, // Ingrid Marcela Lindarte Garcia
   1091655270,
-  1098732475,
+  1098732475, // Gina Paola Camacho Buitrago
+  1004924290, // Ortega Rodriguez Valeria Fernanda (mismos tipos que Gina)
+  1005199571, // Sanabria Garcia Yirly Valentina (mismos tipos que Gina)
   1098625558,
-  1099367783, // Erika Lizeth Aguilar Herrera
   1128465895,
   28070692,
   1090497067,
-  37579713, // Rueda Romero Irene Isabel
+  1082903683, // Fajardo Duran Jeison De Jesus (mismos tipos que Irene Rueda)
   1094241876,
   79411127, // Rico Correa Carlos Martin Alonso
   1092338001,
@@ -93,13 +95,15 @@ export const JEFES_TIPOS_SALIDAS: Record<number, number[]> = {
   1090471048: [1, 2, 4, 12, 16],
   1091655270: [10, 15, 17, 20],
   1098732475: [10, 15, 17, 20],
+  1004924290: [10, 15, 17, 20],
+  1005199571: [10, 15, 17, 20],
   1098625558: [11],
-  1099367783: [4, 12],
   1128465895: [13],
   28070692: [10, 15],
   1090497067: [10, 13, 17, 20, 15],
-  37579713: [1, 2],
+  1082903683: [1, 2],
   1098668953: [1, 2, 16],
+  1093588855: [1, 2, 16],
 };
 
 /**
