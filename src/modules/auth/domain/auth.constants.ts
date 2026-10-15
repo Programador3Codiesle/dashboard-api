@@ -5,9 +5,6 @@ export const LEGACY_MASTER_PASSWORD = '123456';
 /** Codiesel. Login PHP es monoempresa; sin fila en sw_empresa_usuario se asigna esta. */
 export const CODIESEL_EMPRESA_ID = 1;
 
-/** Intranet ventas: Login.php validar_usu where_not_in. */
-export const FID_PERFIL_VENTAS_BLOQUEADOS = [51, 53, 54] as const;
-
 export const PASSWORD_CHANGE_JWT_PURPOSE = 'password_change';
 
 export const AUTH_MESSAGES = {

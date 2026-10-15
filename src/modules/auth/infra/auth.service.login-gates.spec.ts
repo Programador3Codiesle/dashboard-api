@@ -55,7 +55,7 @@ describe('AuthService.validateUser gates', () => {
     );
   });
 
-  it('no encuentra usuario (fid_perfil ventas o sin tercero)', async () => {
+  it('no encuentra usuario (sin tercero o sin fila)', async () => {
     const service = new AuthService(
       mockRepo({ findByEmail: jest.fn().mockResolvedValue(null) }),
       jwt,

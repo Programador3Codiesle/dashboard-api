@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { PrismaService } from '../../../../core/infra/prisma/prisma.service';
 import {
   IUserRepository,
@@ -7,7 +6,6 @@ import {
 } from '../../domain/user.repository';
 import { User } from '../../domain/user.entity';
 import { REFRESH_REUSE_WINDOW_MS } from '../../domain/refresh-token.util';
-import { FID_PERFIL_VENTAS_BLOQUEADOS } from '../../domain/auth.constants';
 
 function toUserIdString(value: unknown): string {
   if (typeof value === 'string' && value.length > 0) return value;
@@ -221,7 +219,7 @@ export class UserPrismaRepository implements IUserRepository {
   }
 
   async findByEmail(nit_usuario: number): Promise<User | null> {
-    // Login.php Usuarios::validar_usu — INNER JOIN terceros, excluye fid_perfil 51/53/54.
+    // Posventa es multimarca: no se excluyen fid_perfil 51, 53 ni 54.
     const results = await this.prisma.$queryRaw<UsuarioQueryRow[]>`
             SELECT 
                 u.id_usuario,
@@ -234,7 +232,6 @@ export class UserPrismaRepository implements IUserRepository {
             FROM w_sist_usuarios u
             INNER JOIN terceros t ON t.nit = u.nit_usuario
             WHERE u.nit_usuario = ${nit_usuario}
-              AND u.fid_perfil NOT IN (${Prisma.join([...FID_PERFIL_VENTAS_BLOQUEADOS])})
         `;
 
     const u = results[0];
