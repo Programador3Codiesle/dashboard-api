@@ -30,22 +30,8 @@ export class ResponderAutorizacionUseCase {
     switch (tipo) {
       case 'gestion-compra':
         return this.responderGestionCompra(Number(id), accion, idCotizacion);
-      case 'nuevo-ausentismo': {
-        const autorizacion = accion === 'aprobar' ? 1 : 2;
-        const ok = await this.ausentismoRepo.actualizarAutorizacion(
-          BigInt(Number(id)),
-          autorizacion,
-        );
-        return {
-          success: ok,
-          message: ok
-            ? accion === 'aprobar'
-              ? 'Ausentismo aprobado.'
-              : 'Ausentismo rechazado.'
-            : 'No se pudo actualizar la autorización.',
-          accion,
-        };
-      }
+      case 'nuevo-ausentismo':
+        return this.responderAusentismo(Number(id), accion);
       case 'tiempo-suplementario': {
         const autorizacion = accion === 'aprobar' ? 1 : 2;
         const ok = await this.tiempoSuplementarioRepo.actualizarAutorizacion(
@@ -72,6 +58,72 @@ export class ResponderAutorizacionUseCase {
           accion,
         };
     }
+  }
+
+  /**
+   * 0 pendiente, 1 aprobado, 2 rechazado.
+   * La misma acción repetida muestra éxito. La contraria cambia el estado.
+   */
+  private async responderAusentismo(
+    id: number,
+    accion: 'aprobar' | 'rechazar',
+  ): Promise<ResponderAutorizacionResult> {
+    const destino = accion === 'aprobar' ? 1 : 2;
+    const mensajeExito =
+      destino === 1 ? 'Ausentismo aprobado.' : 'Ausentismo rechazado.';
+
+    if (!Number.isFinite(id) || id <= 0) {
+      return {
+        success: false,
+        message: 'Ausentismo no encontrado.',
+        accion,
+      };
+    }
+
+    const idAusen = BigInt(id);
+    const actual = await this.ausentismoRepo.findById(idAusen);
+    if (!actual) {
+      return {
+        success: false,
+        message: 'Ausentismo no encontrado.',
+        accion,
+      };
+    }
+
+    if (Number(actual.autorizacion) === destino) {
+      return {
+        success: true,
+        message: mensajeExito,
+        accion,
+      };
+    }
+
+    const ok = await this.ausentismoRepo.actualizarAutorizacion(
+      idAusen,
+      destino,
+    );
+    if (ok) {
+      return {
+        success: true,
+        message: mensajeExito,
+        accion,
+      };
+    }
+
+    const despues = await this.ausentismoRepo.findById(idAusen);
+    if (despues && Number(despues.autorizacion) === destino) {
+      return {
+        success: true,
+        message: mensajeExito,
+        accion,
+      };
+    }
+
+    return {
+      success: false,
+      message: 'No se pudo actualizar la autorización.',
+      accion,
+    };
   }
 
   /**

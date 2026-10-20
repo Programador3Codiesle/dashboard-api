@@ -122,7 +122,7 @@ export class NuevoAusentismoPrismaRepository implements INuevoAusentismoReposito
                 UPDATE postv_ausentismos
                 SET autorizacion = ${autorizacion},
                     nit_usuario_resp = ${nitResp}
-                WHERE id_ausen = ${id} AND autorizacion = 0
+                WHERE id_ausen = ${id} AND autorizacion <> ${autorizacion}
             `;
       return Number(affected) > 0;
     } catch (error) {
