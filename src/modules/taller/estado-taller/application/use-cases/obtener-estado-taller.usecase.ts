@@ -26,12 +26,13 @@ export class ObtenerPanelEstadoTallerUseCase {
     idEmpresa?: number,
     pagina?: number,
     limite?: number,
+    razon2?: number,
   ): Promise<EstadoTallerPanelEntity> {
     const sedes = await this.repo.getSedesUsuario(nitUsuario, idEmpresa);
     const bodegaIds = resolveBodegaIds(sedes, bodega);
     const [rawOrdenes, totalAbiertas] = await Promise.all([
-      this.repo.getOrdenesAbiertas(bodegaIds, pagina, limite),
-      this.repo.getTotalOrdenesAbiertas(bodegaIds),
+      this.repo.getOrdenesAbiertas(bodegaIds, pagina, limite, razon2),
+      this.repo.getTotalOrdenesAbiertas(bodegaIds, razon2),
     ]);
 
     const numeros = rawOrdenes.map((row) => row.numero);
@@ -54,10 +55,11 @@ export class ObtenerTotalAbiertasUseCase {
     nitUsuario: number,
     bodega?: string,
     idEmpresa?: number,
+    razon2?: number,
   ): Promise<number> {
     const sedes = await this.repo.getSedesUsuario(nitUsuario, idEmpresa);
     const bodegaIds = resolveBodegaIds(sedes, bodega);
-    return this.repo.getTotalOrdenesAbiertas(bodegaIds);
+    return this.repo.getTotalOrdenesAbiertas(bodegaIds, razon2);
   }
 }
 

@@ -1,4 +1,12 @@
-import { IsIn, IsInt, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+  IsIn,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class ObtenerPanelQueryDto {
@@ -20,6 +28,14 @@ export class ObtenerPanelQueryDto {
   @Type(() => Number)
   @IsInt()
   limite?: number;
+
+  /** Código de tall_encabeza_orden.razon2 (1 a 10). */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(10)
+  razon2?: number;
 }
 
 export class AgregarEventoDto {

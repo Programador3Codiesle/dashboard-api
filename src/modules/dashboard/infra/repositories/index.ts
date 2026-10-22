@@ -7,3 +7,4 @@ export { DashboardAgenteCCPrismaRepository } from './dashboard-agente-cc.prisma.
 export { DashboardComprasPrismaRepository } from './dashboard-compras.prisma.repository';
 export { DashboardMantenimientoPrismaRepository } from './dashboard-mantenimiento.prisma.repository';
 export { DashboardGerenciaPrismaRepository } from './dashboard-gerencia.prisma.repository';
+export { DashboardGarantiasPrismaRepository } from './dashboard-garantias.prisma.repository';

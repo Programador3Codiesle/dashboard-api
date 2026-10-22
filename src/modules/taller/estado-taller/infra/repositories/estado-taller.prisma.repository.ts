@@ -88,6 +88,11 @@ export class EstadoTallerPrismaRepository implements IEstadoTallerRepository {
     return sqlNumericInClause(column, ids, BODEGA_IN_COLUMNS);
   }
 
+  private filtroRazon2(razon2?: number): Prisma.Sql {
+    if (razon2 == null || !Number.isFinite(razon2)) return Prisma.empty;
+    return Prisma.sql`AND teo.razon2 = ${razon2}`;
+  }
+
   private async withTempUser<T>(
     userId: number,
     fn: (tx: Prisma.TransactionClient) => Promise<T>,
@@ -203,6 +208,7 @@ export class EstadoTallerPrismaRepository implements IEstadoTallerRepository {
     bodegaIds: number[],
     pagina?: number,
     limite?: number,
+    razon2?: number,
   ): Promise<OrdenTallerAbiertaRowEntity[]> {
     if (bodegaIds.length === 0) return [];
 
@@ -337,6 +343,7 @@ export class EstadoTallerPrismaRepository implements IEstadoTallerRepository {
       WHERE ${this.bodegaIn('teo.bodega', bodegaIds)}
         AND teo.facturada = 0
         AND teo.anulada = 0
+        ${this.filtroRazon2(razon2)}
       GROUP BY
         b.descripcion,
         teo.numero,
@@ -365,7 +372,10 @@ export class EstadoTallerPrismaRepository implements IEstadoTallerRepository {
     return (rows ?? []).map((row) => this.mapOrdenBase(row));
   }
 
-  async getTotalOrdenesAbiertas(bodegaIds: number[]): Promise<number> {
+  async getTotalOrdenesAbiertas(
+    bodegaIds: number[],
+    razon2?: number,
+  ): Promise<number> {
     if (bodegaIds.length === 0) return 0;
 
     const rows = await this.prisma.$queryRaw<{ n: unknown }[]>(Prisma.sql`
@@ -375,6 +385,7 @@ export class EstadoTallerPrismaRepository implements IEstadoTallerRepository {
       WHERE ${this.bodegaIn('b.bodega', bodegaIds)}
         AND teo.facturada = 0
         AND teo.anulada = 0
+        ${this.filtroRazon2(razon2)}
     `);
 
     return toNum(rows?.[0]?.n);

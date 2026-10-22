@@ -36,6 +36,7 @@ export class EstadoTallerFacade {
     idEmpresa?: number,
     pagina?: number,
     limite?: number,
+    razon2?: number,
   ) {
     return this.obtenerPanelUseCase.execute(
       nitUsuario,
@@ -43,6 +44,7 @@ export class EstadoTallerFacade {
       idEmpresa,
       pagina,
       limite,
+      razon2,
     );
   }
 
@@ -50,11 +52,13 @@ export class EstadoTallerFacade {
     nitUsuario: number,
     bodega?: string,
     idEmpresa?: number,
+    razon2?: number,
   ) {
     return this.obtenerTotalAbiertasUseCase.execute(
       nitUsuario,
       bodega,
       idEmpresa,
+      razon2,
     );
   }
 

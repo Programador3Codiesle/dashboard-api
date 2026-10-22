@@ -10,6 +10,7 @@ import {
   PERFIL_GERENCIA,
   PERFIL_ASESOR_REP,
   PERFIL_COMPRAS,
+  PERFIL_GARANTIAS,
 } from '../../domain/dashboard.constants';
 import type { DashboardResponseDto } from '../dto/dashboard-response.dto';
 import { JefeTallerService } from '../builders/jefe-taller.service';
@@ -20,6 +21,7 @@ import { GerenciaService } from '../builders/gerencia.service';
 import { ComprasService } from '../builders/compras.service';
 import { AsesorRepuestoService } from '../builders/asesor-repuesto.service';
 import { MantenimientoService } from '../builders/mantenimiento.service';
+import { GarantiasService } from '../builders/garantias.service';
 
 @Injectable()
 export class GetDashboardUseCase {
@@ -33,6 +35,7 @@ export class GetDashboardUseCase {
     private readonly comprasService: ComprasService,
     private readonly asesorRepService: AsesorRepuestoService,
     private readonly mantenimientoService: MantenimientoService,
+    private readonly garantiasService: GarantiasService,
     private readonly authService: AuthService,
   ) {}
 
@@ -105,6 +108,17 @@ export class GetDashboardUseCase {
         fechaActual,
         diaFestivo,
         userId,
+      );
+    }
+    if (perfilNum === PERFIL_GARANTIAS) {
+      return this.garantiasService.buildGarantias(
+        nitUsuario,
+        fechaActual,
+        diaFestivo,
+        userId,
+        mes,
+        ano,
+        idEmpresa,
       );
     }
     if (PERFIL_GERENCIA.includes(perfilNum)) {

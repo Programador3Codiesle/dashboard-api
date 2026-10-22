@@ -48,6 +48,7 @@ export class EstadoTallerController {
       idEmpresa,
       query.pagina,
       query.limite,
+      query.razon2,
     );
   }
 
@@ -66,6 +67,7 @@ export class EstadoTallerController {
       this.getNit(req),
       query.bodega,
       idEmpresa,
+      query.razon2,
     );
   }
 

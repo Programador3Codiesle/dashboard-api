@@ -15,6 +15,10 @@ export const PERFIL_AGENTE_CC = 31;
 export const PERFIL_GERENCIA: number[] = [22, 23];
 export const PERFIL_ASESOR_REP = 34;
 export const PERFIL_COMPRAS = 28;
+/** Perfil Garantías: informe de venta de garantía por bodega asignada. */
+export const PERFIL_GARANTIAS = 11;
+/** Clase de trabajo de garantía en v_posv_Informe_tecnicos. */
+export const CLASE_TRABAJO_GARANTIA = 'G';
 export const PERFIL_ADMIN = [1, 32] as const;
 
 /** Centros de costo por sede (IDs para presupuesto/día). */

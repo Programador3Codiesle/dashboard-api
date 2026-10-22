@@ -6,15 +6,31 @@ import {
   IInformeEntradaVhRepository,
 } from '../../domain/entrada-vh.repository';
 import { InformeEntradaVhResumenEntity } from '../../domain/entrada-vh.entity';
+import { resolverBodegasEntradaVh } from '../../domain/lugares-entrada-vh';
 
 @Injectable()
 export class InformeEntradaVhPrismaRepository implements IInformeEntradaVhRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private bodegaSql(
+    column: 'tc.bodega' | 'vhs.bodegas',
+    ids: number[],
+  ): Prisma.Sql {
+    if (ids.length === 0) return Prisma.sql`1 = 0`;
+    if (ids.length === 1) {
+      return Prisma.sql`${Prisma.raw(column)} = ${ids[0]}`;
+    }
+    return Prisma.sql`${Prisma.raw(column)} IN (${Prisma.join(ids)})`;
+  }
+
   async obtenerResumen(
     filtros: FiltrosInformeEntradaVh,
   ): Promise<InformeEntradaVhResumenEntity> {
     const { year, month } = filtros;
+    const bodegaIds =
+      filtros.bodegaIds?.length > 0
+        ? filtros.bodegaIds
+        : (resolverBodegasEntradaVh() ?? []);
 
     const [citasAsistidasRow] = await this.prisma.$queryRaw<
       { citas_asistidas: number }[]
@@ -25,7 +41,7 @@ export class InformeEntradaVhPrismaRepository implements IInformeEntradaVhReposi
       WHERE MONTH(CONVERT(DATE,fecha_hora_ini)) = ${month}
         AND YEAR(CONVERT(DATE,fecha_hora_ini)) = ${year}
         AND estado_cita = 'A'
-        AND tc.bodega IN (1,11,9,21)
+        AND ${this.bodegaSql('tc.bodega', bodegaIds)}
     `);
 
     const [citasAgendadasRow] = await this.prisma.$queryRaw<
@@ -36,7 +52,7 @@ export class InformeEntradaVhPrismaRepository implements IInformeEntradaVhReposi
       WHERE MONTH(CONVERT(DATE,fecha_hora_ini)) = ${month}
         AND YEAR(CONVERT(DATE,fecha_hora_ini)) = ${year}
         AND estado_cita = 'A'
-        AND tc.bodega IN (1,11,9,21)
+        AND ${this.bodegaSql('tc.bodega', bodegaIds)}
     `);
 
     const citasAsistidas = Number(citasAsistidasRow?.citas_asistidas ?? 0);
@@ -59,7 +75,7 @@ export class InformeEntradaVhPrismaRepository implements IInformeEntradaVhReposi
       WHERE MONTH(CONVERT(DATE,fecha_hora_ini)) = ${month}
         AND YEAR(CONVERT(DATE,fecha_hora_ini)) = ${year}
         AND estado_cita = 'A'
-        AND tc.bodega IN (1,11,9,21)
+        AND ${this.bodegaSql('tc.bodega', bodegaIds)}
     `);
 
     let cantidadTemprano = 0;
@@ -93,7 +109,7 @@ export class InformeEntradaVhPrismaRepository implements IInformeEntradaVhReposi
       FROM postv_vh_sin_cita vhs 
       WHERE MONTH(CONVERT(DATE,vhs.fecha)) = ${month}
         AND YEAR(CONVERT(DATE,vhs.fecha)) = ${year}
-        AND vhs.bodegas IN (1,11,9,21)
+        AND ${this.bodegaSql('vhs.bodegas', bodegaIds)}
     `);
 
     const vhSinCita = Number(vhSinCitaRow?.n_vh_sin_cita ?? 0);

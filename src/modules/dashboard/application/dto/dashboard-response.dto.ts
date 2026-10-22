@@ -10,7 +10,8 @@ export type DashboardVariant =
   | 'gerencia'
   | 'asesor_rep'
   | 'compras'
-  | 'informe_mto';
+  | 'informe_mto'
+  | 'garantias';
 
 export interface DashboardBase {
   variant: DashboardVariant;
@@ -264,6 +265,34 @@ export interface DashboardAsesorRepDto extends DashboardBase {
   total_vendido_global?: number;
 }
 
+/** Un mes de la serie anual de garantías de una bodega. */
+export interface GarantiasMesDto {
+  mes: number;
+  mesNom: string;
+  mo: number;
+  repuestos: number;
+  tot: number;
+  horas: number;
+  total: number;
+}
+
+/** Perfil 11: venta de garantía (clase_trabajo G) de las bodegas asignadas. */
+export interface GarantiasBodegaDto {
+  idsede: number;
+  sede: string;
+  mo: number;
+  repuestos: number;
+  tot: number;
+  horas: number;
+  total: number;
+  meses: GarantiasMesDto[];
+}
+
+export interface DashboardGarantiasDto extends DashboardBase {
+  variant: 'garantias';
+  bodegas: GarantiasBodegaDto[];
+}
+
 /** Perfil 46: Informe solicitud mantenimiento — solo bloque MTO. */
 export interface DashboardInformeMtoDto extends DashboardBase {
   variant: 'informe_mto';
@@ -283,4 +312,5 @@ export type DashboardResponseDto =
   | DashboardGerenciaDto
   | DashboardComprasDto
   | DashboardAsesorRepDto
-  | DashboardInformeMtoDto;
+  | DashboardInformeMtoDto
+  | DashboardGarantiasDto;

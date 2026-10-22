@@ -13,6 +13,7 @@ import {
   DashboardComprasPrismaRepository,
   DashboardMantenimientoPrismaRepository,
   DashboardGerenciaPrismaRepository,
+  DashboardGarantiasPrismaRepository,
 } from './repositories';
 import { JefeTallerService } from '../application/builders/jefe-taller.service';
 import { TecnicoService } from '../application/builders/tecnico.service';
@@ -22,6 +23,7 @@ import { GerenciaService } from '../application/builders/gerencia.service';
 import { ComprasService } from '../application/builders/compras.service';
 import { AsesorRepuestoService } from '../application/builders/asesor-repuesto.service';
 import { MantenimientoService } from '../application/builders/mantenimiento.service';
+import { GarantiasService } from '../application/builders/garantias.service';
 import { IDashboardCommonRepository } from '../domain/dashboard-common.repository';
 import { ITecnicoDashboardRepository } from '../domain/tecnico.repository';
 import { IAsesorRepuestoDashboardRepository } from '../domain/asesor-repuesto.repository';
@@ -31,6 +33,7 @@ import { IAgenteCCDashboardRepository } from '../domain/agente-cc.repository';
 import { IComprasDashboardRepository } from '../domain/compras.repository';
 import { IMantenimientoDashboardRepository } from '../domain/mantenimiento.repository';
 import { IGerenciaDashboardRepository } from '../domain/gerencia.repository';
+import { IGarantiasDashboardRepository } from '../domain/garantias.repository';
 
 @Module({
   imports: [AuthModule],
@@ -75,6 +78,10 @@ import { IGerenciaDashboardRepository } from '../domain/gerencia.repository';
       provide: IGerenciaDashboardRepository,
       useClass: DashboardGerenciaPrismaRepository,
     },
+    {
+      provide: IGarantiasDashboardRepository,
+      useClass: DashboardGarantiasPrismaRepository,
+    },
     JefeTallerService,
     TecnicoService,
     AdministracionService,
@@ -83,6 +90,7 @@ import { IGerenciaDashboardRepository } from '../domain/gerencia.repository';
     ComprasService,
     AsesorRepuestoService,
     MantenimientoService,
+    GarantiasService,
   ],
   exports: [GetDashboardUseCase],
 })
