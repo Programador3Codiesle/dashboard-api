@@ -4,6 +4,7 @@ import { ListarTiempoSuplementarioUseCase } from './listar-tiempo-suplementario.
 import { FiltrosTiempoSuplementarioDto } from '../dto/filtros-tiempo-suplementario.dto';
 import type { SesionInformeHe } from '../../domain/informe-tiempo-suplementario.repository';
 import type { InformeTiempoSuplementarioEntity } from '../../domain/informe-tiempo-suplementario.entity';
+import { fraccionarHorarioExcel } from './fraccion-horario-excel';
 
 const ESTADOS: Record<number, string> = {
   0: 'Pendiente',
@@ -40,6 +41,8 @@ export class ExportarTiempoSuplementarioExcelUseCase {
       'Fecha del trabajo',
       'Hora de Inicio',
       'Hora de salida',
+      'Hora de Inicio Nocturna',
+      'Hora de Salida Nocturna',
       'Descripción',
       'Autorización',
     ];
@@ -54,20 +57,33 @@ export class ExportarTiempoSuplementarioExcelUseCase {
     header.font = { bold: true, color: { argb: 'FFFFFFFF' } };
 
     for (const item of list) {
-      ws.addRow([
+      const horario = fraccionarHorarioExcel(item.hora_ini, item.hora_fin);
+      const row = ws.addRow([
         item.nombre_jefe ?? '',
         item.nombre_empleado ?? '',
         item.sede ?? '',
         item.area ?? '',
         item.cargo ?? '',
         item.fecha ?? '',
-        item.hora_ini ?? '',
-        item.hora_fin ?? '',
+        horario.horaInicio,
+        horario.horaSalida,
+        horario.horaInicioNocturna,
+        horario.horaSalidaNocturna,
         item.descripcion ?? '',
         item.estado !== null && item.estado !== undefined
           ? (ESTADOS[item.estado] ?? 'Pendiente')
           : '',
       ]);
+      [
+        horario.horaInicio,
+        horario.horaSalida,
+        horario.horaInicioNocturna,
+        horario.horaSalidaNocturna,
+      ].forEach((hora, index) => {
+        const cell = row.getCell(7 + index);
+        cell.value = hora;
+        cell.numFmt = '@';
+      });
     }
 
     ws.columns.forEach((col) => {
