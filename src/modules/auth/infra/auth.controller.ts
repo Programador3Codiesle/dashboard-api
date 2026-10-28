@@ -4,6 +4,7 @@ import {
   Body,
   UseGuards,
   Get,
+  Header,
   Req,
   Res,
   UnauthorizedException,
@@ -23,6 +24,7 @@ import { AuthService } from './auth.service';
 import { SolicitarCodigoRecuperacionUseCase } from '../application/use-cases/solicitar-codigo-recuperacion.usecase';
 import { ValidarCodigoRecuperacionUseCase } from '../application/use-cases/validar-codigo-recuperacion.usecase';
 import { ActualizarPasswordForzadoUseCase } from '../application/use-cases/actualizar-password-forzado.usecase';
+import { PrepararAccesoVentasUseCase } from '../application/use-cases/preparar-acceso-ventas.usecase';
 import {
   RecuperarCodigoDto,
   ValidarCodigoRecuperacionDto,
@@ -60,6 +62,13 @@ function readBodyUserId(body: unknown): string | undefined {
   return typeof value === 'string' ? value : undefined;
 }
 
+function readRequestNit(req: Request): number | undefined {
+  const raw: unknown = Reflect.get(req, 'user');
+  if (!raw || typeof raw !== 'object') return undefined;
+  const nit = Number((raw as { nit?: unknown }).nit);
+  return Number.isInteger(nit) && nit > 0 ? nit : undefined;
+}
+
 function readRequestUser(req: Request): AuthJwtUser | undefined {
   const raw: unknown = Reflect.get(req, 'user');
   if (!raw || typeof raw !== 'object') return undefined;
@@ -82,6 +91,7 @@ export class AuthController {
     private readonly solicitarCodigoUC: SolicitarCodigoRecuperacionUseCase,
     private readonly validarCodigoUC: ValidarCodigoRecuperacionUseCase,
     private readonly actualizarPasswordUC: ActualizarPasswordForzadoUseCase,
+    private readonly prepararAccesoVentasUC: PrepararAccesoVentasUseCase,
   ) {}
 
   private getRefreshCookieOptions(
@@ -296,6 +306,17 @@ export class AuthController {
     });
 
     return { ok: true };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Get('acceso-ventas')
+  @Header('Cache-Control', 'no-store')
+  accesoVentas(@Req() req: Request) {
+    const nit = readRequestNit(req);
+    if (nit == null) {
+      throw new UnauthorizedException();
+    }
+    return this.prepararAccesoVentasUC.execute(nit);
   }
 
   @UseGuards(JwtAuthGuard)

@@ -90,6 +90,16 @@ export class UserPrismaRepository implements IUserRepository {
     }
   }
 
+  async findPassCifradaByNit(nit_usuario: number): Promise<string | null> {
+    const rows = await this.prisma.$queryRaw<Array<{ pass: string | null }>>`
+      SELECT TOP 1 pass
+      FROM w_sist_usuarios
+      WHERE nit_usuario = ${nit_usuario}
+    `;
+    const pass = rows[0]?.pass?.trim();
+    return pass ? pass : null;
+  }
+
   async countUsuariosByNit(nit_usuario: number): Promise<number> {
     const rows = await this.prisma.$queryRaw<Array<{ n: number }>>`
       SELECT COUNT(*) AS n

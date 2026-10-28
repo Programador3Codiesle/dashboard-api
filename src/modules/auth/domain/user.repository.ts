@@ -20,6 +20,7 @@ export abstract class IUserRepository {
   abstract findCorreoCorporativoCodiesel(
     nit_usuario: number,
   ): Promise<string | null>;
+  abstract findPassCifradaByNit(nit_usuario: number): Promise<string | null>;
   abstract findUsuarioIdByCodVerificacion(
     nit_usuario: number,
     codigo: string,

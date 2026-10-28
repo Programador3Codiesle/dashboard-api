@@ -9,6 +9,7 @@ import { RefreshTokenUseCase } from '../application/use-cases/refresh-token.usec
 import { SolicitarCodigoRecuperacionUseCase } from '../application/use-cases/solicitar-codigo-recuperacion.usecase';
 import { ValidarCodigoRecuperacionUseCase } from '../application/use-cases/validar-codigo-recuperacion.usecase';
 import { ActualizarPasswordForzadoUseCase } from '../application/use-cases/actualizar-password-forzado.usecase';
+import { PrepararAccesoVentasUseCase } from '../application/use-cases/preparar-acceso-ventas.usecase';
 
 // Infra
 import { AuthService } from './auth.service';
@@ -53,6 +54,7 @@ import { EmailModule } from '../../../core/infra/email/email.module';
     SolicitarCodigoRecuperacionUseCase,
     ValidarCodigoRecuperacionUseCase,
     ActualizarPasswordForzadoUseCase,
+    PrepararAccesoVentasUseCase,
   ],
 
   exports: [AuthService],
