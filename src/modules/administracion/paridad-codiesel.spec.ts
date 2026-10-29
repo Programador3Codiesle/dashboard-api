@@ -5,6 +5,7 @@ import {
 import { fechaLocalYmd } from './shared/fecha-local';
 import {
   MSG_ADJUNTO_AUSENTISMO,
+  MSG_ADJUNTO_AUSENTISMO_PESO,
   motivoRequiereAdjunto,
   validarAdjuntoAusentismo,
 } from './shared/adjunto-ausentismo';
@@ -72,7 +73,7 @@ describe('adjunto ausentismo', () => {
         size: 6 * 1024 * 1024,
         mimetype: 'application/pdf',
       }),
-    ).toBe(MSG_ADJUNTO_AUSENTISMO);
+    ).toBe(MSG_ADJUNTO_AUSENTISMO_PESO);
     expect(
       validarAdjuntoAusentismo({
         originalname: 'x.pdf',

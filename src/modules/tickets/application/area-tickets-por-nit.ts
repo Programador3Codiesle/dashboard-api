@@ -2,9 +2,11 @@
  * Tickets.php index(): `$area` según NIT de sesión.
  * Staff filtra Activos y Finalizados con `tk.area`.
  * 1095944273 (Cristhian) sustituye a Andrés Gómez en sistemas.
+ * 1095935528 (Jorge Jaimes) sustituye a Edwin Tami en sistemas.
  */
 const AREA_POR_NIT: Record<number, string> = {
   1102368016: 'sistemas',
+  1095935528: 'sistemas',
   1098625558: 'sistemas',
   1110602826: 'sistemas',
   1096219894: 'sistemas',

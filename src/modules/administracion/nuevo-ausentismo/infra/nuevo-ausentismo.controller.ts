@@ -8,6 +8,7 @@ import {
   UseGuards,
   Req,
   UseInterceptors,
+  UseFilters,
   UploadedFile,
   BadRequestException,
 } from '@nestjs/common';
@@ -17,6 +18,7 @@ import { NuevoAusentismoFacade } from '../application/nuevo-ausentismo.facade';
 import { CreateAusentismoDto } from '../application/dto/create-ausentismo.dto';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 import { ADJUNTO_AUSENTISMO_MAX_BYTES } from '../../shared/adjunto-ausentismo';
+import { AdjuntoAusentismoPesoFilter } from './adjunto-ausentismo-peso.filter';
 
 type AuthReq = { user?: { nit?: string | number } };
 
@@ -26,6 +28,7 @@ export class NuevoAusentismoController {
   constructor(private readonly facade: NuevoAusentismoFacade) {}
 
   @Post()
+  @UseFilters(AdjuntoAusentismoPesoFilter)
   @UseInterceptors(
     FileInterceptor('archivo_soporte', {
       storage: memoryStorage(),

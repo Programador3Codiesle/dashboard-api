@@ -3,8 +3,10 @@ import {
   NIT_ENCARGADO_POSTVENTA,
   NIT_ENCARGADO_POSTVENTA_LEGACY,
   NIT_ENCARGADO_SOPORTE,
+  NIT_ENCARGADO_SOPORTE_LEGACY,
   NIT_ENCARGADO_VENTAS,
   NOMBRE_ENCARGADO_POSTVENTA,
+  NOMBRE_ENCARGADO_SOPORTE,
   asignarEncargadoPorTipoSoporte,
   nombreEncargadoVisible,
 } from './asignar-encargado-tipo-soporte';
@@ -12,10 +14,13 @@ import { areaTicketsPorNit } from './area-tickets-por-nit';
 import { esPerfilStaffTickets } from './perfiles-tickets';
 
 describe('asignarEncargadoPorTipoSoporte', () => {
-  it('Hardware/Software/Toner → Edwin (soporte)', () => {
-    expect(asignarEncargadoPorTipoSoporte('Software')?.encargadoNit).toBe(
-      NIT_ENCARGADO_SOPORTE,
-    );
+  it('Hardware/Software/Toner → Jorge Jaimes (reemplaza a Edwin)', () => {
+    expect(asignarEncargadoPorTipoSoporte('Software')).toEqual({
+      encargadoNit: NIT_ENCARGADO_SOPORTE,
+      area: 'sistemas',
+    });
+    expect(NIT_ENCARGADO_SOPORTE).toBe(1095935528);
+    expect(NIT_ENCARGADO_SOPORTE_LEGACY).toBe(1102368016);
   });
 
   it('CRM Comercial → Tunjano', () => {
@@ -55,16 +60,33 @@ describe('nombreEncargadoVisible', () => {
     );
   });
 
+  it('Edwin Tami se muestra como Jorge Jaimes', () => {
+    expect(
+      nombreEncargadoVisible(
+        NIT_ENCARGADO_SOPORTE_LEGACY,
+        'RAMIREZ TAMI EDWIN',
+      ),
+    ).toBe(NOMBRE_ENCARGADO_SOPORTE);
+  });
+
   it('otros encargados conservan el nombre de terceros', () => {
     expect(
-      nombreEncargadoVisible(NIT_ENCARGADO_SOPORTE, 'RAMIREZ TAMI EDWIN'),
-    ).toBe('RAMIREZ TAMI EDWIN');
+      nombreEncargadoVisible(
+        NIT_ENCARGADO_VENTAS,
+        'TUNJANO DIAZ CRISTIAN CAMILO',
+      ),
+    ).toBe('TUNJANO DIAZ CRISTIAN CAMILO');
   });
 });
 
 describe('areaTicketsPorNit', () => {
   it('Cristhian es sistemas (Finalizados)', () => {
     expect(areaTicketsPorNit(1095944273)).toBe('sistemas');
+  });
+
+  it('Jorge Jaimes es sistemas (reemplaza a Edwin)', () => {
+    expect(areaTicketsPorNit(1095935528)).toBe('sistemas');
+    expect(areaTicketsPorNit(NIT_ENCARGADO_SOPORTE_LEGACY)).toBe('sistemas');
   });
 
   it('NIT desconocido → otro', () => {

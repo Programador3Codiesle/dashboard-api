@@ -20,6 +20,9 @@ const MIMES = new Set([
 export const MSG_ADJUNTO_AUSENTISMO =
   'El archivo debe ser imagen o PDF (máx. 5 MB)';
 
+export const MSG_ADJUNTO_AUSENTISMO_PESO =
+  'El archivo es muy pesado. Reduzca el tamaño. Lo permitido es 5 MB.';
+
 export function motivoRequiereAdjunto(motivo: string): boolean {
   return (MOTIVOS_ADJUNTO_AUSENTISMO as readonly string[]).includes(motivo);
 }
@@ -34,8 +37,11 @@ export function validarAdjuntoAusentismo(file: {
   size: number;
   mimetype?: string;
 }): string | null {
-  if (!file || file.size <= 0 || file.size > ADJUNTO_AUSENTISMO_MAX_BYTES) {
+  if (!file || file.size <= 0) {
     return MSG_ADJUNTO_AUSENTISMO;
+  }
+  if (file.size > ADJUNTO_AUSENTISMO_MAX_BYTES) {
+    return MSG_ADJUNTO_AUSENTISMO_PESO;
   }
   const ext = extensionAdjuntoAusentismo(file.originalname);
   if (!EXTS.has(ext)) return MSG_ADJUNTO_AUSENTISMO;
