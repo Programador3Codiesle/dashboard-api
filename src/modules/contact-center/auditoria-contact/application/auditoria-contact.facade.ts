@@ -3,11 +3,13 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
   esAdminContactCenter,
   esAgenteContactCenter,
 } from '../../shared/domain/cc-permisos';
 import { AuditoriaContactEmailService } from './auditoria-contact-email.service';
+import { urlEvidenciaAuditoriaContact } from './url-evidencia-auditoria';
 import {
   AddItemDto,
   AddObsDto,
@@ -50,6 +52,7 @@ export class AuditoriaContactFacade {
   constructor(
     private readonly repo: AuditoriaContactRepository,
     private readonly emailService: AuditoriaContactEmailService,
+    private readonly config: ConfigService,
   ) {}
 
   private assertAdmin(perfil: number, nit?: number): void {
@@ -68,7 +71,12 @@ export class AuditoriaContactFacade {
     return this.repo.getCantPreguntas();
   }
 
-  async crearAuditoria(dto: CrearAuditoriaDto, nitEncargado: number) {
+  async crearAuditoria(
+    dto: CrearAuditoriaDto,
+    perfil: number,
+    nitEncargado: number,
+  ) {
+    this.assertAdmin(perfil, nitEncargado);
     const id = await this.repo.insertAuditoria(dto.nitAgente, nitEncargado);
     return { id_auditoria: id };
   }
@@ -117,7 +125,8 @@ export class AuditoriaContactFacade {
     return { cantPreguntas, indicadores: bloques };
   }
 
-  async updateRespuesta(dto: UpdateRespuestaDto) {
+  async updateRespuesta(dto: UpdateRespuestaDto, perfil: number, nit: number) {
+    this.assertAdmin(perfil, nit);
     const ok = await this.repo.updateRespuesta(
       dto.id_auditoria,
       dto.item,
@@ -126,7 +135,12 @@ export class AuditoriaContactFacade {
     return { status: ok ? 'OK' : 'ERROR' };
   }
 
-  async finalizarAuditoria(dto: FinalizarAuditoriaDto) {
+  async finalizarAuditoria(
+    dto: FinalizarAuditoriaDto,
+    perfil: number,
+    nit: number,
+  ) {
+    this.assertAdmin(perfil, nit);
     const auditoria = await this.repo.getAuditoriaId(dto.id_auditoria);
     if (!auditoria) {
       throw new NotFoundException('Auditoría no encontrada');
@@ -139,7 +153,12 @@ export class AuditoriaContactFacade {
       dto.obsAuditor ?? '',
     );
 
-    return { id_auditoria: ok ? dto.id_auditoria : 0, puntuacion };
+    if (!ok) {
+      return { id_auditoria: 0, puntuacion, correo: 'Error' as const };
+    }
+
+    const correo = await this.despacharCorreo(dto.id_auditoria);
+    return { id_auditoria: dto.id_auditoria, puntuacion, correo };
   }
 
   private async calcularPuntuacion(
@@ -247,8 +266,8 @@ export class AuditoriaContactFacade {
       archivos: files.map((f) => {
         const urlFile = typeof f['url_file'] === 'string' ? f['url_file'] : '';
         return {
-          url: `/uploads/auditoria-contact/${urlFile}`,
-          nombre: urlFile,
+          url: urlEvidenciaAuditoriaContact(this.config, urlFile),
+          nombre: urlFile.split('/').pop() || urlFile,
         };
       }),
       indicadores,
@@ -314,7 +333,10 @@ export class AuditoriaContactFacade {
   async registrarArchivos(
     idAuditoria: number,
     filenames: string[],
+    perfil: number,
+    nit: number,
   ): Promise<{ cantSaveFile: string[]; cantNotSaveFile: string[] }> {
+    this.assertAdmin(perfil, nit);
     const cantSaveFile: string[] = [];
     const cantNotSaveFile: string[] = [];
 
@@ -488,55 +510,62 @@ export class AuditoriaContactFacade {
 
   async sendEmail(dto: IdAuditoriaDto, perfil: number, nit: number) {
     this.assertAdmin(perfil, nit);
-
-    const info = await this.repo.getAuditoriaEmail(dto.id_auditoria);
-    if (!info) return { message: 'Error' };
-
-    const auditoria = await this.repo.getAuditoriaId(dto.id_auditoria);
-    if (!auditoria) return { message: 'Error' };
-
-    const observacionesHtml = await this.buildObservacionesEmail(auditoria);
-    return this.emailService.enviarAuditoria(info, observacionesHtml);
+    const correo = await this.despacharCorreo(dto.id_auditoria);
+    return { ok: correo === 'Exito', message: correo };
   }
 
+  /** Mismo envío que el botón Enviar del listado. No revierte la auditoría si falla. */
+  private async despacharCorreo(
+    idAuditoria: number,
+  ): Promise<'Exito' | 'Error'> {
+    const info = await this.repo.getAuditoriaEmail(idAuditoria);
+    if (!info) return 'Error';
+
+    const auditoria = await this.repo.getAuditoriaId(idAuditoria);
+    if (!auditoria) return 'Error';
+
+    const observacionesHtml = await this.buildObservacionesEmail(auditoria);
+    const result = await this.emailService.enviarAuditoria(
+      info,
+      observacionesHtml,
+    );
+    return result.ok ? 'Exito' : 'Error';
+  }
+
+  /** Mismo recorrido que `sendEmail`: indicador → ítem → observaciones activas. */
   private async buildObservacionesEmail(
     auditoria: Record<string, unknown>,
   ): Promise<string> {
-    const allItems = await this.repo.getAllItems(false);
-    const itemsNo: Array<{ id_item: number; concepto: string }> = [];
+    const indicadores = await this.repo.getIndicadores();
+    const lineas: string[] = [];
 
-    for (const item of allItems) {
-      const campo = `item_${item.id_item}`;
-      if (Number(auditoria[campo]) === 2) {
-        itemsNo.push({ id_item: item.id_item, concepto: item.concepto });
+    for (const indicador of indicadores) {
+      const items = await this.repo.getItems(indicador.id_indicador);
+      const itemsNo = items.filter(
+        (item) => Number(auditoria[`item_${item.id_item}`]) === 2,
+      );
+      if (itemsNo.length === 0) continue;
+
+      const obsRows = await this.repo.getObsActivasByItems(
+        itemsNo.map((item) => item.id_item),
+      );
+      const obsByItem = new Map<number, typeof obsRows>();
+      for (const obs of obsRows) {
+        const list = obsByItem.get(obs.id_item) ?? [];
+        list.push(obs);
+        obsByItem.set(obs.id_item, list);
+      }
+
+      for (const item of itemsNo) {
+        for (const obs of obsByItem.get(item.id_item) ?? []) {
+          lineas.push(
+            `<li><strong>No ${item.concepto}: </strong>${obs.observacion}</li>`,
+          );
+        }
       }
     }
 
-    if (itemsNo.length === 0) {
-      return '<ol></ol>';
-    }
-
-    const obsRows = await this.repo.getObsActivasByItems(
-      itemsNo.map((i) => i.id_item),
-    );
-    const obsByItem = new Map<number, typeof obsRows>();
-    for (const o of obsRows) {
-      const list = obsByItem.get(o.id_item) ?? [];
-      list.push(o);
-      obsByItem.set(o.id_item, list);
-    }
-
-    const items: string[] = [];
-    for (const item of itemsNo) {
-      const obs = obsByItem.get(item.id_item) ?? [];
-      for (const o of obs) {
-        items.push(
-          `<li><strong>No ${item.concepto}: </strong>${o.observacion}</li>`,
-        );
-      }
-    }
-
-    return `<ol>${items.join('')}</ol>`;
+    return `<ol>${lineas.join('')}</ol>`;
   }
 
   async compromisoAgente(dto: CompromisoAgenteDto, nitAgente: number) {

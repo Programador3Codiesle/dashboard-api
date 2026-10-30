@@ -15,6 +15,7 @@ import { join } from 'path';
 import * as fs from 'fs';
 import { JwtAuthGuard } from '../../../auth/infra/jwt-auth.guard';
 import { CodieselEmpresaGuard } from '../../shared/utils/codiesel-empresa.guard';
+import { AuditoriaAdminGuard } from './auditoria-admin.guard';
 import { getContactCenterSessionUser } from '../../shared/utils/contact-center-user.util';
 import { AuditoriaContactFacade } from '../application/auditoria-contact.facade';
 import {
@@ -60,12 +61,14 @@ export class AuditoriaContactController {
   }
 
   @Get('agentes')
+  @UseGuards(AuditoriaAdminGuard)
   agentes(@Req() req: CcRequest) {
     const { perfil, nit } = this.session(req);
     return this.facade.getAgentes(perfil, nit);
   }
 
   @Get('cant-preguntas')
+  @UseGuards(AuditoriaAdminGuard)
   cantPreguntas(@Req() req: CcRequest) {
     const { perfil, nit } = this.session(req);
     return this.facade.getCantPreguntas(perfil, nit);
@@ -78,32 +81,40 @@ export class AuditoriaContactController {
   }
 
   @Post('crear')
+  @UseGuards(AuditoriaAdminGuard)
   crear(@Req() req: CcRequest, @Body() dto: CrearAuditoriaDto) {
-    const { nit } = this.session(req);
-    return this.facade.crearAuditoria(dto, nit);
+    const { perfil, nit } = this.session(req);
+    return this.facade.crearAuditoria(dto, perfil, nit);
   }
 
   @Post('formulario-vista-previa')
+  @UseGuards(AuditoriaAdminGuard)
   formularioVistaPrevia(@Body() dto: FormAuditoriaDto) {
     return this.facade.cargarFormulario(dto, true);
   }
 
   @Post('formulario')
+  @UseGuards(AuditoriaAdminGuard)
   formulario(@Body() dto: FormAuditoriaDto) {
     return this.facade.cargarFormulario(dto, true);
   }
 
   @Post('update-respuesta')
-  updateRespuesta(@Body() dto: UpdateRespuestaDto) {
-    return this.facade.updateRespuesta(dto);
+  @UseGuards(AuditoriaAdminGuard)
+  updateRespuesta(@Req() req: CcRequest, @Body() dto: UpdateRespuestaDto) {
+    const { perfil, nit } = this.session(req);
+    return this.facade.updateRespuesta(dto, perfil, nit);
   }
 
   @Post('finalizar')
-  finalizar(@Body() dto: FinalizarAuditoriaDto) {
-    return this.facade.finalizarAuditoria(dto);
+  @UseGuards(AuditoriaAdminGuard)
+  finalizar(@Req() req: CcRequest, @Body() dto: FinalizarAuditoriaDto) {
+    const { perfil, nit } = this.session(req);
+    return this.facade.finalizarAuditoria(dto, perfil, nit);
   }
 
   @Post('listar-admin')
+  @UseGuards(AuditoriaAdminGuard)
   listarAdmin(@Req() req: CcRequest, @Body() dto: ListarAuditoriasDto) {
     const { perfil, nit } = this.session(req);
     return this.facade.listarAdmin(dto, perfil, nit);
@@ -116,6 +127,7 @@ export class AuditoriaContactController {
   }
 
   @Post('ver-admin')
+  @UseGuards(AuditoriaAdminGuard)
   verAdmin(@Body() dto: IdAuditoriaDto) {
     return this.facade.verAuditoria(dto, 'admin');
   }
@@ -126,11 +138,13 @@ export class AuditoriaContactController {
   }
 
   @Post('editar')
+  @UseGuards(AuditoriaAdminGuard)
   editar(@Body() dto: IdAuditoriaDto) {
     return this.facade.verAuditoria(dto, 'editar');
   }
 
   @Post('upload')
+  @UseGuards(AuditoriaAdminGuard)
   @UseInterceptors(
     FilesInterceptor('files', 20, {
       storage: diskStorage({
@@ -150,85 +164,100 @@ export class AuditoriaContactController {
     }),
   )
   upload(
+    @Req() req: CcRequest,
     @Body() body: { id_auditoria: string },
     @UploadedFiles() files: Express.Multer.File[],
   ) {
+    const { perfil, nit } = this.session(req);
     const idAuditoria = Number(body.id_auditoria);
     if (!Number.isInteger(idAuditoria) || idAuditoria <= 0) {
       throw new BadRequestException('id_auditoria inválido');
     }
     const filenames = (files ?? []).map((f) => f.filename);
-    return this.facade.registrarArchivos(idAuditoria, filenames);
+    return this.facade.registrarArchivos(idAuditoria, filenames, perfil, nit);
   }
 
   @Get('indicadores')
+  @UseGuards(AuditoriaAdminGuard)
   indicadores() {
     return this.facade.cargarIndicadores();
   }
 
   @Post('indicadores-puntos')
+  @UseGuards(AuditoriaAdminGuard)
   indicadoresPuntos(@Body() dto: IndicadoresPuntosDto) {
     return this.facade.cargarIndicadoresPuntos(dto.id_indicador, dto.estado);
   }
 
   @Post('update-ind-estado')
+  @UseGuards(AuditoriaAdminGuard)
   updateIndEstado(@Req() req: CcRequest, @Body() dto: UpdateIndEstadoDto) {
     const { perfil, nit } = this.session(req);
     return this.facade.updateIndEstado(dto, perfil, nit);
   }
 
   @Post('update-ind')
+  @UseGuards(AuditoriaAdminGuard)
   updateInd(@Req() req: CcRequest, @Body() dto: UpdateIndDto) {
     const { perfil, nit } = this.session(req);
     return this.facade.updateInd(dto, perfil, nit);
   }
 
   @Post('estado-indicador')
+  @UseGuards(AuditoriaAdminGuard)
   estadoIndicador(@Req() req: CcRequest, @Body() dto: EstadoIndicadorDto) {
     const { perfil, nit } = this.session(req);
     return this.facade.estadoIndicador(dto, perfil, nit);
   }
 
   @Post('items')
+  @UseGuards(AuditoriaAdminGuard)
   items(@Body() dto: IdIndicadorDto) {
     return this.facade.getItemsPorIndicador(dto);
   }
 
   @Post('add-item')
+  @UseGuards(AuditoriaAdminGuard)
   addItem(@Req() req: CcRequest, @Body() dto: AddItemDto) {
     const { perfil, nit } = this.session(req);
     return this.facade.addItem(dto, perfil, nit);
   }
 
   @Post('estado-item')
+  @UseGuards(AuditoriaAdminGuard)
   estadoItem(@Req() req: CcRequest, @Body() dto: EstadoItemDto) {
     const { perfil, nit } = this.session(req);
     return this.facade.estadoItem(dto, perfil, nit);
   }
 
   @Post('items-obs')
+  @UseGuards(AuditoriaAdminGuard)
   itemsObs(@Body() dto: IdIndicadorDto) {
     return this.facade.getItemsObs(dto);
   }
 
   @Post('obs')
+  @UseGuards(AuditoriaAdminGuard)
   obs(@Body() dto: IdItemDto) {
     return this.facade.getObsPorItem(dto);
   }
 
   @Post('add-obs')
+  @UseGuards(AuditoriaAdminGuard)
   addObs(@Req() req: CcRequest, @Body() dto: AddObsDto) {
     const { perfil, nit } = this.session(req);
     return this.facade.addObs(dto, perfil, nit);
   }
 
   @Post('estado-obs')
+  @UseGuards(AuditoriaAdminGuard)
   estadoObs(@Req() req: CcRequest, @Body() dto: EstadoObsDto) {
     const { perfil, nit } = this.session(req);
     return this.facade.estadoObs(dto, perfil, nit);
   }
 
   @Post('send-email')
+  @UseGuards(AuditoriaAdminGuard)
   sendEmail(@Req() req: CcRequest, @Body() dto: IdAuditoriaDto) {
     const { perfil, nit } = this.session(req);
     return this.facade.sendEmail(dto, perfil, nit);
@@ -241,12 +270,14 @@ export class AuditoriaContactController {
   }
 
   @Post('inf-detalle')
+  @UseGuards(AuditoriaAdminGuard)
   infDetalle(@Req() req: CcRequest, @Body() dto: InfDetalleDto) {
     const { perfil, nit } = this.session(req);
     return this.facade.cargarInfDetalle(dto, perfil, nit);
   }
 
   @Get('validate-cant-auditorias')
+  @UseGuards(AuditoriaAdminGuard)
   validateCant() {
     return this.facade.validateCantAuditorias();
   }

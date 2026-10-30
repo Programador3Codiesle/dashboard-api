@@ -1,4 +1,6 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { getFrontendBaseUrl } from '../../../../core/config/env-urls';
 import { EmailService } from '../../../../core/infra/email/email.service';
 import {
   SolicitudEvDetalleRow,
@@ -38,7 +40,10 @@ const MAIL_BY_BODEGA: Record<number, string[]> = {
 
 @Injectable()
 export class EntradasVariasEmailService {
-  constructor(private readonly emailService: EmailService) {}
+  constructor(
+    private readonly emailService: EmailService,
+    private readonly config: ConfigService,
+  ) {}
 
   async notificarNuevaSolicitud(
     solicitud: SolicitudEvRow,
@@ -54,6 +59,7 @@ export class EntradasVariasEmailService {
       to.push(MAILS_NEEDS[3]);
     }
 
+    const enlace = `${getFrontendBaseUrl(this.config)}/dashboard/repuestos/solicitudes-ev?id_solicitud=${idSolicitud}`;
     const result = await this.emailService.sendEmail({
       to,
       bcc,
@@ -62,6 +68,7 @@ export class EntradasVariasEmailService {
         'SOLICITUD ENTRADA VARIA',
         solicitud,
         idSolicitud,
+        enlace,
       ),
       empresaId: 1,
     });
@@ -178,7 +185,9 @@ export class EntradasVariasEmailService {
     titulo: string,
     solicitud: SolicitudEvRow,
     idSolicitud: number,
+    enlaceGestion?: string,
   ): string {
+    const boton = enlaceGestion ? botonGestionarSolicitud(enlaceGestion) : '';
     return `
       <div style="font-family:Arial,sans-serif;font-size:14px;color:#333">
         <h2>${titulo}</h2>
@@ -189,6 +198,7 @@ export class EntradasVariasEmailService {
         <p><strong>Solicitado por:</strong> ${solicitud.nombres ?? 'N/A'}</p>
         <p><strong>Observación:</strong> ${solicitud.obs_register}</p>
         ${solicitud.obs_auth ? `<p><strong>Obs. autorización:</strong> ${solicitud.obs_auth}</p>` : ''}
+        ${boton}
       </div>
     `;
   }
@@ -215,4 +225,23 @@ export class EntradasVariasEmailService {
       </div>
     `;
   }
+}
+
+/** Botón del correo de solicitud. Ámbar Codiesel; tablas para que Outlook lo pinte. */
+export function botonGestionarSolicitud(enlace: string): string {
+  return `
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:28px;">
+      <tr>
+        <td align="center" bgcolor="#fffbeb" style="background-color:#fffbeb;padding:22px 16px;border-radius:12px;">
+          <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+            <tr>
+              <td align="center" bgcolor="#f59e0b" style="border-radius:10px;background-color:#f59e0b;">
+                <a href="${enlace}" target="_blank" style="display:inline-block;padding:14px 36px;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:20px;font-weight:700;color:#1c1917;text-decoration:none;border-radius:10px;">Gestionar Solicitud</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  `;
 }
