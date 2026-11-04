@@ -113,15 +113,21 @@ export class PresupuestoPrismaRepository implements IPresupuestoRepository {
     userId: number,
   ): Promise<boolean> {
     await this.prisma.$transaction(async (tx) => {
+      // Misma tabla que UserAuditoria en el PHP. El trigger
+      // trg_postv_presupuesto_update lee dbo.temp_user, no #temp_user.
       await tx.$executeRaw`
-        IF OBJECT_ID('tempdb..#temp_user') IS NOT NULL
-          DROP TABLE #temp_user;
-        CREATE TABLE #temp_user (userId VARCHAR(50));
+        IF NOT EXISTS (
+          SELECT 1 FROM sysobjects WHERE name = 'temp_user' AND xtype = 'U'
+        )
+        BEGIN
+          CREATE TABLE temp_user (userId VARCHAR(50));
+        END
       `;
 
       try {
+        await tx.$executeRaw`DELETE FROM temp_user`;
         await tx.$executeRaw`
-          INSERT INTO #temp_user (userId) VALUES (${String(userId)})
+          INSERT INTO temp_user (userId) VALUES (${String(userId)})
         `;
 
         if (campo === 'presupuesto') {
@@ -147,8 +153,8 @@ export class PresupuestoPrismaRepository implements IPresupuestoRepository {
         }
       } finally {
         await tx.$executeRaw`
-          IF OBJECT_ID('tempdb..#temp_user') IS NOT NULL
-            DROP TABLE #temp_user;
+          IF OBJECT_ID('dbo.temp_user', 'U') IS NOT NULL
+            DROP TABLE temp_user;
         `;
       }
     });
