@@ -84,6 +84,7 @@ export abstract class ICotizadorAdicionalesPesadosRepository {
 
   abstract bulkInsert(
     adicionalId: number,
+    userId: number,
     clases: string[],
     repuestos: BulkRepuestoAdicionalPesadoInput[],
     manoObra: BulkManoObraAdicionalPesadoInput[],

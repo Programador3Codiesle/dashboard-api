@@ -17,6 +17,36 @@ import {
 export class CotizadorAdicionalesPesadosPrismaRepository implements ICotizadorAdicionalesPesadosRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  private async withTempUser<T>(
+    userId: number,
+    fn: (tx: Prisma.TransactionClient) => Promise<T>,
+  ): Promise<T> {
+    return this.prisma.$transaction(async (tx) => {
+      // Misma tabla que UserAuditoria en GestionCotizadorPesados.php.
+      // El trigger lee dbo.temp_user, no #temp_user.
+      await tx.$executeRaw`
+        IF NOT EXISTS (
+          SELECT 1 FROM sysobjects WHERE name = 'temp_user' AND xtype = 'U'
+        )
+        BEGIN
+          CREATE TABLE temp_user (userId VARCHAR(50));
+        END
+      `;
+      try {
+        await tx.$executeRaw`DELETE FROM temp_user`;
+        await tx.$executeRaw`
+          INSERT INTO temp_user (userId) VALUES (${String(userId)})
+        `;
+        return await fn(tx);
+      } finally {
+        await tx.$executeRaw`
+          IF OBJECT_ID('dbo.temp_user', 'U') IS NOT NULL
+            DROP TABLE temp_user;
+        `;
+      }
+    });
+  }
+
   async getClasesPesados(): Promise<ClaseAdicionalPesado[]> {
     const rows = await this.prisma.$queryRaw<ClaseAdicionalPesado[]>`
       SELECT DISTINCT v.clase, cl.descripcion
@@ -164,6 +194,7 @@ export class CotizadorAdicionalesPesadosPrismaRepository implements ICotizadorAd
 
   async bulkInsert(
     adicionalId: number,
+    userId: number,
     clases: string[],
     repuestos: BulkRepuestoAdicionalPesadoInput[],
     manoObra: BulkManoObraAdicionalPesadoInput[],
@@ -173,61 +204,63 @@ export class CotizadorAdicionalesPesadosPrismaRepository implements ICotizadorAd
     let mano_add = 0;
     let mano_fail = 0;
 
-    for (const clase of clases) {
-      for (const r of repuestos) {
-        const existsRows = await this.prisma.$queryRaw<{ cantidad: number }[]>`
-          SELECT COUNT(*) AS cantidad
-          FROM dbo.postv_reptos_adicionales_pesados
-          WHERE codigo = ${r.codigo}
-            AND adicional = ${adicionalId}
-            AND clase = ${clase}
-        `;
-        const exists = (existsRows?.[0]?.cantidad ?? 0) > 0;
+    await this.withTempUser(userId, async (tx) => {
+      for (const clase of clases) {
+        for (const r of repuestos) {
+          const existsRows = await tx.$queryRaw<{ cantidad: number }[]>`
+            SELECT COUNT(*) AS cantidad
+            FROM dbo.postv_reptos_adicionales_pesados
+            WHERE codigo = ${r.codigo}
+              AND adicional = ${adicionalId}
+              AND clase = ${clase}
+          `;
+          const exists = (existsRows?.[0]?.cantidad ?? 0) > 0;
 
-        if (exists) {
-          repuestos_fail++;
-          continue;
+          if (exists) {
+            repuestos_fail++;
+            continue;
+          }
+
+          const inserted = await tx.$executeRaw`
+            INSERT INTO dbo.postv_reptos_adicionales_pesados
+              (clase, codigo, descripcion, cantidad, clase_operacion, adicional, year_start, year_end, descuento)
+            VALUES
+              (${clase}, ${r.codigo}, ${r.descripcion}, ${r.cantidad}, 'R', ${adicionalId},
+               ${r.yearStart}, ${r.yearEnd}, ${r.descuento ?? null})
+          `;
+
+          if (inserted > 0) repuestos_add++;
+          else repuestos_fail++;
         }
 
-        const inserted = await this.prisma.$executeRaw`
-          INSERT INTO dbo.postv_reptos_adicionales_pesados
-            (clase, codigo, descripcion, cantidad, clase_operacion, adicional, year_start, year_end, descuento)
-          VALUES
-            (${clase}, ${r.codigo}, ${r.descripcion}, ${r.cantidad}, 'R', ${adicionalId},
-             ${r.yearStart}, ${r.yearEnd}, ${r.descuento ?? null})
-        `;
+        for (const m of manoObra) {
+          const existsRows = await tx.$queryRaw<{ cantidad: number }[]>`
+            SELECT COUNT(*) AS cantidad
+            FROM dbo.postv_mo_adicionales_pesados
+            WHERE operacion = ${m.operacion}
+              AND adicional = ${adicionalId}
+              AND clase = ${clase}
+          `;
+          const exists = (existsRows?.[0]?.cantidad ?? 0) > 0;
 
-        if (inserted > 0) repuestos_add++;
-        else repuestos_fail++;
-      }
+          if (exists) {
+            mano_fail++;
+            continue;
+          }
 
-      for (const m of manoObra) {
-        const existsRows = await this.prisma.$queryRaw<{ cantidad: number }[]>`
-          SELECT COUNT(*) AS cantidad
-          FROM dbo.postv_mo_adicionales_pesados
-          WHERE operacion = ${m.operacion}
-            AND adicional = ${adicionalId}
-            AND clase = ${clase}
-        `;
-        const exists = (existsRows?.[0]?.cantidad ?? 0) > 0;
+          const inserted = await tx.$executeRaw`
+            INSERT INTO dbo.postv_mo_adicionales_pesados
+              (clase, operacion, tiempo, valor_menos_5anos, valor_mas_5anos, adicional, descuento)
+            VALUES
+              (${clase}, ${m.operacion}, ${m.tiempo},
+               ${m.valorMenos5}, ${m.valorMas5}, ${adicionalId}, ${m.descuento ?? null})
+          `;
 
-        if (exists) {
-          mano_fail++;
-          continue;
+          if (inserted > 0) mano_add++;
+          else mano_fail++;
         }
-
-        const inserted = await this.prisma.$executeRaw`
-          INSERT INTO dbo.postv_mo_adicionales_pesados
-            (clase, operacion, tiempo, valor_menos_5anos, valor_mas_5anos, adicional, descuento)
-          VALUES
-            (${clase}, ${m.operacion}, ${m.tiempo},
-             ${m.valorMenos5}, ${m.valorMas5}, ${adicionalId}, ${m.descuento ?? null})
-        `;
-
-        if (inserted > 0) mano_add++;
-        else mano_fail++;
       }
-    }
+    });
 
     return { repuestos_add, repuestos_fail, mano_add, mano_fail };
   }

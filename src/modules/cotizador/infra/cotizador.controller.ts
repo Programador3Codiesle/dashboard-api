@@ -503,6 +503,7 @@ export class CotizadorController {
 
   @Post('adicionales-pesados/items')
   cargarAdicionalPesado(
+    @Req() req: CotizadorAuthRequest,
     @Body()
     body: {
       adicionalId: number;
@@ -524,7 +525,11 @@ export class CotizadorController {
       }[];
     },
   ) {
-    return this.facade.cargarAdicionalPesado(body);
+    const userId = req.user?.nit != null ? Number(req.user.nit) : null;
+    if (userId == null) {
+      throw new UnauthorizedException('Usuario no autenticado');
+    }
+    return this.facade.cargarAdicionalPesado({ ...body, userId });
   }
 
   @Get('adicionales-pesados/items')
