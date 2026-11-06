@@ -12,7 +12,8 @@ export const USER_FERRER = 182;
 export const USER_WILSON_FIALLO = 448;
 export const USER_JOSE_OLAYA = 109;
 export const USER_DIEGO_QUINONEZ = 497;
-export const USER_BRAYAN_GARCIA = 449;
+/** Reemplaza a Brayan García (449) en Cúcuta. */
+export const USER_LUIS_AGUILAR = 750;
 export const USER_EXTRA_GIRON = 467;
 
 export type EvListadoScope = {
@@ -30,7 +31,7 @@ export function resolverAlcanceListadoEv(
     ? [1, 55, 61, 54]
     : [1, 20, 54, 55, 61, 47];
 
-  const usuariosGlobales = [448, 109, 497, 449];
+  const usuariosGlobales = [448, 109, 497, USER_LUIS_AGUILAR];
 
   if (usuariosGlobales.includes(userId) || perfilesGlobales.includes(perfil)) {
     return {};
@@ -92,7 +93,7 @@ export function puedeMarcarEntregado(
     case 16:
     case 14:
     case 22:
-      return userId === USER_BRAYAN_GARCIA;
+      return userId === USER_LUIS_AGUILAR;
     default:
       return false;
   }
