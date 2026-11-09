@@ -88,13 +88,6 @@ export class ComisionesJefesPrismaRepository implements IComisionesJefesReposito
       'BONO UTILIDAD': 360000,
     },
     {
-      CEDULA: '84109954',
-      SEDE: 'BOCONO',
-      'BONO NPS': 250000,
-      'NPS INTERNO': 0,
-      'BONO UTILIDAD': 300000,
-    },
-    {
       CEDULA: '1090449765',
       SEDE: 'COLISION BOCONO',
       'BONO NPS': 220000,
@@ -116,7 +109,7 @@ export class ComisionesJefesPrismaRepository implements IComisionesJefesReposito
       'BONO UTILIDAD': 150000,
     },
     {
-      CEDULA: '37579713',
+      CEDULA: '1082903683',
       SEDE: 'BARRANCA',
       'BONO NPS': 75000,
       'NPS INTERNO': 0,
