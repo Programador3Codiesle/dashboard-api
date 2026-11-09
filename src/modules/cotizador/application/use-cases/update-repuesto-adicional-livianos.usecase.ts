@@ -24,21 +24,6 @@ export class UpdateRepuestoAdicionalLivianosUseCase {
     }
 
     if (
-      input.yearStart < 2000 ||
-      input.yearEnd > new Date().getFullYear() + 1
-    ) {
-      throw new BadRequestException(
-        'Los años están fuera del rango permitido.',
-      );
-    }
-
-    if (input.yearStart > input.yearEnd) {
-      throw new BadRequestException(
-        'El año inicial no puede ser mayor al año final.',
-      );
-    }
-
-    if (
       input.descuento != null &&
       (input.descuento < 0 || input.descuento > 100)
     ) {
