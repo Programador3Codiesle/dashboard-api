@@ -583,18 +583,17 @@ export class AuditoriaContactFacade {
 
   async cargarInfDetalle(dto: InfDetalleDto, perfil: number, nit: number) {
     this.assertAdmin(perfil, nit);
+    const nitAgente = dto.nitAgente ?? null;
+    const todos = nitAgente == null;
     const [year, month] = dto.AuditoriaMes.split('-').map(Number);
-    const rows = await this.repo.getDetalleAuditoria(
-      dto.nitAgente,
-      year,
-      month,
-    );
+    const rows = await this.repo.getDetalleAuditoria(nitAgente, year, month);
 
     if (rows.length === 0) {
       return {
         filas: [],
-        mensaje:
-          'No se encontraron auditorías en la fecha indicada al agente seleccionado.',
+        mensaje: todos
+          ? 'No se encontraron auditorías en la fecha indicada.'
+          : 'No se encontraron auditorías en la fecha indicada al agente seleccionado.',
       };
     }
 
@@ -614,13 +613,63 @@ export class AuditoriaContactFacade {
     });
 
     const promedio = filas.length > 0 ? sumaPuntos / filas.length : 0;
+    const porAgente = todos ? await this.totalesPorAgente(rows) : undefined;
 
     return {
-      filas,
+      filas: todos ? [] : filas,
       promedio: Math.round(promedio),
       sumaPuntos,
       cantidad: filas.length,
+      porAgente,
     };
+  }
+
+  private async totalesPorAgente(rows: Record<string, unknown>[]) {
+    const catalogo = await this.repo.getAllUserAgente();
+    const grupos = new Map<string, { suma: number; cantidad: number }>();
+    for (const row of rows) {
+      const nit = this.nitClave(row['nit_agente']);
+      const actual = grupos.get(nit) ?? { suma: 0, cantidad: 0 };
+      actual.cantidad += 1;
+      const puntuacion = row['puntuacion'];
+      if (puntuacion != null && puntuacion !== '') {
+        actual.suma += Number(puntuacion);
+      }
+      grupos.set(nit, actual);
+    }
+
+    return catalogo
+      .map((agente) => {
+        const nit = this.nitClave(agente['nit']);
+        const grupo = grupos.get(nit) ?? { suma: 0, cantidad: 0 };
+        return {
+          nit,
+          nombres: this.texto(agente['nombres']) || nit,
+          cantidad: grupo.cantidad,
+          sumaPuntos: grupo.suma,
+          promedio:
+            grupo.cantidad > 0 ? Math.round(grupo.suma / grupo.cantidad) : 0,
+        };
+      })
+      .sort((a, b) => a.nombres.localeCompare(b.nombres, 'es'));
+  }
+
+  private texto(value: unknown): string {
+    if (typeof value === 'string') return value.trim();
+    if (typeof value === 'number' || typeof value === 'bigint') {
+      return String(value);
+    }
+    return '';
+  }
+
+  private nitClave(value: unknown): string {
+    const texto = this.texto(value);
+    if (texto) return texto.replace(/\.0+$/, '');
+    const numerico = Number(value);
+    if (Number.isFinite(numerico) && numerico > 0) {
+      return String(Math.trunc(numerico));
+    }
+    return '';
   }
 
   async validateCantAuditorias() {

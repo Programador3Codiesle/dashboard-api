@@ -55,8 +55,10 @@ export class InfDetalleDto {
   @IsString()
   AuditoriaMes!: string;
 
+  /** Ausente: totales de todos los asesores del mes, sin filas. */
+  @IsOptional()
   @IsNumber()
-  nitAgente!: number;
+  nitAgente?: number;
 }
 
 export class IndicadoresPuntosDto {

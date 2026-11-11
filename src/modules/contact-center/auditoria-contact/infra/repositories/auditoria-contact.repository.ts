@@ -278,16 +278,29 @@ export class AuditoriaContactRepository {
   }
 
   async getDetalleAuditoria(
-    nitAgente: number,
+    nitAgente: number | null,
     year: number,
     month: number,
   ): Promise<Record<string, unknown>[]> {
+    const filtroAgente =
+      nitAgente == null
+        ? Prisma.sql`AND nit_agente IN (
+            SELECT u.nit_usuario
+            FROM w_sist_usuarios u
+            INNER JOIN postv_perfiles p ON p.id_perfil = u.perfil_postventa
+            WHERE p.id_perfil = 31
+          )`
+        : Prisma.sql`AND nit_agente = ${nitAgente}`;
     return this.prisma.$queryRaw(Prisma.sql`
-      SELECT CONVERT(varchar, fecha_creacion, 103) as fecha_c, *
+      SELECT
+        CONVERT(varchar, fecha_creacion, 103) as fecha_c,
+        CONVERT(varchar(20), nit_agente) as nit_agente,
+        puntuacion,
+        id_auditoria
       FROM postv_auditoria_agente
       WHERE YEAR(fecha_creacion) = ${year}
         AND MONTH(fecha_creacion) = ${month}
-        AND nit_agente = ${nitAgente}
+        ${filtroAgente}
       ORDER BY fecha_creacion DESC
     `);
   }
