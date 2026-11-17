@@ -391,7 +391,9 @@ export class EncuestasPrismaRepository implements IEncuestasRepository {
 
   async buscarEncuestaByPlaca(
     placa: string,
+    incluirRespondidas = false,
   ): Promise<VehiculoEncuestaQr | null> {
+    const incluir = incluirRespondidas ? 1 : 0;
     const rows = await this.prisma.$queryRaw<
       Array<Record<string, unknown>>
     >(Prisma.sql`
@@ -411,7 +413,7 @@ export class EncuestasPrismaRepository implements IEncuestasRepository {
       LEFT JOIN v_vh_vehiculos v ON v.placa = e.placa
       LEFT JOIN terceros t ON t.nit = v.nit_comprador
       WHERE e.placa = ${placa}
-        AND o.encuesta IS NULL
+        AND (${incluir} = 1 OR o.encuesta IS NULL)
       ORDER BY o.fecha_solicitud DESC
     `);
     const r = rows[0];

@@ -2,6 +2,19 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { IEncuestasRepository } from '../../domain/encuestas.repository';
 import { nowFechaHora, todayYmd } from '../utils/encuestas-fecha';
 
+/** Placa para recorrer la encuesta de salida sin una orden pendiente. Solo fuera de producción. */
+const PLACA_PRUEBA_DEV = 'ENB03F';
+const ORDEN_PRUEBA_DEV = 'DEV-ENB03F';
+const NIT_PRUEBA_DEV = 'DEVENB03F';
+
+function esDesarrollo(): boolean {
+  return process.env.NODE_ENV !== 'production';
+}
+
+function esPlacaPruebaDev(placa: string): boolean {
+  return esDesarrollo() && placa.trim().toUpperCase() === PLACA_PRUEBA_DEV;
+}
+
 @Injectable()
 export class EncuestaQrUseCase {
   constructor(private readonly repo: IEncuestasRepository) {}
@@ -13,11 +26,26 @@ export class EncuestaQrUseCase {
 
   async buscarPlaca(placa: string) {
     if (!placa?.trim()) throw new BadRequestException('Placa requerida');
-    const data = await this.repo.buscarEncuestaByPlaca(
-      placa.trim().toUpperCase(),
-    );
-    if (!data) return { response: 'error' as const };
-    return { response: 'success' as const, ...data };
+    const normalizada = placa.trim().toUpperCase();
+    const data = await this.repo.buscarEncuestaByPlaca(normalizada);
+    if (data) return { response: 'success' as const, ...data };
+    if (!esPlacaPruebaDev(normalizada)) return { response: 'error' as const };
+
+    const respondida = await this.repo.buscarEncuestaByPlaca(normalizada, true);
+    if (respondida) return { response: 'success' as const, ...respondida };
+    return {
+      response: 'success' as const,
+      numero: ORDEN_PRUEBA_DEV,
+      bodega: '1',
+      placa: PLACA_PRUEBA_DEV,
+      marca: 'PRUEBA',
+      des_modelo: 'DESARROLLO',
+      color: '',
+      nit_comprador: NIT_PRUEBA_DEV,
+      nombres: 'PLACA DE DESARROLLO',
+      mail: 'pruebas@codiesel.local',
+      celular: '3000000000',
+    };
   }
 
   async buscarNit(nit: string, placa: string) {
@@ -35,6 +63,12 @@ export class EncuestaQrUseCase {
     placa: string;
     opcion: number;
   }) {
+    if (esPlacaPruebaDev(body.placa)) {
+      return {
+        response: 'success' as const,
+        opcion: Number(body.opcion) === 0 ? 'el registro' : 'la actualizacion',
+      };
+    }
     const placa = body.placa.toUpperCase();
     if (Number(body.opcion) === 0) {
       const ok = await this.repo.insertContactoPlaca({
@@ -70,6 +104,9 @@ export class EncuestaQrUseCase {
     fieldMailUpdate: string;
     fieldPhoneUpdate: string;
   }) {
+    if (esDesarrollo() && String(body.fieldNit) === NIT_PRUEBA_DEV) {
+      return { response: 'success' as const };
+    }
     const ok = await this.repo.updateTercero(body.fieldNit, {
       mail: body.fieldMailUpdate,
       celular: body.fieldPhoneUpdate,
@@ -89,6 +126,13 @@ export class EncuestaQrUseCase {
     propietario: string | number;
     bodega?: string | number;
   }) {
+    if (
+      esDesarrollo() &&
+      String(body.numero) === ORDEN_PRUEBA_DEV &&
+      esPlacaPruebaDev(String(body.placa))
+    ) {
+      return { response: 'success' as const };
+    }
     const placa = String(body.placa).toUpperCase();
     const okInsert = await this.repo.insertEncuestaSatisfaccionQr({
       placa,
@@ -142,6 +186,9 @@ export class EncuestaQrUseCase {
     propietario: string | number;
     nit: string | number;
   }) {
+    if (esDesarrollo() && String(body.numero) === ORDEN_PRUEBA_DEV) {
+      return { response: 'success' as const };
+    }
     const fecha_encuesta = nowFechaHora();
     const dataOrder = {
       encuesta: 0,

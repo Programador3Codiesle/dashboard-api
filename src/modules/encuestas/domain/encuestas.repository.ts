@@ -133,6 +133,7 @@ export abstract class IEncuestasRepository {
   abstract listarPreguntasEncuesta(): Promise<PreguntaEncuesta[]>;
   abstract buscarEncuestaByPlaca(
     placa: string,
+    incluirRespondidas?: boolean,
   ): Promise<VehiculoEncuestaQr | null>;
   abstract buscarContactoByNit(
     nit: string,
