@@ -612,23 +612,78 @@ export class EncuestasPrismaRepository implements IEncuestasRepository {
     pregunta5: string | null;
     fuente: string;
     bod: string | number;
+    numeroOrden?: string;
+  }): Promise<boolean> {
+    const pregunta3 = data.pregunta3 == null ? '' : String(data.pregunta3);
+    const pregunta4 = data.pregunta4 == null ? '' : String(data.pregunta4);
+    try {
+      if (data.numeroOrden) {
+        await this.prisma.$executeRaw(Prisma.sql`
+          INSERT INTO postv_encuesta_satisfaccion_qr (
+            placa, fecha, pregunta1, pregunta2, pregunta3, pregunta4, pregunta5,
+            fuente, bod, numero_orden
+          )
+          VALUES (
+            ${data.placa},
+            CONVERT(VARCHAR, GETDATE(), 23),
+            ${String(data.pregunta1)},
+            ${String(data.pregunta2)},
+            ${pregunta3},
+            ${pregunta4},
+            ${data.pregunta5},
+            ${data.fuente},
+            ${String(data.bod)},
+            ${data.numeroOrden}
+          )
+        `);
+      } else {
+        await this.prisma.$executeRaw(Prisma.sql`
+          INSERT INTO postv_encuesta_satisfaccion_qr (
+            placa, fecha, pregunta1, pregunta2, pregunta3, pregunta4, pregunta5,
+            fuente, bod
+          )
+          VALUES (
+            ${data.placa},
+            CONVERT(VARCHAR, GETDATE(), 23),
+            ${String(data.pregunta1)},
+            ${String(data.pregunta2)},
+            ${pregunta3},
+            ${pregunta4},
+            ${data.pregunta5},
+            ${data.fuente},
+            ${String(data.bod)}
+          )
+        `);
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  async marcarEncuestaRealizada(data: {
+    numero: string;
+    placa: string;
+    bodega: string;
+    fechaEncuesta: string;
   }): Promise<boolean> {
     try {
+      const updated = await this.prisma.$executeRaw(Prisma.sql`
+        UPDATE postv_taller_jefe_ord_salida
+        SET encuesta = 1, fecha_encuesta = ${data.fechaEncuesta}
+        WHERE numero = ${data.numero}
+      `);
+      if (Number(updated) > 0) return true;
       await this.prisma.$executeRaw(Prisma.sql`
-        INSERT INTO postv_encuesta_satisfaccion_qr (
-          placa, fecha, pregunta1, pregunta2, pregunta3, pregunta4, pregunta5,
-          fuente, bod
+        INSERT INTO postv_taller_jefe_ord_salida (
+          numero, placa_vh, bodega_o, encuesta, fecha_encuesta
         )
         VALUES (
+          ${data.numero},
           ${data.placa},
-          CONVERT(VARCHAR, GETDATE(), 23),
-          ${String(data.pregunta1)},
-          ${String(data.pregunta2)},
-          ${data.pregunta3 == null ? '' : String(data.pregunta3)},
-          ${data.pregunta4 == null ? '' : String(data.pregunta4)},
-          ${data.pregunta5},
-          ${data.fuente},
-          ${String(data.bod)}
+          ${data.bodega},
+          1,
+          ${data.fechaEncuesta}
         )
       `);
       return true;

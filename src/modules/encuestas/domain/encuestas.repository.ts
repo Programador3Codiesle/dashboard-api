@@ -174,7 +174,10 @@ export abstract class IEncuestasRepository {
     bod: string | number;
     numero_orden: string | number;
   }): Promise<boolean>;
-  /** INSERT de `insert_encuesta_satisfaccion_qr_ventanilla` (sin `numero_orden`). */
+  /**
+   * INSERT de `insert_encuesta_satisfaccion_qr_ventanilla`.
+   * `numeroOrden` se guarda cuando la placa tiene una orden con encuesta pendiente.
+   */
   abstract insertEncuestaSatisfaccionQrVentanilla(data: {
     placa: string;
     fecha: string;
@@ -185,6 +188,14 @@ export abstract class IEncuestasRepository {
     pregunta5: string | null;
     fuente: string;
     bod: string | number;
+    numeroOrden?: string;
+  }): Promise<boolean>;
+  /** Marca la orden de salida como encuestada sin pisar propietario ni usuario. */
+  abstract marcarEncuestaRealizada(data: {
+    numero: string;
+    placa: string;
+    bodega: string;
+    fechaEncuesta: string;
   }): Promise<boolean>;
   abstract selectOrdenSalida(numero: string | number): Promise<boolean>;
   abstract updateOrdenSalida(

@@ -29,7 +29,23 @@ export class EncuestaQrUseCase {
     const normalizada = placa.trim().toUpperCase();
     const data = await this.repo.buscarEncuestaByPlaca(normalizada);
     if (data) return { response: 'success' as const, ...data };
-    if (!esPlacaPruebaDev(normalizada)) return { response: 'error' as const };
+    if (!esPlacaPruebaDev(normalizada)) {
+      const yaRegistrada = await this.repo.buscarEncuestaByPlaca(
+        normalizada,
+        true,
+      );
+      if (yaRegistrada) {
+        return {
+          response: 'error' as const,
+          message:
+            'Esta orden ya tiene una encuesta registrada. Solo se puede responder una vez por orden. Cuando el vehículo ingrese de nuevo, podrá realizar otra encuesta.',
+        };
+      }
+      return {
+        response: 'error' as const,
+        message: `No hay una orden pendiente para la placa ${normalizada}. Verifique la placa o acérquese al personal del taller.`,
+      };
+    }
 
     const respondida = await this.repo.buscarEncuestaByPlaca(normalizada, true);
     if (respondida) return { response: 'success' as const, ...respondida };
@@ -239,6 +255,23 @@ export class EncuestaQrUseCase {
         'Error todos los Campos deden ser completado',
       );
     }
+    const orden = await this.repo.buscarEncuestaByPlaca(placa);
+    const numeroOrden = orden?.numero?.trim() ?? '';
+    if (!numeroOrden) {
+      const yaRegistrada = await this.repo.buscarEncuestaByPlaca(placa, true);
+      if (yaRegistrada) {
+        return {
+          ok: false,
+          sinOrdenPendiente: false,
+          message:
+            'Esta orden ya tiene una encuesta registrada. Solo se puede cargar una vez por orden. Cuando el vehículo ingrese con una orden nueva, se puede encuestar otra vez.',
+        };
+      }
+    }
+    const bodegaOrden =
+      orden?.bodega != null && String(orden.bodega).trim() !== ''
+        ? String(orden.bodega).trim()
+        : bodega;
     const ok = await this.repo.insertEncuestaSatisfaccionQrVentanilla({
       placa,
       fecha: todayYmd(),
@@ -248,13 +281,25 @@ export class EncuestaQrUseCase {
       pregunta4: body.pregunta5 ?? '',
       pregunta5: detalle,
       fuente: 'QR',
-      bod: bodega,
+      bod: numeroOrden ? bodegaOrden : bodega,
+      numeroOrden: numeroOrden || undefined,
     });
+    if (ok && numeroOrden) {
+      await this.repo.marcarEncuestaRealizada({
+        numero: numeroOrden,
+        placa,
+        bodega: bodegaOrden,
+        fechaEncuesta: nowFechaHora(),
+      });
+    }
     return {
       ok,
-      message: ok
-        ? 'Encuesta Cargada de Manera Exitosa'
-        : 'Error al Cargar La Encuesta',
+      sinOrdenPendiente: ok && !numeroOrden,
+      message: !ok
+        ? 'Error al Cargar La Encuesta'
+        : numeroOrden
+          ? 'Encuesta Cargada de Manera Exitosa'
+          : 'Encuesta cargada. Esta placa no tiene una orden pendiente, por eso no quedará en los informes por orden.',
     };
   }
 }
