@@ -153,9 +153,6 @@ export class ValidarPlacaQrQueryDto {
 
 export class ResponderQrVentanillaDto {
   @IsString()
-  bodega!: string;
-
-  @IsString()
   placa!: string;
 
   /** POST name="2" en legado (pregunta1 en tabla). */

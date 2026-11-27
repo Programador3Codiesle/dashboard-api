@@ -237,7 +237,6 @@ export class EncuestaQrUseCase {
   }
 
   async responderVentanilla(body: {
-    bodega: string;
     placa: string;
     pregunta2?: string;
     pregunta3?: string;
@@ -245,33 +244,42 @@ export class EncuestaQrUseCase {
     pregunta5?: string;
     pregunta7: string;
   }) {
-    const bodega = String(body.bodega ?? '').trim();
     const placa = String(body.placa ?? '')
       .trim()
       .toUpperCase();
     const detalle = String(body.pregunta7 ?? '').trim();
-    if (!bodega || bodega === '0' || !placa || !detalle) {
+    if (!placa || !detalle) {
       throw new BadRequestException(
         'Error todos los Campos deden ser completado',
       );
     }
     const orden = await this.repo.buscarEncuestaByPlaca(placa);
     const numeroOrden = orden?.numero?.trim() ?? '';
+    const bodegaOrden =
+      orden?.bodega != null && String(orden.bodega).trim() !== ''
+        ? String(orden.bodega).trim()
+        : '';
     if (!numeroOrden) {
       const yaRegistrada = await this.repo.buscarEncuestaByPlaca(placa, true);
       if (yaRegistrada) {
         return {
           ok: false,
-          sinOrdenPendiente: false,
           message:
             'Esta orden ya tiene una encuesta registrada. Solo se puede cargar una vez por orden. Cuando el vehículo ingrese con una orden nueva, se puede encuestar otra vez.',
         };
       }
+      return {
+        ok: false,
+        message: `No hay una orden pendiente para la placa ${placa}. La encuesta no se guardó.`,
+      };
     }
-    const bodegaOrden =
-      orden?.bodega != null && String(orden.bodega).trim() !== ''
-        ? String(orden.bodega).trim()
-        : bodega;
+    if (!bodegaOrden) {
+      return {
+        ok: false,
+        message:
+          'La orden pendiente no tiene bodega. La encuesta no se guardó.',
+      };
+    }
     const ok = await this.repo.insertEncuestaSatisfaccionQrVentanilla({
       placa,
       fecha: todayYmd(),
@@ -281,10 +289,10 @@ export class EncuestaQrUseCase {
       pregunta4: body.pregunta5 ?? '',
       pregunta5: detalle,
       fuente: 'QR',
-      bod: numeroOrden ? bodegaOrden : bodega,
-      numeroOrden: numeroOrden || undefined,
+      bod: bodegaOrden,
+      numeroOrden,
     });
-    if (ok && numeroOrden) {
+    if (ok) {
       await this.repo.marcarEncuestaRealizada({
         numero: numeroOrden,
         placa,
@@ -294,12 +302,9 @@ export class EncuestaQrUseCase {
     }
     return {
       ok,
-      sinOrdenPendiente: ok && !numeroOrden,
-      message: !ok
-        ? 'Error al Cargar La Encuesta'
-        : numeroOrden
-          ? 'Encuesta Cargada de Manera Exitosa'
-          : 'Encuesta cargada. Esta placa no tiene una orden pendiente, por eso no quedará en los informes por orden.',
+      message: ok
+        ? 'Encuesta Cargada de Manera Exitosa'
+        : 'Error al Cargar La Encuesta',
     };
   }
 }

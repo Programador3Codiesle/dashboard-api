@@ -117,7 +117,6 @@ export class EncuestasFacade {
   }
 
   responderQrVentanilla(body: {
-    bodega: string;
     placa: string;
     pregunta2?: string;
     pregunta3?: string;
